@@ -8,6 +8,7 @@ import { ClientProviders } from "@/context/provider/client-provider";
 import { ClientLayoutWrapper } from "@/components/layout/main/local-layout";
 import { locales } from "@/i18n";
 import PageProgressBar from "@/components/shared/progressbar/Nprogressbar/global-n-progress";
+import { ToastProvider } from "@/components/shared/toast/app-toast";
 
 const geistSans = localFont({
   src: "../../../public/fonts/GeistVF.woff",
@@ -52,7 +53,7 @@ export default async function LocaleLayout({
             <ClientLayoutWrapper>
               {" "}
               <PageProgressBar />
-              {children}
+              <ToastProvider>{children}</ToastProvider>
             </ClientLayoutWrapper>
           </ClientProviders>
         </NextIntlClientProvider>

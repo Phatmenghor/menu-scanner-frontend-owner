@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import { useTranslations } from "next-intl";
+import { AppToast } from "@/components/shared/toast/app-toast";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +55,13 @@ export default function LoginPage() {
         });
 
         if (response) {
-          toast.success(t("messages.welcome"));
+          AppToast({
+            type: "success",
+            message: t("messages.welcome") as string,
+            duration: 3000,
+            position: "top-right",
+          });
+
           router.replace(ROUTES.DASHBOARD.INDEX);
         }
       } catch (error: any) {
