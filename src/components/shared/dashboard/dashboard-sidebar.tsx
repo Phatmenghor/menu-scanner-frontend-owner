@@ -52,25 +52,34 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-card transition-all duration-300 ease-in-out",
-          isOpen ? "w-64" : "w-[70px]",
+          isOpen ? "w-64" : "w-[60px]", // Increased width for better spacing
           isMobile && !isOpen && "hidden"
         )}
       >
-        <div className="flex h-14 items-center justify-between border-b px-4">
+        {/* Header with better branding */}
+        <div className="flex h-16 items-center justify-between border-b px-4 bg-gradient-to-r from-primary/10 to-accent/10">
           {isOpen && (
             <Link
               href={ROUTES.DASHBOARD.INDEX}
-              className={cn(
-                "flex items-center gap-2 font-semibold",
-                !isOpen && "justify-center"
-              )}
+              className="flex items-center gap-3 font-semibold text-base hover:opacity-80 transition-opacity"
             >
-              <img
-                src="/assets/favicon.ico"
-                alt="Special Account"
-                className="w-8 h-8"
-              />
-              <span>Template Account</span>
+              <div className="relative">
+                <img
+                  src="/assets/favicon.ico"
+                  alt="Menu Scanner"
+                  className="w-8 h-8 rounded-lg shadow-sm"
+                />
+                {/* Optional: Add a subtle glow effect */}
+                <div className="absolute inset-0 w-8 h-8 rounded-lg bg-primary/20 blur-sm -z-10"></div>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-foreground font-bold text-lg leading-tight">
+                  Menu Scanner
+                </span>
+                <span className="text-muted-foreground text-xs font-normal">
+                  Dashboard
+                </span>
+              </div>
             </Link>
           )}
 
@@ -79,7 +88,7 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
             size="icon"
             onClick={onToggle}
             className={cn(
-              "transition-transform duration-300",
+              "h-8 w-8 transition-transform duration-300 hover:bg-accent/50",
               !isOpen && "rotate-180"
             )}
           >
@@ -90,22 +99,31 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
             )}
           </Button>
         </div>
-        <ScrollArea className="flex-1 py-2">
-          <nav className="grid gap-1 px-2">
+
+        {/* Navigation */}
+        <ScrollArea className="flex-1 py-4">
+          <nav className="grid gap-2 px-3">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground overflow-hidden",
-                  pathname === item.href && "bg-accent text-accent-foreground",
-                  !isOpen && "justify-center px-0"
+                  "flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:shadow-sm overflow-hidden",
+                  pathname === item.href &&
+                    "bg-primary text-primary-foreground shadow-md",
+                  !isOpen && "justify-center px-0 mx-1"
                 )}
+                title={!isOpen ? item.title : undefined}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon
+                  className={cn(
+                    "h-5 w-5 flex-shrink-0",
+                    pathname === item.href && "text-primary-foreground"
+                  )}
+                />
                 <span
                   className={cn(
-                    "whitespace-nowrap transition-all duration-300 ease-in-out",
+                    "whitespace-nowrap transition-all duration-300 ease-in-out font-medium",
                     isOpen
                       ? "opacity-100 translate-x-0 max-w-xs"
                       : "opacity-0 -translate-x-4 max-w-0"
@@ -117,7 +135,6 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
             ))}
           </nav>
         </ScrollArea>
-        <div className="border-t p-4"></div>
       </div>
     </>
   );

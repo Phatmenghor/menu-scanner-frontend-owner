@@ -212,7 +212,9 @@ export default function UserPage() {
                       key={index}
                       className="text-xs font-semibold text-muted-foreground"
                     >
-                      <div className="flex items-center gap-1">
+                      <div
+                        className={`flex items-center gap-1 ${header.className}`}
+                      >
                         {header.icon && <header.icon className="w-4 h-4" />}
                         <span>{header.label}</span>
                       </div>
@@ -283,11 +285,11 @@ export default function UserPage() {
                             // disabled={isSubmitting || !canModify}
                             aria-label="Toggle user status"
                             className={cn(
-                              "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                              "relative inline-flex h-6 w-10 items-center rounded-full transition-colors",
                               // canModify
                               1
-                                ? "bg-gray-300 dark:bg-gray-600 data-[state=checked]:bg-orange-500 dark:data-[state=checked]:bg-orange-400"
-                                : "bg-gray-300 dark:bg-orange-600 opacity-50 cursor-not-allowed"
+                                ? "bg-gray-300 dark:bg-gray-600 data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary"
+                                : "bg-gray-300 dark:bg-primary opacity-50 cursor-not-allowed"
                             )}
                           >
                             <div
@@ -310,7 +312,7 @@ export default function UserPage() {
 
                         {/* Actions */}
                         <TableCell>
-                          <div className="flex items-center justify-end">
+                          <div className="flex items-center justify-center">
                             <Button
                               variant="ghost"
                               // onClick={() => {

@@ -21,7 +21,7 @@ import { ThemeToggle } from "./theme-toggle";
 import LanguageSwitcher from "../common/language-switcher";
 
 interface TopBarProps {
-  onMenuClick: () => void;
+  onMenuClick?: () => void;
 }
 
 export function TopBar({ onMenuClick }: TopBarProps) {

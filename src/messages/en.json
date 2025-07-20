@@ -8,5 +8,27 @@
       "createdAt": "Created At",
       "actions": "Actions"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Admin Panel Login",
+      "subtitle": "Enter your credentials to continue",
+      "username": "Username",
+      "password": "Password",
+      "username-placeholder": "name@example.com",
+      "password-placeholder": "••••••••",
+      "sign-in": "Sign in",
+      "signing-in": "Signing in...",
+      "loading": "Loading..."
+    },
+    "validation": {
+      "email-required": "Please enter a valid email address",
+      "password-min": "Password must be at least 8 characters"
+    },
+    "messages": {
+      "welcome": "Welcome back to User management system",
+      "incorrect-credentials": "Incorrect email or password.",
+      "error-general": "Something went wrong. Please try again."
+    }
   }
 }

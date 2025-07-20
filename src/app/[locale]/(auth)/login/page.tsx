@@ -19,77 +19,83 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/AppRoutes/routes";
-
-const formSchema = z.object({
-  username: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters",
-  }),
-});
-
-type formData = z.infer<typeof formSchema>;
+import { useTranslations } from "next-intl";
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
-
+  const [isPending, startTransition] = useTransition();
+  const t = useTranslations("auth");
   const router = useRouter();
 
-  const form = useForm<formData>({
+  // Create form schema with translations
+  const formSchema = z.object({
+    username: z.string().email(t("validation.email-required")),
+    password: z.string().min(8, {
+      message: t("validation.password-min"),
+    }),
+  });
+
+  type FormData = z.infer<typeof formSchema>;
+
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: "admin@example.com",
-      password: "admin123",
+      password: "88889999",
     },
   });
 
-  async function onSubmit(values: formData) {
-    setIsLoading(true);
-    try {
-      const response = await loginService({
-        username: values.username,
-        password: values.password,
-      });
-
-      if (response) {
-        router.replace(ROUTES.DASHBOARD.INDEX);
-        startTransition(() => {
-          toast.success("Welcome back to User management system");
+  async function onSubmit(values: FormData) {
+    startTransition(async () => {
+      try {
+        const response = await loginService({
+          username: values.username,
+          password: values.password,
         });
-      }
-    } catch (error: any) {
-      const errorMsg =
-        error?.errorMessage === "An unexpected error occurred: Bad credentials"
-          ? "Incorrect email or password."
-          : error?.errorMessage ||
-            error?.rawError?.message ||
-            error?.message ||
-            "Something went wrong. Please try again.";
 
-      toast.error(errorMsg);
-    } finally {
-      setIsLoading(false);
-    }
+        if (response) {
+          toast.success(t("messages.welcome"));
+          router.replace(ROUTES.DASHBOARD.INDEX);
+        }
+      } catch (error: any) {
+        const errorMsg =
+          error?.errorMessage ===
+          "An unexpected error occurred: Bad credentials"
+            ? t("messages.incorrect-credentials")
+            : error?.errorMessage ||
+              error?.rawError?.message ||
+              error?.message ||
+              t("messages.error-general");
+
+        toast.error(errorMsg);
+      }
+    });
   }
 
+  const isLoading = form.formState.isSubmitting || isPending;
+
   return (
-    <main className="flex h-screen items-center justify-center bg-background">
-      <section className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
+    <main className="flex mt-40 items-center justify-center bg-background">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-32 w-96 h-96 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-600/20 blur-3xl" />
+        <div className="absolute -bottom-40 -left-32 w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-400/20 to-cyan-600/20 blur-3xl" />
+      </div>
+      <section className="flex w-full max-w-md flex-col justify-center space-y-6">
         <article className="relative group">
           {/* Gradient border animation */}
           <span
-            aria-hidden
+            aria-hidden="true"
             className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 opacity-70 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200 animate-gradient-x"
           />
+
           {/* Login card */}
           <section className="relative rounded-xl border bg-card p-8 shadow-xl">
-            <header className="space-y-2 text-center">
+            <header className="space-y-2 text-center mb-6">
               <h1 className="text-2xl font-bold tracking-tight">
-                Admin Panel Login
+                {t("login.title")}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Enter your credentials to continue
+                {t("login.subtitle")}
               </p>
             </header>
 
@@ -98,23 +104,18 @@ export default function LoginPage() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
-                {isLoading ?? (
-                  <div className="flex justify-center items-center space-x-2">
-                    <Loader2 className="animate-spin h-6 w-6 text-black" />
-                    <span className="text-sm text-gray-500">Loading...</span>
-                  </div>
-                )}
                 <FormField
                   control={form.control}
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Username</FormLabel>
+                      <FormLabel>{t("login.username")}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="name@example.com"
-                          disabled={form.formState.isSubmitting}
-                          autoComplete="off"
+                          type="email"
+                          placeholder={t("login.username-placeholder")}
+                          disabled={isLoading}
+                          autoComplete="email"
                           {...field}
                         />
                       </FormControl>
@@ -122,19 +123,20 @@ export default function LoginPage() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t("login.password")}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type={showPassword ? "text" : "password"}
-                            disabled={form.formState.isSubmitting}
-                            placeholder="••••••••"
-                            autoComplete="new-password"
+                            disabled={isLoading}
+                            placeholder={t("login.password-placeholder")}
+                            autoComplete="current-password"
                             {...field}
                           />
                           <Button
@@ -143,6 +145,12 @@ export default function LoginPage() {
                             size="icon"
                             className="absolute hover:bg-transparent right-0 top-0 h-full px-3"
                             onClick={() => setShowPassword(!showPassword)}
+                            disabled={isLoading}
+                            aria-label={
+                              showPassword
+                                ? t("login.hide-password")
+                                : t("login.show-password")
+                            }
                           >
                             {showPassword ? (
                               <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -156,17 +164,39 @@ export default function LoginPage() {
                     </FormItem>
                   )}
                 />
+
                 <Button
                   type="submit"
                   className="w-full shadow-md active:scale-95 font-semibold transition-all duration-300 hover:shadow-lg focus:outline-none"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Signing in..." : "Sign in"}
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isLoading ? t("login.signing-in") : t("login.sign-in")}
                 </Button>
               </form>
             </Form>
           </section>
         </article>
+        <div className="text-center mt-8">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            By signing in, you agree to our{" "}
+            <a
+              href="#"
+              className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+            >
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a
+              href="#"
+              className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+            >
+              Privacy Policy
+            </a>
+          </p>
+        </div>
       </section>
     </main>
   );

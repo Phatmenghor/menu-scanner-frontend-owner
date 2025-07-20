@@ -6,7 +6,6 @@ export const ROUTES = {
   },
   DASHBOARD: {
     INDEX: "/user",
-    PRODUCT: "/product",
   },
 };
 
@@ -15,10 +14,5 @@ export const navItems = [
     title: "Users",
     href: ROUTES.DASHBOARD.INDEX,
     icon: User2,
-  },
-  {
-    title: "Products",
-    href: ROUTES.DASHBOARD.PRODUCT,
-    icon: List,
   },
 ];

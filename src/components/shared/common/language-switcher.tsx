@@ -128,7 +128,11 @@ export default function LanguageSwitcher({
             {isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <span className="text-lg">{currentLocaleConfig.flag}</span>
+              <img
+                src={currentLocaleConfig.flag}
+                alt={`${currentLocaleConfig.nativeName} flag`}
+                className="w-5 h-4 object-cover rounded-sm"
+              />
             )}
           </Button>
         </DropdownMenuTrigger>
@@ -147,7 +151,11 @@ export default function LanguageSwitcher({
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <span>{config.flag}</span>
+                  <img
+                    src={config.flag}
+                    alt={`${config.nativeName} flag`}
+                    className="w-5 h-4 object-cover rounded-sm"
+                  />
                   <span className="font-medium">{config.nativeName}</span>
                 </div>
                 {isSelected && <Check className="h-4 w-4" />}
@@ -181,9 +189,11 @@ export default function LanguageSwitcher({
             ) : (
               <Languages className="h-4 w-4 mr-2" />
             )}
-            <span className="hidden sm:inline-block mr-1">
-              {currentLocaleConfig.flag}
-            </span>
+            <img
+              src={currentLocaleConfig.flag}
+              alt={`${currentLocaleConfig.nativeName} flag`}
+              className="h-4 w-6 rounded-sm object-cover"
+            />
             <span className="font-medium">
               {currentLocaleConfig.nativeName}
             </span>
@@ -211,7 +221,11 @@ export default function LanguageSwitcher({
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-lg">{config.flag}</span>
+                  <img
+                    src={config.flag}
+                    alt={`${config.nativeName} flag`}
+                    className="w-5 h-4 object-cover rounded-sm"
+                  />{" "}
                   <div className="flex flex-col">
                     <span className="font-medium">{config.nativeName}</span>
                     <span className="text-xs text-muted-foreground">

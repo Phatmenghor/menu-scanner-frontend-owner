@@ -1,4 +1,5 @@
 import { locales } from "@/i18n";
+import { AppLanguage } from "../language/language";
 
 export enum Status {
   ACTIVE = "ACTIVE",
@@ -16,19 +17,19 @@ export const localeConfig = {
   en: {
     name: "English",
     nativeName: "English",
-    flag: "🇺🇸",
+    flag: AppLanguage.en,
     code: "EN",
   },
   kh: {
     name: "Khmer",
     nativeName: "ខ្មែរ",
-    flag: "🇰🇭",
+    flag: AppLanguage.kh,
     code: "KH",
   },
   "zh-CN": {
     name: "Chinese",
     nativeName: "简体中文",
-    flag: "🇨🇳",
+    flag: AppLanguage["zh-CN"],
     code: "ZH",
   },
 } as const;

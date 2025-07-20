@@ -20,7 +20,7 @@ const mockUsers: MockUser[] = [
   {
     id: "1",
     email: "admin@example.com",
-    password: "admin123",
+    password: "88889999",
     userRole: "ADMIN",
     accessToken: "mocked-admin-token-abc123",
   },

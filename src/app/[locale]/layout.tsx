@@ -10,12 +10,12 @@ import { locales } from "@/i18n";
 import PageProgressBar from "@/components/shared/progressbar/Nprogressbar/global-n-progress";
 
 const geistSans = localFont({
-  src: "../../public/fonts/GeistVF.woff",
+  src: "../../../public/fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
 const geistMono = localFont({
-  src: "../../public/fonts/GeistMonoVF.woff",
+  src: "../../../public/fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
 });

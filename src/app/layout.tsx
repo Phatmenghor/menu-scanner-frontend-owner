@@ -2,8 +2,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Template App",
-  description: "Template description",
+  title: "Red Menu Scanner App",
+  description: "Menu Scanner Application",
 };
 
 // app/layout.tsx
