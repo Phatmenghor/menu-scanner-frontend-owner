@@ -7,7 +7,7 @@ CURRENT_TIME=$(date "+%Y-%m-%d %H:%M:%S")
 git add .
 
 # Commit with date-time message
-git commit -m "Auto commit on $CURRENT_TIME"
+git commit -m "Push on $CURRENT_TIME"
 
 # Push to main branch
 git push origin development
