@@ -31,7 +31,6 @@ import { cn } from "@/lib/utils";
 import {
   getUsersService,
   PaginatedUsersResponse,
-  User,
 } from "@/services/dashboard/user/user.service";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";

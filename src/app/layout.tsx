@@ -1,20 +1,12 @@
-// app/layout.tsx
-import type { Metadata } from "next";
+// app/layout.tsx (optional - some setups don't need this)
+import type { ReactNode } from "react";
 
-export const metadata: Metadata = {
-  title: "Red Menu Scanner App",
-  description: "Menu Scanner Application",
+type Props = {
+  children: ReactNode;
 };
 
-// app/layout.tsx
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html>
-      <body>{children}</body>
-    </html>
-  );
+// Since we have a `[locale]` layout, the root layout must
+// not render the HTML element, as that's handled by the locale layout
+export default function RootLayout({ children }: Props) {
+  return children;
 }

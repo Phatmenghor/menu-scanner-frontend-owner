@@ -116,11 +116,15 @@ export default function LoginPage() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("login.username")}</FormLabel>
+                      <FormLabel htmlFor="username">
+                        {t("login.username")}
+                      </FormLabel>
                       <FormControl>
                         <Input
+                          id="username"
                           type="email"
                           placeholder={t("login.username-placeholder")}
+                          autoFocus
                           disabled={isLoading}
                           autoComplete="email"
                           {...field}
@@ -136,12 +140,16 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("login.password")}</FormLabel>
+                      <FormLabel htmlFor="password">
+                        {t("login.password")}
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
+                            id="password"
                             type={showPassword ? "text" : "password"}
                             disabled={isLoading}
+                            autoFocus
                             placeholder={t("login.password-placeholder")}
                             autoComplete="current-password"
                             {...field}
@@ -153,11 +161,6 @@ export default function LoginPage() {
                             className="absolute hover:bg-transparent right-0 top-0 h-full px-3"
                             onClick={() => setShowPassword(!showPassword)}
                             disabled={isLoading}
-                            aria-label={
-                              showPassword
-                                ? t("login.hide-password")
-                                : t("login.show-password")
-                            }
                           >
                             {showPassword ? (
                               <EyeOff className="h-4 w-4 text-muted-foreground" />

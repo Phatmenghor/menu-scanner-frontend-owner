@@ -6,6 +6,7 @@ import { defaultLocale, locales } from "@/i18n";
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale, // Force zh-CN as default
+  localeDetection: true,
   localePrefix: "always", // This ensures locale is always in URL
 });
 
@@ -18,7 +19,9 @@ export default function middleware(req: NextRequest) {
   // Extract locale from pathname or default to zh-CN
   const segments = pathname.split("/").filter(Boolean);
   const currentLocale =
-    segments[0] && locales.includes(segments[0] as any) ? segments[0] : "zh-CN";
+    segments[0] && locales.includes(segments[0] as any)
+      ? segments[0]
+      : defaultLocale;
 
   // Define public paths that don't require authentication
   const publicPaths = [`/${currentLocale}/login`];
@@ -60,7 +63,7 @@ export const config = {
 
     // Set a cookie to remember the previous locale for
     // all requests that have a locale prefix
-    "/(kh|en)/:path*",
+    "/(en|kh|zh-CN)/:path*",
 
     // Enable redirects that add missing locales
     // (e.g. `/pathnames` -> `/en/pathnames`)

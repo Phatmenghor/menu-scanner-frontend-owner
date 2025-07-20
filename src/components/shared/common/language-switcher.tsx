@@ -30,9 +30,10 @@ export default function LanguageSwitcher({
   const router = useRouter();
   const pathname = usePathname();
   const currentLocale = useLocale();
-  const t = useTranslations("common"); // Add translations for UI text
+  const t = useTranslations();
   const [isClient, setIsClient] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false); // Track dropdown open state
 
   useEffect(() => {
     setIsClient(true);
@@ -41,18 +42,19 @@ export default function LanguageSwitcher({
   const handleLanguageChange = (newLocale: string) => {
     if (newLocale === currentLocale) return;
 
-    startTransition(() => {
-      // Remove current locale from pathname
-      const pathWithoutLocale =
-        pathname.replace(`/${currentLocale}`, "") || "/";
-      const newPath = `/${newLocale}${pathWithoutLocale}`;
+    setOpen(false); // Close dropdown first
 
-      // Add loading state and smooth transition
-      router.push(newPath);
-    });
+    // Delay navigation to avoid DOM cleanup race condition
+    setTimeout(() => {
+      startTransition(() => {
+        const pathWithoutLocale =
+          pathname.replace(`/${currentLocale}`, "") || "/";
+        const newPath = `/${newLocale}${pathWithoutLocale}`;
+        router.push(newPath);
+      });
+    }, 100); // Delay lets Dropdown unmount cleanly
   };
 
-  // Don't render until client-side to avoid hydration mismatch
   if (!isClient) {
     return (
       <div
@@ -64,10 +66,9 @@ export default function LanguageSwitcher({
   const currentLocaleConfig =
     localeConfig[currentLocale as keyof typeof localeConfig];
 
-  // Compact variant - just flag and code
   if (variant === "compact") {
     return (
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
@@ -114,10 +115,9 @@ export default function LanguageSwitcher({
     );
   }
 
-  // Flag only variant
   if (variant === "flag-only") {
     return (
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
@@ -167,7 +167,6 @@ export default function LanguageSwitcher({
     );
   }
 
-  // Default variant - full featured
   return (
     <div className={cn("flex items-center gap-2", className)}>
       {showBadge && (
@@ -176,7 +175,7 @@ export default function LanguageSwitcher({
         </Badge>
       )}
 
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
@@ -225,7 +224,7 @@ export default function LanguageSwitcher({
                     src={config.flag}
                     alt={`${config.nativeName} flag`}
                     className="w-5 h-4 object-cover rounded-sm"
-                  />{" "}
+                  />
                   <div className="flex flex-col">
                     <span className="font-medium">{config.nativeName}</span>
                     <span className="text-xs text-muted-foreground">
