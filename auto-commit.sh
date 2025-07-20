@@ -10,6 +10,6 @@ git add .
 git commit -m "Auto commit on $CURRENT_TIME"
 
 # Push to main branch
-git push origin development
+git push origin main
 
 echo "✅ Code pushed to 'development' branch at $CURRENT_TIME"
