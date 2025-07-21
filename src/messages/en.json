@@ -3,7 +3,8 @@
     "search": "Search users...",
     "table-header": {
       "email": "Email",
-      "role": "Role",
+      "fullname": "Fullname",
+      "userType": "UserType",
       "status": "Status",
       "createdAt": "Created At",
       "actions": "Actions"

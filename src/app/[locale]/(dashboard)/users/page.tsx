@@ -23,17 +23,15 @@ import {
 } from "@/components/ui/table";
 import {
   ModalMode,
+  Status,
   STATUS_FILTER,
+  USER_TYPE_OPTIONS,
+  UserType,
 } from "@/constants/AppResource/status/status";
 import {
   getUserTableHeaders,
   UserTableHeaders,
 } from "@/constants/AppResource/table/table";
-import {
-  getUsersService,
-  PaginatedUsersResponse,
-  User,
-} from "@/services/dashboard/user/user.service";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -55,24 +53,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ModalUser from "@/components/shared/modal/modal";
 import { getStatusBadge } from "@/components/shared/badge/status-badge";
-import { Pagination } from "@/components/ui/pagination";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
+import { AllUserResponse, UserModel } from "@/models/user/user.response";
+import {
+  createUserService,
+  getAllUserService,
+  updateUserService,
+} from "@/services/dashboard/user/user.service";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "@/models/user/user.request";
+import { UserFormData } from "@/models/user/user.schema";
+import ModalUser from "@/components/shared/modal/modal";
 
 export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<PaginatedUsersResponse | null>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<AllUserResponse | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(Status.ACTIVE);
+  const [userTypeFilter, setUserTypeFilter] = useState(UserType.BUSINESS_USER);
 
   const t = useTranslations("user");
   const headers = getUserTableHeaders(t);
@@ -104,25 +112,32 @@ export default function UserPage() {
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getUsersService();
+      const response = await getAllUserService({
+        search: debouncedSearchQuery,
+        pageNo: currentPage,
+        pageSize: 10,
+        userType: userTypeFilter,
+        accountStatus: statusFilter,
+      });
+      console.log("Fetched users:", response);
       setUsers(response);
     } catch (error: any) {
       console.log("Failed to fetch users: ", error);
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchQuery, statusFilter]);
+  }, [debouncedSearchQuery, statusFilter, userTypeFilter, currentPage]);
 
   useEffect(() => {
     loadUsers();
-  }, [loadUsers, debouncedSearchQuery, statusFilter]);
+  }, [loadUsers]);
 
   // Simplified search change handler - just updates the state, debouncing handles the rest
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  const handleExportToPdf = async (data: PaginatedUsersResponse | null) => {
+  const handleExportToPdf = async (data: AllUserResponse | null) => {
     setIsExportingToExcel(true);
     try {
       const columns: ExcelColumn[] = [
@@ -185,15 +200,104 @@ export default function UserPage() {
     }
   };
 
-  const handleEditUser = (user: User) => {
+  async function handleSubmit(formData: UserFormData) {
+    setIsSubmitting(true);
+    try {
+      const basePayload: CreateUserRequest = {
+        email: formData.email,
+        firstName: formData.first_name,
+        lastName: formData.last_name,
+        phoneNumber: formData.phoneNumber,
+        userType: formData.userType,
+        address: formData.address,
+        roles: formData.roles,
+        notes: formData.notes || "",
+        password: formData.password || "",
+        businessId: formData.businessId,
+        position: formData.position,
+      };
+
+      if (mode === ModalMode.CREATE_MODE) {
+        const addPayload: CreateUserRequest = {
+          ...basePayload,
+          roles: formData.roles ?? undefined,
+          businessId: formData.businessId,
+        };
+
+        const response = await createUserService(addPayload);
+        if (response) {
+          setUsers((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  content: [response, ...prev.content],
+                  totalElements: prev.totalElements + 1,
+                }
+              : {
+                  content: [response],
+                  pageNo: 1,
+                  pageSize: 10,
+                  totalElements: 1,
+                  totalPages: 1,
+                  hasNext: false,
+                  hasPrevious: false,
+                  first: true,
+                  last: true,
+                }
+          );
+          // Refresh data instead of manual state update for consistency
+          toast.success(
+            `User ${response.username || formData.email} added successfully`
+          );
+          setIsModalOpen(false);
+        }
+      } else if (mode === ModalMode.UPDATE_MODE && formData.id) {
+        const updatePayload: UpdateUserRequest = {
+          ...basePayload,
+          userType: formData.status ?? undefined,
+          roles: formData.roles ?? undefined,
+        };
+
+        const response = await updateUserService(formData.id, updatePayload);
+        if (response) {
+          setUsers((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  content: prev.content.map((user) =>
+                    user.id === formData.id ? response : user
+                  ),
+                }
+              : prev
+          );
+          // Refresh data instead of manual state update for consistency
+          toast.success(
+            `User ${response.username || formData.email} updated successfully`
+          );
+          setIsModalOpen(false);
+        }
+      }
+    } catch (error: any) {
+      console.error("Error submitting user form:", error);
+      toast.error(error.message || "An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const handleEditUser = (user: UserModel) => {
     setSelectedUser(user);
     setMode(ModalMode.UPDATE_MODE);
     setIsModalOpen(!isModalOpen);
   };
 
   // Handle status filter change - directly updates the filter value
-  const handleStatusChange = (status: string) => {
+  const handleStatusChange = (status: Status) => {
     setStatusFilter(status);
+  };
+
+  const handleUserTypeChange = (userType: UserType) => {
+    setUserTypeFilter(userType);
   };
 
   return (
@@ -235,36 +339,38 @@ export default function UserPage() {
           <div>
             <Button onClick={() => handleExportToPdf(users)}>Excel</Button>
           </div>
-          <div className="flex items-center gap-2">
-            <Select
-              value={statusFilter}
-              onValueChange={handleStatusChange}
-              disabled={isSubmitting}
-            >
-              <SelectTrigger className="w-[150px] text-xs h-9">
-                <SelectValue placeholder="Status" />
+          <div className="flex items-center gap-3">
+            <Select value={statusFilter} onValueChange={handleStatusChange}>
+              <SelectTrigger className="min-w-[150px] h-9 text-sm">
+                <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
                 {STATUS_FILTER.map((option) => (
                   <SelectItem
-                    className="text-xs"
                     key={option.value}
                     value={option.value}
+                    className="text-sm"
                   >
                     {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Role" />
+
+            <Select value={userTypeFilter} onValueChange={handleUserTypeChange}>
+              <SelectTrigger className="min-w-[150px] h-9 text-sm">
+                <SelectValue placeholder="Select User Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="moderator">Moderator</SelectItem>
-                <SelectItem value="user">User</SelectItem>
+                {USER_TYPE_OPTIONS.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-sm"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -344,13 +450,21 @@ export default function UserPage() {
                           </div>
                         </TableCell>
 
+                        {/* FullName */}
+                        <TableCell className="text-xs text-muted-foreground">
+                          {user?.fullName ||
+                            `${user.firstName} ${user.lastName}`}
+                        </TableCell>
+
                         {/* Role */}
                         <TableCell className="text-xs text-muted-foreground">
-                          <RoleBadge role={user?.role} />
+                          <RoleBadge role={user?.userType} />
                         </TableCell>
 
                         {/* Status Switch */}
-                        <TableCell>{getStatusBadge(user?.status)}</TableCell>
+                        <TableCell>
+                          {getStatusBadge(user?.accountStatus)}
+                        </TableCell>
 
                         {/* Created At */}
                         <TableCell className="text-sm text-muted-foreground">
@@ -379,7 +493,7 @@ export default function UserPage() {
                                 Reset password
                               </DropdownMenuItem>
                               <DropdownMenuItem>
-                                {user.status === "Active"
+                                {user.accountStatus === "Active"
                                   ? "Deactivate"
                                   : "Activate"}
                               </DropdownMenuItem>
@@ -404,7 +518,7 @@ export default function UserPage() {
                 setIsModalOpen(false);
               }}
               isSubmitting={isSubmitting}
-              onSave={() => {}}
+              onSave={handleSubmit}
               Data={selectedUser}
               mode={mode}
             />
