@@ -28,7 +28,16 @@ const nextConfig = {
       },
     ],
   },
-  trailingSlash: true,
+  async redirects() {
+    return [
+      {
+        source: "/:path*/",
+        has: [],
+        destination: "/:path*",
+        permanent: true,
+      },
+    ];
+  },
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     config.stats = "errors-only";
     config.ignoreWarnings = [

@@ -35,7 +35,7 @@ export const mockUsers: User[] = [
     email: "bob.smith@example.com",
     role: "DEVELOPER",
     profileUrl: "",
-    status: "inACTIVE",
+    status: "INACTIVE",
     createdAt: "2023-11-22T14:45:00Z",
   },
   {
@@ -71,7 +71,7 @@ export const mockUsers: User[] = [
     email: "fiona.patel@example.com",
     role: "USER",
     profileUrl: "",
-    status: "active",
+    status: "ACTIVE",
     createdAt: "2024-04-01T10:05:00Z",
   },
   {

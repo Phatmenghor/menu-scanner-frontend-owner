@@ -1,30 +1,30 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface UsePaginationOptions {
   baseRoute: string;
   defaultPageSize?: number;
-  totalPages?: number; // Add totalPages to options
+  totalPages?: number;
   onPageChange?: (page: number) => void;
 }
 
 interface UsePaginationReturn {
   currentPage: number;
   updateUrlWithPage: (newPage: number, replace?: boolean) => void;
-  handlePageChange: (newPage: number) => void; // Remove totalPages parameter
+  handlePageChange: (newPage: number) => void;
   getDisplayIndex: (index: number, pageSize?: number) => number;
 }
 
 export function usePagination({
   baseRoute,
   defaultPageSize = 10,
-  totalPages, // Remove default value to handle it properly
+  totalPages,
   onPageChange,
 }: UsePaginationOptions): UsePaginationReturn {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Get current page from URL
+  // Get current page from URL - defaults to 1 if not present
   const currentPage = useMemo(() => {
     const pageParam = searchParams.get("pageNo");
     const parsed = pageParam ? parseInt(pageParam, 10) : 1;
@@ -35,8 +35,6 @@ export function usePagination({
   const updateUrlWithPage = useCallback(
     (newPage: number, replace: boolean = false) => {
       const params = new URLSearchParams(searchParams);
-
-      // Always show pageNo in URL (including page 1)
       params.set("pageNo", newPage.toString());
 
       const queryString = params.toString();
@@ -51,28 +49,17 @@ export function usePagination({
     [searchParams, router, baseRoute]
   );
 
-  // Initialize URL with pageNo=1 if no page parameter exists
-  useEffect(() => {
-    const pageParam = searchParams.get("pageNo");
-    if (!pageParam) {
-      updateUrlWithPage(1, true);
-    }
-  }, [searchParams, updateUrlWithPage]);
-
-  // Page change handler with validation - now only takes newPage
+  // Page change handler with validation
   const handlePageChange = useCallback(
     (newPage: number) => {
-      // If totalPages is not available yet, don't validate bounds
-      if (totalPages) {
-        // Validate page bounds
-        if (newPage < 1 || newPage > totalPages) {
-          return;
-        }
-      } else {
-        // Basic validation when totalPages is not available
-        if (newPage < 1) {
-          return;
-        }
+      // Validate page bounds if totalPages is available
+      if (totalPages && (newPage < 1 || newPage > totalPages)) {
+        return;
+      }
+
+      // Basic validation when totalPages is not available
+      if (newPage < 1) {
+        return;
       }
 
       // Don't update if we're already on the target page

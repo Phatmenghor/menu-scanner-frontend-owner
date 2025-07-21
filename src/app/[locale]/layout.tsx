@@ -41,23 +41,14 @@ export default async function LocaleLayout({
   console.log("Messages loaded in layout:", Object.keys(messages)); // Debug log
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <NextIntlClientProvider messages={messages} locale={locale}>
-          <ClientProviders>
-            <ClientLayoutWrapper>
-              {" "}
-              <PageProgressBar />
-              <ToastProvider>{children}</ToastProvider>
-            </ClientLayoutWrapper>
-          </ClientProviders>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages} locale={locale}>
+      <ClientProviders>
+        <ClientLayoutWrapper>
+          {" "}
+          <PageProgressBar />
+          <ToastProvider>{children}</ToastProvider>
+        </ClientLayoutWrapper>
+      </ClientProviders>
+    </NextIntlClientProvider>
   );
 }

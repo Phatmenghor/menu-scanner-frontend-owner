@@ -62,7 +62,7 @@ export default function LoginPage() {
             position: "top-right",
           });
 
-          router.replace(ROUTES.DASHBOARD.INDEX);
+          router.replace(ROUTES.DASHBOARD.USERS);
         }
       } catch (error: any) {
         const errorMsg =
