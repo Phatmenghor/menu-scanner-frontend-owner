@@ -20,18 +20,11 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
-import { Status } from "@/constants/AppResource/status/status";
-
-// Configuration - Customize these for your needs
-export const STATUS_USER_OPTIONS = [
-  { value: Status.ACTIVE, label: "Active" },
-  { value: Status.INACTIVE, label: "Inactive" },
-];
-
-export const DATA_ROLE_OPTIONS = [
-  { value: "ADMIN", label: "Admin" },
-  { value: "USER", label: "User" },
-];
+import {
+  DATA_ROLE_OPTIONS,
+  ModalMode,
+  STATUS_USER_OPTIONS,
+} from "@/constants/AppResource/status/status";
 
 // Validation Schemas
 const baseSchema = z.object({
@@ -45,12 +38,6 @@ const createUserSchema = baseSchema.extend({
 });
 
 const updateUserSchema = baseSchema;
-
-// Types
-export enum ModalMode {
-  CREATE_MODE = "create",
-  UPDATE_MODE = "update",
-}
 
 interface CreateUsers {
   email: string | undefined;
@@ -74,7 +61,7 @@ type UserModalData = Partial<CreateUsers> &
 
 type Props = {
   mode: ModalMode;
-  Data?: UserModalData;
+  Data?: UserModalData | null;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;

@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { DashboardSidebar } from "@/components/shared/dashboard/dashboard-sidebar";
-import { TopBar } from "@/components/shared/dashboard/topbar";
+import { DashboardSidebar } from "@/components/layout/main/dashboard-sidebar";
+import { TopBar } from "./topbar";
 
 export default function DashboardLayout({
   children,

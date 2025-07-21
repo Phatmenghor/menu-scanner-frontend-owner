@@ -1,5 +1,6 @@
 "use client";
 
+import { StatsCards } from "@/components/index/dashboard/state-card";
 import { RoleBadge } from "@/components/shared/badge/role-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { STATUS_FILTER } from "@/constants/AppResource/status/status";
+import {
+  ModalMode,
+  STATUS_FILTER,
+} from "@/constants/AppResource/status/status";
 import {
   getUserTableHeaders,
   UserTableHeaders,
@@ -31,6 +35,7 @@ import { cn } from "@/lib/utils";
 import {
   getUsersService,
   PaginatedUsersResponse,
+  User,
 } from "@/services/dashboard/user/user.service";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
@@ -40,19 +45,32 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Check, Edit, Eye, Search, Trash2 } from "lucide-react";
+import { Check, MoreHorizontal, Search, UserPlus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import ModalUser from "@/components/shared/modal/modal";
 
 export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<PaginatedUsersResponse | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [roleFilter, setRoleFilter] = useState("all");
 
   const t = useTranslations("user");
   const headers = getUserTableHeaders(t);
@@ -148,14 +166,39 @@ export default function UserPage() {
     }
   };
 
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setMode(ModalMode.UPDATE_MODE);
+    setIsModalOpen(!isModalOpen);
+  };
+
   // Handle status filter change - directly updates the filter value
   const handleStatusChange = (status: string) => {
     setStatusFilter(status);
   };
 
   return (
-    <Card>
-      <CardContent className="space-y-6 p-6">
+    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      <StatsCards />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Users</h2>
+            <p className="text-muted-foreground">
+              Manage your users and their permissions
+            </p>
+          </div>
+          <Button
+            onClick={() => {
+              setIsModalOpen(!isModalOpen);
+              setMode(ModalMode.CREATE_MODE);
+            }}
+            className="flex items-center"
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add User
+          </Button>
+        </div>
         <div className="flex flex-wrap items-center justify-start gap-4 w-full">
           <div className="relative w-full md:w-[350px]">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -192,6 +235,17 @@ export default function UserPage() {
                     {option.label}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="moderator">Moderator</SelectItem>
+                <SelectItem value="user">User</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -310,50 +364,37 @@ export default function UserPage() {
                         </TableCell>
 
                         {/* Actions */}
-                        <TableCell>
-                          <div className="flex items-center justify-center">
-                            <Button
-                              variant="ghost"
-                              // onClick={() => {
-                              //   setSelectedUser(user);
-                              //   setIsSidebarOpen(true);
-                              // }}
-                              className="hover:text-primary"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-
-                            <Button
-                              variant="ghost"
-                              className={cn(
-                                "transition-all duration-200 hover:text-primary"
-                                // !canModify && "opacity-50 cursor-not-allowed"
-                              )}
-                              // onClick={() => handleCanEditUser(user, canModify)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-
-                            <Button
-                              variant="ghost"
-                              // onClick={() => {
-                              //   if (canModify) {
-                              //     setUserToDelete(user);
-                              //     setIsDeleteDialogOpen(true);
-                              //   } else {
-                              //     toast.error(
-                              //       "You are not authorized to delete this user."
-                              //     );
-                              //   }
-                              // }}
-                              className={cn(
-                                "text-destructive hover:text-red-600"
-                                // !canModify && "opacity-50 cursor-not-allowed"
-                              )}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <TableCell className="text-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem>View details</DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleEditUser(user)}
+                              >
+                                Edit user
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                Reset password
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                {user.status === "Active"
+                                  ? "Deactivate"
+                                  : "Activate"}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-600">
+                                Delete user
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     );
@@ -361,9 +402,21 @@ export default function UserPage() {
                 )}
               </TableBody>
             </Table>
+
+            <ModalUser
+              isOpen={isModalOpen}
+              onClose={() => {
+                setSelectedUser(null);
+                setIsModalOpen(false);
+              }}
+              isSubmitting={isSubmitting}
+              onSave={() => {}}
+              Data={selectedUser}
+              mode={mode}
+            />
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

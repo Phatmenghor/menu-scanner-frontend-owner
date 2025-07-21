@@ -12,6 +12,22 @@ export const STATUS_FILTER = [
   { value: Status.INACTIVE, label: "Inactive" },
 ];
 
+export const STATUS_USER_OPTIONS = [
+  { value: Status.ACTIVE, label: "Active" },
+  { value: Status.INACTIVE, label: "Inactive" },
+];
+
+export const DATA_ROLE_OPTIONS = [
+  { value: "ADMIN", label: "Admin" },
+  { value: "USER", label: "User" },
+];
+
+// Types
+export enum ModalMode {
+  CREATE_MODE = "create",
+  UPDATE_MODE = "update",
+}
+
 // Define locale display names and flags
 export const localeConfig = {
   en: {
