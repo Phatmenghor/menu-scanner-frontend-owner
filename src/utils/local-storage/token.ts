@@ -24,7 +24,7 @@ export function storeToken(token: string | undefined): void {
 /**
  * Logout the current user
  */
-export function logoutToken(): void {
+export function clearToken(): void {
   // Delete auth cookie
   deleteCookie("auth-token");
 }

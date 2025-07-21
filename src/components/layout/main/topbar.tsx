@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { logoutToken } from "@/utils/local-storage/token";
-import { logoutRole } from "@/utils/local-storage/roles";
 import LanguageSwitcher from "@/components/shared/common/language-switcher";
+import { clearToken } from "@/utils/local-storage/token";
+import { clearRoles } from "@/utils/local-storage/roles";
+import { clearUserInfo } from "@/utils/local-storage/userInfo";
 
 interface TopBarProps {
   onMenuClick?: () => void;
@@ -29,8 +30,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
   const handleLogout = () => {
-    logoutToken();
-    logoutRole();
+    clearToken();
+    clearRoles();
+    clearUserInfo();
+
     setShowLogoutAlert(false);
 
     setTimeout(() => {

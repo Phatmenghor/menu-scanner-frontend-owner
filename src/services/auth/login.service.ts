@@ -1,68 +1,27 @@
-import { storeRole } from "@/utils/local-storage/roles";
+import { LoginCredentials } from "@/models/auth/auth.request";
+import { UserAuthResponse } from "@/models/auth/auth.response";
+import { axiosClient } from "@/utils/axios";
+import { storeRoles } from "@/utils/local-storage/roles";
 import { storeToken } from "@/utils/local-storage/token";
-
-// Define the login request type (you probably already have this)
-export interface LoginCredentials {
-  username: string;
-  password: string;
-}
-
-interface MockUser {
-  id: string;
-  email: string;
-  password: string; // plaintext for mock only
-  userRole: string; // e.g. "Admin", "Editor"
-  accessToken: string; // mock token string
-}
-
-// Example mock users
-const mockUsers: MockUser[] = [
-  {
-    id: "1",
-    email: "admin@example.com",
-    password: "88889999",
-    userRole: "ADMIN",
-    accessToken: "mocked-admin-token-abc123",
-  },
-];
+import { storeUserInfo } from "@/utils/local-storage/userInfo";
 
 export async function loginService(credentials: LoginCredentials) {
   try {
-    // Simulate async call and delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    const user = await axiosClient.post("/api/v1/auth/login", credentials);
 
-    // Find user by email
-    const user = mockUsers.find(
-      (u) => u.email.toLowerCase() === credentials.username.toLowerCase()
-    );
-
-    if (!user) {
-      throw {
-        errorMessage: "User not found.",
-        rawError: null,
-      };
-    }
-
-    if (user.password !== credentials.password) {
-      throw {
-        errorMessage: "Incorrect password.",
-        rawError: null,
-      };
-    }
-
+    const userData = user.data.data as UserAuthResponse;
     // On success, store token and role (simulate your original behavior)
-    storeToken(user.accessToken);
-    storeRole(user.userRole);
+    storeToken(userData.accessToken);
+    storeUserInfo({
+      userId: userData.userId,
+      email: userData.email,
+      fullName: userData.fullName,
+      businessId: userData.businessId,
+      userType: userData.userType,
+    });
+    storeRoles(userData.roles);
 
-    // Return mock data structure similar to real API
-    return {
-      id: user.id,
-      email: user.email,
-      userRole: {
-        userRole: user.userRole,
-      },
-      accessToken: user.accessToken,
-    };
+    return userData;
   } catch (error) {
     console.error("Login service error:", error);
 

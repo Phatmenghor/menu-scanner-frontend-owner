@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import { User } from "@/services/dashboard/user/user.service";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { navigationGroups, ROUTES } from "@/constants/AppRoutes/routes";
+import { getUserInfo } from "@/utils/local-storage/userInfo";
+import { UserAuthResponse } from "@/models/auth/auth.response";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,13 +22,21 @@ interface SidebarProps {
 export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const isMobile = useIsMobile();
-  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [authUser, setAuthUser] = useState<UserAuthResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const loadUserProfile = async () => {
       setIsLoading(true);
       try {
+        const user = getUserInfo();
+        setAuthUser({
+          email: user?.email || "",
+          fullName: user?.fullName || "",
+          userId: user?.userId || "",
+          businessId: user?.businessId || "",
+          userType: user?.userType || "",
+        });
         // const response = await getUsersProfileService();
         // setAuthUser(response || null);
       } catch (error) {
@@ -104,7 +114,7 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
         <ScrollArea className="flex-1 py-6">
           <nav className="px-4 space-y-8">
             {navigationGroups.map((group, groupIndex) => (
-              <div key={group.title} className="space-y-3">
+              <div key={`${group.items}-${group.title}`} className="space-y-3">
                 {/* Modern Group Title with subtle indicator */}
                 {isOpen && (
                   <div className="flex items-center gap-2 px-3">
@@ -129,7 +139,7 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
                     const isActive = pathname === item.href;
                     return (
                       <Link
-                        key={item.href}
+                        key={`${item.href}-${item.title}`}
                         href={item.href}
                         className={cn(
                           "group relative flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-300 overflow-hidden",
@@ -212,7 +222,7 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">
-                  {authUser?.name || "John Doe"}
+                  {authUser?.fullName || "GUEST USER"}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
                   {authUser?.email || "john@example.com"}

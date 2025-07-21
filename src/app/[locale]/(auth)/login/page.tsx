@@ -41,7 +41,7 @@ export default function LoginPage() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "admin@example.com",
+      username: "phatmenghor19@gmail.com",
       password: "88889999",
     },
   });
@@ -50,14 +50,16 @@ export default function LoginPage() {
     startTransition(async () => {
       try {
         const response = await loginService({
-          username: values.username,
+          email: values.username,
           password: values.password,
         });
+
+        console.log("Login response:", response);
 
         if (response) {
           AppToast({
             type: "success",
-            message: t("messages.welcome") as string,
+            message: response?.welcomeMessage || t("messages.login-success"),
             duration: 3000,
             position: "top-right",
           });

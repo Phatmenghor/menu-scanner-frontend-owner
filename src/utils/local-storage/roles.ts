@@ -2,42 +2,33 @@ import { deleteCookie, getCookie, setCookie } from "cookies-next";
 
 const ROLES_COOKIE_KEY = "auth-roles";
 
-export function storeRolesRemember(role: string | undefined): void {
-  if (typeof window === "undefined") {
-    return;
-  }
+// Store multiple roles in cookie
+export function storeRoles(roles: string[] | undefined): void {
+  if (typeof window === "undefined" || !roles || roles.length === 0) return;
 
-  setCookie(ROLES_COOKIE_KEY, JSON.stringify(role), {
+  setCookie(ROLES_COOKIE_KEY, JSON.stringify(roles), {
     maxAge: 365 * 24 * 60 * 60, // 1 year
   });
 }
 
-export function getRoles(): string | null {
+// Retrieve roles from cookie
+export function getRoles(): string[] {
   const cookieValue = getCookie(ROLES_COOKIE_KEY);
-  return typeof cookieValue === "string" ? cookieValue : null;
-}
 
-export function storeRole(role: string | undefined): void {
-  if (typeof window === "undefined" || !role) {
-    return;
+  try {
+    return cookieValue ? JSON.parse(cookieValue as string) : [];
+  } catch (error) {
+    return [];
   }
-
-  setCookie(ROLES_COOKIE_KEY, role);
 }
 
-/**
- * Logout the current user
- */
-export function logoutRole(): void {
-  // Delete auth cookie
-  deleteCookie(ROLES_COOKIE_KEY);
-}
-
-export function logoutRoles(): void {
-  deleteCookie(ROLES_COOKIE_KEY);
-}
-
+// Check if any roles exist
 export function hasRoles(): boolean {
   const roles = getRoles();
-  return !!roles && roles.length > 0;
+  return roles.length > 0;
+}
+
+// Clear roles (logout)
+export function clearRoles(): void {
+  deleteCookie(ROLES_COOKIE_KEY);
 }
