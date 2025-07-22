@@ -19,6 +19,7 @@ import LanguageSwitcher from "@/components/shared/common/language-switcher";
 import { clearToken } from "@/utils/local-storage/token";
 import { clearRoles } from "@/utils/local-storage/roles";
 import { clearUserInfo } from "@/utils/local-storage/userInfo";
+import { ROUTES } from "@/constants/AppRoutes/routes";
 
 interface TopBarProps {
   onMenuClick?: () => void;
@@ -37,13 +38,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     setShowLogoutAlert(false);
 
     setTimeout(() => {
-      router.replace("/login");
+      router.replace(ROUTES.AUTH.LOGIN);
     }, 100);
   };
 
   return (
     <>
-      <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+      <header className="sticky top-0 z-20 flex h-20 items-center gap-4 border-b bg-background px-4 sm:px-6">
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />

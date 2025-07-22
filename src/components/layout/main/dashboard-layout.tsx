@@ -30,7 +30,7 @@ export default function DashboardLayout({
       <div
         className={cn(
           "dashboard-content flex-1 transition-all duration-300",
-          isMobile ? "w-full" : isSidebarOpen ? "ml-64" : "ml-[70px]"
+          isMobile ? "w-full" : isSidebarOpen ? "ml-56" : "ml-[60px]"
         )}
       >
         <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />

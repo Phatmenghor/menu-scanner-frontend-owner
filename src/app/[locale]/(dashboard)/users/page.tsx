@@ -203,25 +203,24 @@ export default function UserPage() {
   async function handleSubmit(formData: UserFormData) {
     setIsSubmitting(true);
     try {
-      const basePayload: CreateUserRequest = {
-        email: formData.email,
+      const basePayload = {
         firstName: formData.first_name,
         lastName: formData.last_name,
         phoneNumber: formData.phoneNumber,
-        userType: formData.userType,
+        accountStatus: formData.accountStatus,
+        profileImageUrl: formData.profileImageUrl,
         address: formData.address,
         roles: formData.roles,
-        notes: formData.notes || "",
-        password: formData.password || "",
-        businessId: formData.businessId,
+        notes: formData.notes,
         position: formData.position,
       };
 
       if (mode === ModalMode.CREATE_MODE) {
         const addPayload: CreateUserRequest = {
           ...basePayload,
-          roles: formData.roles ?? undefined,
-          businessId: formData.businessId,
+          email: formData.email,
+          userType: formData.userType,
+          password: formData.password ?? "",
         };
 
         const response = await createUserService(addPayload);
@@ -254,8 +253,6 @@ export default function UserPage() {
       } else if (mode === ModalMode.UPDATE_MODE && formData.id) {
         const updatePayload: UpdateUserRequest = {
           ...basePayload,
-          userType: formData.status ?? undefined,
-          roles: formData.roles ?? undefined,
         };
 
         const response = await updateUserService(formData.id, updatePayload);
@@ -302,7 +299,6 @@ export default function UserPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <StatsCards />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>

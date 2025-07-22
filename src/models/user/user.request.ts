@@ -12,23 +12,26 @@ export interface AllUserRequest {
 export interface CreateUserRequest {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   phoneNumber?: string;
+  profileImageUrl?: string;
   userType: string;
   businessId?: string;
   roles?: string[];
   position?: string;
   address?: string;
   notes?: string;
+  accountStatus?: string;
 }
 
 export interface UpdateUserRequest {
   email?: string;
   firstName?: string;
   lastName?: string;
+  profileImageUrl?: string;
+  accountStatus?: string;
   phoneNumber?: string;
-  userType?: string;
   roles?: string[];
   position?: string;
   address?: string;

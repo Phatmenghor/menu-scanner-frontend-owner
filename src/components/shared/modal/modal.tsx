@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,7 @@ import { Eye, EyeOff } from "lucide-react";
 import {
   DATA_ROLE_OPTIONS,
   ModalMode,
+  Status,
   STATUS_USER_OPTIONS,
   USER_ROLE_OPTIONS,
   USER_TYPE_OPTIONS,
@@ -36,6 +37,9 @@ import {
   CreateUsers,
   UpdateUsers,
 } from "@/models/user/user.schema";
+import { cn } from "@/lib/utils";
+import { convertToBase64 } from "@/utils/images/sore-image";
+import { UploadImageRequest } from "@/models/image/image.request.model";
 
 export type UserModalData = Partial<CreateUsers> &
   Partial<UpdateUsers> & {
@@ -50,16 +54,6 @@ type Props = {
   isOpen: boolean;
   isSubmitting?: boolean;
   onSave: (data: UserFormData) => void;
-};
-
-// Utility functions
-const getActiveStatusValue = () => {
-  const activeStatus = STATUS_USER_OPTIONS.find(
-    (status) =>
-      status.label.toLowerCase() === "active" ||
-      status.value.toLowerCase() === "active"
-  );
-  return activeStatus?.value || STATUS_USER_OPTIONS[0]?.value || "";
 };
 
 const getDefaultRoleValue = () => {
@@ -80,8 +74,10 @@ function ModalUser({
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
   const schema = isCreate ? createUserSchema : updateUserSchema;
-  const activeStatusValue = getActiveStatusValue();
   const [showPassword, setShowPassword] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     control,
@@ -96,10 +92,10 @@ function ModalUser({
       first_name: "",
       last_name: "",
       phoneNumber: "",
-      userType: UserType.PLATFORM_USER,
+      userType: getDefaultUserTypeValue(),
       businessId: "",
       roles: getDefaultRoleValue(),
-      status: activeStatusValue,
+      accountStatus: Status.ACTIVE,
       position: "",
       address: "",
       notes: "",
@@ -117,10 +113,10 @@ function ModalUser({
         first_name: Data?.first_name ?? "",
         last_name: Data?.last_name ?? "",
         phoneNumber: Data?.phoneNumber ?? "",
-        userType: Data?.userType ?? UserType.PLATFORM_USER,
+        userType: Data?.userType ?? getDefaultUserTypeValue(),
         businessId: isCreate ? "" : Data?.businessId ?? "",
         roles: Data?.roles ?? getDefaultRoleValue(),
-        status: Data?.status ?? Data?.userStatus ?? activeStatusValue,
+        accountStatus: Status.ACTIVE ?? Data?.userStatus ?? Status.ACTIVE,
         position: Data?.position ?? "",
         address: Data?.address ?? "",
         notes: Data?.notes ?? "",
@@ -128,7 +124,68 @@ function ModalUser({
         confirmPassword: "",
       });
     }
-  }, [Data, reset, isCreate, isOpen, activeStatusValue]);
+  }, [Data, reset, isCreate, isOpen]);
+
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    onChange: (value: string) => void
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const base64 = await convertToBase64(file);
+      onChange(base64); // base64 without data:image/... prefix
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (logoPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
+  }, [logoPreview]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        const base64Data = base64String.split(",")[1];
+
+        const payload: UploadImageRequest = {
+          base64: base64Data,
+          type: file.type,
+        };
+
+        const response = await uploadImageService(payload);
+        if (response?.imageUrl) {
+          // Update form state
+          setValue("profileUrl", response.imageUrl, { shouldValidate: true });
+          // Update local preview
+          setLogoPreview(response.imageUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Failed to upload image", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoPreview(null);
+    setValue("profileUrl", "", { shouldDirty: true });
+  };
 
   // Form submission handler
   const onSubmit = (data: UserFormData) => {
@@ -142,7 +199,8 @@ function ModalUser({
         userType: data.userType,
         businessId: data.businessId,
         roles: data.roles,
-        status: data.status,
+        accountStatus: Status.ACTIVE,
+        profileImageUrl: data.profileImageUrl,
         position: data.position,
         address: data.address,
         notes: data.notes,
@@ -159,9 +217,10 @@ function ModalUser({
         last_name: data.last_name,
         phoneNumber: data.phoneNumber,
         userType: data.userType,
+        profileImageUrl: data.profileImageUrl,
         businessId: data.businessId,
         roles: data.roles,
-        status: data.status,
+        accountStatus: Status.ACTIVE,
         position: data.position,
         address: data.address,
         notes: data.notes,
@@ -533,7 +592,7 @@ function ModalUser({
             </Label>
             <Controller
               control={control}
-              name="status"
+              name="accountStatus"
               render={({ field }) => (
                 <Select
                   value={field.value}
@@ -543,7 +602,7 @@ function ModalUser({
                   <SelectTrigger
                     id="status-select"
                     className={`bg-white dark:bg-inherit ${
-                      errors.status ? "border-red-500" : ""
+                      errors.accountStatus ? "border-red-500" : ""
                     }`}
                   >
                     <SelectValue placeholder="Select status" />
@@ -558,9 +617,9 @@ function ModalUser({
                 </Select>
               )}
             />
-            {errors.status && (
+            {errors.accountStatus && (
               <p className="text-sm text-destructive">
-                {errors.status.message}
+                {errors.accountStatus.message}
               </p>
             )}
           </div>
@@ -633,6 +692,69 @@ function ModalUser({
             />
             {errors.notes && (
               <p className="text-sm text-destructive">{errors.notes.message}</p>
+            )}
+          </div>
+
+          {/* Profile URL Field */}
+          <div className="space-y-2">
+            <Label htmlFor="profileImageUrl" className="text-sm font-medium">
+              Profile Photo <span className="text-red-500">*</span>
+            </Label>
+
+            <Controller
+              control={control}
+              name="profileImageUrl"
+              render={({ field: { value, onChange } }) => (
+                <div className="flex items-center gap-6">
+                  {/* Image Preview */}
+                  <div className="relative group">
+                    <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-muted shadow-sm">
+                      <img
+                        src={
+                          value
+                            ? `${process.env.NEXT_PUBLIC_API_BASE_URL_IMAGE}${value}`
+                            : "/assets/no-image.png"
+                        }
+                        alt="Profile"
+                        className="object-cover h-full w-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Upload Button */}
+                  <div className="flex flex-col gap-2">
+                    <input
+                      id="profileImageUrl"
+                      type="file"
+                      accept="image/*"
+                      disabled={isSubmitting}
+                      onChange={(e) => handleImageUpload(e, onChange)}
+                      className="hidden"
+                    />
+                    <label htmlFor="profileImageUrl">
+                      <span className="inline-block cursor-pointer rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary/90">
+                        Upload Image
+                      </span>
+                    </label>
+
+                    {value && (
+                      <button
+                        type="button"
+                        onClick={() => onChange("")}
+                        className="text-xs text-muted-foreground hover:underline"
+                      >
+                        Remove photo
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            />
+
+            {errors.profileImageUrl && (
+              <p className="text-sm text-destructive">
+                {errors.profileImageUrl.message}
+              </p>
             )}
           </div>
 

@@ -7,6 +7,7 @@ import {
   Settings,
   Shield,
   Users,
+  LucideIcon,
 } from "lucide-react";
 
 export const ROUTES = {
@@ -22,72 +23,74 @@ export const ROUTES = {
     SETTINGS: "/settings",
     SECURITY: "/security",
     NOTIFICATIONS: "/notifications",
+    USER_MANAGEMENT: "/users/manage",
+    USER_ROLES: "/users/roles",
   },
+} as const;
+
+type Subroute = {
+  title: string;
+  href: string;
 };
 
-// Enhanced navigation structure with modern grouping
-export const navigationGroups = [
+type SidebarItem = {
+  title: string;
+  href?: string;
+  icon?: LucideIcon;
+  image?: string;
+  section?: string;
+  subroutes?: Subroute[];
+};
+
+export const sidebarItems: SidebarItem[] = [
   {
-    title: "Overview",
-    items: [
+    title: "Dashboard",
+    href: ROUTES.DASHBOARD.INDEX,
+    icon: Home,
+  },
+  {
+    title: "Users",
+    section: "users",
+    icon: Users,
+    subroutes: [
       {
-        title: "Dashboard",
-        href: ROUTES.DASHBOARD.INDEX,
-        icon: Home,
-        description: "Main overview",
+        title: "Manage Users",
+        href: ROUTES.DASHBOARD.USER_MANAGEMENT,
       },
       {
-        title: "Analytics",
-        href: "#",
-        icon: BarChart3,
-        description: "Performance insights",
+        title: "User Roles",
+        href: ROUTES.DASHBOARD.USER_ROLES,
       },
     ],
   },
   {
-    title: "Management",
-    items: [
-      {
-        title: "Users",
-        href: "#",
-        icon: Users,
-        description: "User management",
-      },
-      {
-        title: "Messages",
-        href: "#",
-        icon: Inbox,
-        description: "Communication hub",
-      },
-      {
-        title: "Calendar",
-        href: "#",
-        icon: Calendar,
-        description: "Schedule & events",
-      },
-    ],
+    title: "Analytics",
+    href: ROUTES.DASHBOARD.ANALYTICS,
+    icon: BarChart3,
   },
   {
-    title: "System",
-    items: [
-      {
-        title: "Settings",
-        href: "#",
-        icon: Settings,
-        description: "App preferences",
-      },
-      {
-        title: "Security",
-        href: "#",
-        icon: Shield,
-        description: "Security settings",
-      },
-      {
-        title: "Notifications",
-        href: "#",
-        icon: Bell,
-        description: "Alert management",
-      },
-    ],
+    title: "Messages",
+    href: ROUTES.DASHBOARD.MESSAGES,
+    icon: Inbox,
+  },
+  {
+    title: "Calendar",
+    href: ROUTES.DASHBOARD.CALENDAR,
+    icon: Calendar,
+  },
+  {
+    title: "Settings",
+    href: ROUTES.DASHBOARD.SETTINGS,
+    icon: Settings,
+  },
+  {
+    title: "Security",
+    href: ROUTES.DASHBOARD.SECURITY,
+    icon: Shield,
+  },
+  {
+    title: "Notifications",
+    href: ROUTES.DASHBOARD.NOTIFICATIONS,
+    icon: Bell,
   },
 ];

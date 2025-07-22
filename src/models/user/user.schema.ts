@@ -4,9 +4,10 @@ import { UserModel } from "./user.response";
 // Base schema with common fields (you would define this based on your BaseStaffSchema)
 const BaseStaffSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  status: z.string().min(1, "Status is required"),
   roles: z.array(z.string()).optional(),
   phoneNumber: z.string().optional(),
+  profileImageUrl: z.string().optional(),
+  accountStatus: z.string().optional(),
   userType: z.string().min(1, "User type is required"),
   businessId: z.string().optional(),
   position: z.string().optional(),
@@ -17,7 +18,8 @@ const BaseStaffSchema = z.object({
 // Base user schema picking specific fields from BaseStaffSchema
 const BaseUserSchema = BaseStaffSchema.pick({
   email: true,
-  status: true,
+  profileImageUrl: true,
+  accountStatus: true,
   roles: true,
   phoneNumber: true,
   userType: true,
