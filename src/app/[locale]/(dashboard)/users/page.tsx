@@ -1,6 +1,5 @@
 "use client";
 
-import { StatsCards } from "@/components/index/dashboard/state-card";
 import { RoleBadge } from "@/components/shared/badge/role-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,9 @@ import {
   ModalMode,
   Status,
   STATUS_FILTER,
+  USER_ROLE_OPTIONS,
   USER_TYPE_OPTIONS,
+  UserRole,
   UserType,
 } from "@/constants/AppResource/status/status";
 import {
@@ -40,19 +41,11 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { MoreHorizontal, Search, UserPlus } from "lucide-react";
+import { Check, RotateCw, Search, UserPlus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { getStatusBadge } from "@/components/shared/badge/status-badge";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
@@ -60,27 +53,41 @@ import PaginationPage from "@/components/shared/common/app-pagination";
 import { AllUserResponse, UserModel } from "@/models/user/user.response";
 import {
   createUserService,
+  deletedUserService,
   getAllUserService,
   updateUserService,
 } from "@/services/dashboard/user/user.service";
-import {
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/models/user/user.request";
+import { CreateUserRequest } from "@/models/user/user.request";
 import { UserFormData } from "@/models/user/user.schema";
 import ModalUser from "@/components/shared/modal/modal";
+import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
+import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
+import { AppToast } from "@/components/shared/toast/app-toast";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<AllUserResponse | null>(null);
+  const [initializeUser, setInitializeUser] = useState<UserFormData | null>(
+    null
+  );
   const [selectedUser, setSelectedUser] = useState<UserModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
-  const [statusFilter, setStatusFilter] = useState(Status.ACTIVE);
-  const [userTypeFilter, setUserTypeFilter] = useState(UserType.BUSINESS_USER);
+  const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
+  const [userTypeFilter, setUserTypeFilter] = useState<UserType>(
+    UserType.PLATFORM_USER
+  );
+  const [roleFilter, setRoleFilter] = useState<UserRole>(
+    UserRole.PLATFORM_OWNER
+  );
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
+    useState(false);
 
   const t = useTranslations("user");
   const headers = getUserTableHeaders(t);
@@ -115,6 +122,7 @@ export default function UserPage() {
       const response = await getAllUserService({
         search: debouncedSearchQuery,
         pageNo: currentPage,
+        roles: [roleFilter.toString()],
         pageSize: 10,
         userType: userTypeFilter,
         accountStatus: statusFilter,
@@ -126,7 +134,13 @@ export default function UserPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchQuery, statusFilter, userTypeFilter, currentPage]);
+  }, [
+    debouncedSearchQuery,
+    statusFilter,
+    userTypeFilter,
+    roleFilter,
+    currentPage,
+  ]);
 
   useEffect(() => {
     loadUsers();
@@ -201,30 +215,31 @@ export default function UserPage() {
   };
 
   async function handleSubmit(formData: UserFormData) {
+    console.log("Submitting form:", formData, "mode:", mode);
+
     setIsSubmitting(true);
     try {
-      const basePayload = {
-        firstName: formData.first_name,
-        lastName: formData.last_name,
-        phoneNumber: formData.phoneNumber,
-        accountStatus: formData.accountStatus,
-        profileImageUrl: formData.profileImageUrl,
-        address: formData.address,
-        roles: formData.roles,
-        notes: formData.notes,
-        position: formData.position,
-      };
+      const isCreate = mode === ModalMode.CREATE_MODE;
 
-      if (mode === ModalMode.CREATE_MODE) {
-        const addPayload: CreateUserRequest = {
-          ...basePayload,
-          email: formData.email,
-          userType: formData.userType,
-          password: formData.password ?? "",
+      if (isCreate) {
+        const createPayload: CreateUserRequest = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email!,
+          userType: formData.userType!,
+          password: formData.password!,
+          phoneNumber: formData.phoneNumber,
+          accountStatus: formData.accountStatus,
+          profileImageUrl: formData.profileImageUrl,
+          address: formData.address,
+          roles: formData.roles,
+          notes: formData.notes,
+          position: formData.position,
         };
 
-        const response = await createUserService(addPayload);
+        const response = await createUserService(createPayload);
         if (response) {
+          // Update users list
           setUsers((prev) =>
             prev
               ? {
@@ -244,19 +259,39 @@ export default function UserPage() {
                   last: true,
                 }
           );
-          // Refresh data instead of manual state update for consistency
-          toast.success(
-            `User ${response.username || formData.email} added successfully`
-          );
+
+          AppToast({
+            type: "success",
+            message: `User ${
+              response.username || formData.email
+            } added successfully`,
+            duration: 3000,
+            position: "top-right",
+          });
+
           setIsModalOpen(false);
         }
-      } else if (mode === ModalMode.UPDATE_MODE && formData.id) {
-        const updatePayload: UpdateUserRequest = {
-          ...basePayload,
+      } else {
+        // Update mode
+        if (!formData.id) {
+          throw new Error("User ID is required for update");
+        }
+
+        const updatePayload = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phoneNumber: formData.phoneNumber,
+          accountStatus: formData.accountStatus,
+          profileImageUrl: formData.profileImageUrl,
+          address: formData.address,
+          roles: formData.roles,
+          notes: formData.notes,
+          position: formData.position,
         };
 
         const response = await updateUserService(formData.id, updatePayload);
         if (response) {
+          // Update users list
           setUsers((prev) =>
             prev
               ? {
@@ -267,10 +302,16 @@ export default function UserPage() {
                 }
               : prev
           );
-          // Refresh data instead of manual state update for consistency
-          toast.success(
-            `User ${response.username || formData.email} updated successfully`
-          );
+
+          AppToast({
+            type: "success",
+            message: `User ${
+              response.username || response.email
+            } updated successfully`,
+            duration: 3000,
+            position: "top-right",
+          });
+
           setIsModalOpen(false);
         }
       }
@@ -282,8 +323,40 @@ export default function UserPage() {
     }
   }
 
-  const handleEditUser = (user: UserModel) => {
-    setSelectedUser(user);
+  async function handleDeleteUser() {
+    if (!selectedUser || !selectedUser.id) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await deletedUserService(selectedUser.id);
+
+      if (response) {
+        AppToast({
+          type: "success",
+          message: `User ${selectedUser.fullName ?? ""} deleted successfully`,
+          duration: 3000,
+          position: "top-right",
+        });
+        // After deletion, check if we need to go back a page
+        if (users && users.content.length === 1 && currentPage > 1) {
+          updateUrlWithPage(currentPage - 1);
+        } else {
+          await loadUsers();
+        }
+      } else {
+        toast.error("Failed to delete user");
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("An error occurred while deleting the user");
+    } finally {
+      setIsSubmitting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  }
+
+  const handleEditUser = (user: UserFormData) => {
+    setInitializeUser(user);
     setMode(ModalMode.UPDATE_MODE);
     setIsModalOpen(!isModalOpen);
   };
@@ -295,6 +368,30 @@ export default function UserPage() {
 
   const handleUserTypeChange = (userType: UserType) => {
     setUserTypeFilter(userType);
+  };
+
+  const handleRoleFilterChange = (userType: UserRole) => {
+    setRoleFilter(userType);
+  };
+
+  const handleResetPassword = (user: UserModel) => {
+    setSelectedUser(user);
+    setIsResetPasswordDialogOpen(true);
+  };
+
+  const handleDelete = (user: UserModel) => {
+    setSelectedUser(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleResetFilters = () => {
+    setUserTypeFilter(UserType.PLATFORM_USER);
+    setRoleFilter(UserRole.PLATFORM_OWNER);
+    setStatusFilter(Status.ACTIVE);
+    setSearchQuery("");
+    updateUrlWithPage(1, true);
+    setUsers(null); // Reset users to trigger reload};
+    loadUsers(); // Reload users with default filters
   };
 
   return (
@@ -369,6 +466,30 @@ export default function UserPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
+              <SelectTrigger className="min-w-[150px] h-9 text-sm">
+                <SelectValue placeholder="Select User Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {USER_ROLE_OPTIONS.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-sm"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={handleResetFilters}
+              disabled={!roleFilter && !statusFilter && !userTypeFilter}
+              className="flex items-center"
+            >
+              <RotateCw className="mr-2 h-4 w-4" />
+              Reset
+            </Button>
           </div>
         </div>
 
@@ -389,7 +510,6 @@ export default function UserPage() {
                       <div
                         className={`flex items-center gap-1 ${header.className}`}
                       >
-                        {header.icon && <header.icon className="w-4 h-4" />}
                         <span>{header.label}</span>
                       </div>
                     </TableHead>
@@ -459,7 +579,30 @@ export default function UserPage() {
 
                         {/* Status Switch */}
                         <TableCell>
-                          {getStatusBadge(user?.accountStatus)}
+                          <Switch
+                            checked={user?.accountStatus === "ACTIVE"}
+                            // onCheckedChange={() => handleCanToggle(user, canModify)}
+                            // disabled={isSubmitting || !canModify}
+                            aria-label="Toggle user status"
+                            className={cn(
+                              "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
+                              // canModify
+                              1
+                                ? "bg-gray-300 dark:bg-gray-600 data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary"
+                                : "bg-gray-300 dark:bg-primary opacity-50 cursor-not-allowed"
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "inline-block h-6 w-6 transform rounded-full bg-white dark:bg-gray-100 shadow-md transition-transform",
+                                "translate-x-1 data-[state=checked]:translate-x-5"
+                              )}
+                            >
+                              {user.accountStatus === "ACTIVE" && (
+                                <Check className="h-6 w-6 m-auto text-orange-600 dark:text-orange-300" />
+                              )}
+                            </div>
+                          </Switch>
                         </TableCell>
 
                         {/* Created At */}
@@ -468,37 +611,28 @@ export default function UserPage() {
                         </TableCell>
 
                         {/* Actions */}
-                        <TableCell className="text-center">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>View details</DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleEditUser(user)}
-                              >
-                                Edit user
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem>
-                                Reset password
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                {user.accountStatus === "Active"
-                                  ? "Deactivate"
-                                  : "Activate"}
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
-                                Delete user
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        <TableCell className="text-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleResetPassword(user)}
+                          >
+                            Reset
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(user)}
+                          >
+                            Delete
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -510,14 +644,38 @@ export default function UserPage() {
             <ModalUser
               isOpen={isModalOpen}
               onClose={() => {
-                setSelectedUser(null);
+                setInitializeUser(null);
                 setIsModalOpen(false);
               }}
               isSubmitting={isSubmitting}
               onSave={handleSubmit}
-              Data={selectedUser}
+              Data={initializeUser}
               mode={mode}
             />
+
+            <ResetPasswordModal
+              isOpen={isResetPasswordDialogOpen}
+              userName={selectedUser?.fullName || selectedUser?.email}
+              onClose={() => {
+                setIsResetPasswordDialogOpen(false);
+                setSelectedUser(null);
+              }}
+              userId={selectedUser?.id}
+            />
+
+            <DeleteConfirmationDialog
+              isOpen={isDeleteDialogOpen}
+              onClose={() => {
+                setIsDeleteDialogOpen(false);
+                setSelectedUser(null);
+              }}
+              onDelete={handleDeleteUser}
+              title="Delete Admin"
+              description={`Are you sure you want to delete the admin`}
+              itemName={selectedUser?.fullName || selectedUser?.email}
+              isSubmitting={isSubmitting}
+            />
+
             <PaginationPage
               currentPage={currentPage}
               totalPages={users?.totalPages ?? 10}

@@ -1,5 +1,6 @@
 import {
   AllUserRequest,
+  ChangePasswordByAdminModel,
   CreateUserRequest,
   UpdateUserRequest,
 } from "@/models/user/user.request";
@@ -10,10 +11,7 @@ import { UUID } from "crypto";
 export async function getAllUserService(data: AllUserRequest) {
   try {
     // POST request to fetch all staff matching the filters
-    const response = await axiosClientWithAuth.post(
-      `/api/v1/users/getAll`,
-      data
-    );
+    const response = await axiosClientWithAuth.post(`/api/v1/users/all`, data);
     return response.data.data; // Return the actual staff list data
   } catch (error: any) {
     // Check if the error response contains a message, throw it as Error
@@ -58,5 +56,42 @@ export async function updateUserService(
     }
     console.error("Error update users:", error); // Log error for debugging
     throw error; // Re-throw the error for further handling
+  }
+}
+
+export const AdminChangePasswordService = async (
+  data: ChangePasswordByAdminModel
+) => {
+  try {
+    const response = await axiosClientWithAuth.post(
+      `/api/v1/users/admin/reset-password`,
+      data
+    );
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      // Extract error message from backend if available
+      const message =
+        error.response?.data?.message ||
+        "Change password failed. Please try again.";
+      throw new Error(message);
+    }
+
+    // Unexpected (non-Axios) error
+    throw new Error("An unexpected error occurred. Please try again.");
+  }
+};
+
+export async function deletedUserService(id: string) {
+  try {
+    const response = await axiosClientWithAuth.delete(`/api/v1/users/${id}`);
+    return response.data.data;
+  } catch (error: any) {
+    if (error.response && error.response.data && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    console.error("Error deleting user:", error);
+    throw error;
   }
 }

@@ -2,6 +2,7 @@ export interface AllUserRequest {
   search?: string;
   businessId?: string;
   accountStatus?: string;
+  roles?: string[];
   userType?: string;
   pageNo?: number;
   pageSize?: number;
@@ -26,14 +27,20 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
-  email?: string;
   firstName?: string;
   lastName?: string;
   profileImageUrl?: string;
   accountStatus?: string;
   phoneNumber?: string;
   roles?: string[];
+  businessId?: string;
   position?: string;
   address?: string;
   notes?: string;
+}
+
+export interface ChangePasswordByAdminModel {
+  userId: string;
+  newPassword: string;
+  confirmPassword: string;
 }

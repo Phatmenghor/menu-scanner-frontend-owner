@@ -17,6 +17,7 @@ export interface UserModel {
   lastName: string;
   fullName: string;
   phoneNumber: string;
+  profileImageUrl: string;
   userType: string;
   accountStatus: string;
   businessId: string;
@@ -30,7 +31,6 @@ export interface UserModel {
   createdBy: string;
   updatedBy: string;
 }
-
 export interface CreateUserResponse {
   id: string;
   email: string;

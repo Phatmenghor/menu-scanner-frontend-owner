@@ -6,7 +6,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, User, X } from "lucide-react";
 import {
   DATA_ROLE_OPTIONS,
   ModalMode,
@@ -37,9 +36,11 @@ import {
   CreateUsers,
   UpdateUsers,
 } from "@/models/user/user.schema";
-import { cn } from "@/lib/utils";
-import { convertToBase64 } from "@/utils/images/sore-image";
 import { UploadImageRequest } from "@/models/image/image.request.model";
+import { uploadImageService } from "@/services/dashboard/image/image.service";
+import { UserModel } from "@/models/user/user.response";
+import { ImageResponseModel } from "@/models/image/image.response.model";
+import { Card, CardContent } from "@/components/ui/card";
 
 export type UserModalData = Partial<CreateUsers> &
   Partial<UpdateUsers> & {
@@ -49,7 +50,7 @@ export type UserModalData = Partial<CreateUsers> &
 
 type Props = {
   mode: ModalMode;
-  Data?: UserModalData | null;
+  Data?: UserFormData | null;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
@@ -57,11 +58,11 @@ type Props = {
 };
 
 const getDefaultRoleValue = () => {
-  return [USER_ROLE_OPTIONS[0]?.value]; // Return as array
+  return [USER_ROLE_OPTIONS[0]?.value];
 };
 
 const getDefaultUserTypeValue = () => {
-  return USER_TYPE_OPTIONS[0]?.value; // Return as array
+  return USER_TYPE_OPTIONS[0]?.value;
 };
 
 function ModalUser({
@@ -75,6 +76,9 @@ function ModalUser({
   const isCreate = mode === ModalMode.CREATE_MODE;
   const schema = isCreate ? createUserSchema : updateUserSchema;
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserModel | null>(
+    Data?.selectedUser || null
+  );
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,15 +87,19 @@ function ModalUser({
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<UserFormData>({
-    resolver: zodResolver(UserFormSchema), // Use unified form schema
+    resolver: zodResolver(schema), // Use dynamic schema instead of hardcoded UserFormSchema
     defaultValues: {
+      id: Data?.id ?? "",
       email: "",
       username: "",
-      first_name: "",
-      last_name: "",
+      firstName: "",
+      lastName: "",
       phoneNumber: "",
+      profileImageUrl: "",
       userType: getDefaultUserTypeValue(),
       businessId: "",
       roles: getDefaultRoleValue(),
@@ -100,47 +108,45 @@ function ModalUser({
       address: "",
       notes: "",
       password: "",
-      confirmPassword: "",
     },
+    mode: "onChange",
   });
+
+  const profileUrl = watch("profileImageUrl");
+
+  useEffect(() => {
+    if (profileUrl) {
+      setLogoPreview(profileUrl);
+    }
+  }, [profileUrl]);
 
   // Reset form when modal opens or data changes
   useEffect(() => {
     if (isOpen) {
-      reset({
-        email: Data?.email ?? "",
-        username: Data?.username ?? "",
-        first_name: Data?.first_name ?? "",
-        last_name: Data?.last_name ?? "",
-        phoneNumber: Data?.phoneNumber ?? "",
-        userType: Data?.userType ?? getDefaultUserTypeValue(),
-        businessId: isCreate ? "" : Data?.businessId ?? "",
-        roles: Data?.roles ?? getDefaultRoleValue(),
-        accountStatus: Status.ACTIVE ?? Data?.userStatus ?? Status.ACTIVE,
-        position: Data?.position ?? "",
-        address: Data?.address ?? "",
-        notes: Data?.notes ?? "",
-        password: "",
-        confirmPassword: "",
-      });
+      const formData = {
+        id: Data?.id || "",
+        email: Data?.email || "",
+        username: Data?.username || "",
+        firstName: Data?.firstName || "",
+        lastName: Data?.lastName || "",
+        phoneNumber: Data?.phoneNumber || "",
+        profileImageUrl: Data?.profileImageUrl || "",
+        userType: Data?.userType || getDefaultUserTypeValue(),
+        businessId: Data?.businessId || "",
+        roles: Data?.roles || getDefaultRoleValue(),
+        accountStatus: Data?.accountStatus || Status.ACTIVE,
+        position: Data?.position || "",
+        address: Data?.address || "",
+        notes: Data?.notes || "",
+        password: "", // Always empty for security
+      };
+
+      reset(formData);
+      setLogoPreview(Data?.profileImageUrl || null);
     }
-  }, [Data, reset, isCreate, isOpen]);
+  }, [isOpen, Data, reset]);
 
-  const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-    onChange: (value: string) => void
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const base64 = await convertToBase64(file);
-      onChange(base64); // base64 without data:image/... prefix
-    } catch (error) {
-      console.error("Failed to upload image:", error);
-    }
-  };
-
+  // Clean up blob URLs
   useEffect(() => {
     return () => {
       if (logoPreview?.startsWith("blob:")) {
@@ -154,7 +160,6 @@ function ModalUser({
     if (!file) return;
 
     setIsUploading(true);
-
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
@@ -168,10 +173,15 @@ function ModalUser({
 
         const response = await uploadImageService(payload);
         if (response?.imageUrl) {
-          // Update form state
-          setValue("profileUrl", response.imageUrl, { shouldValidate: true });
-          // Update local preview
-          setLogoPreview(response.imageUrl);
+          setValue("profileImageUrl", response?.imageUrl, {
+            shouldValidate: true,
+          });
+          console.log(
+            "Image Preview URL:",
+            process.env.NEXT_PUBLIC_API_BASE_URL + response.imageUrl
+          );
+
+          setLogoPreview(response?.imageUrl);
         }
       };
       reader.readAsDataURL(file);
@@ -184,19 +194,39 @@ function ModalUser({
 
   const handleRemoveLogo = () => {
     setLogoPreview(null);
-    setValue("profileUrl", "", { shouldDirty: true });
+    setValue("profileImageUrl", "", { shouldDirty: true });
   };
 
-  // Form submission handler
+  const getImageSource = () => {
+    if (!logoPreview) return undefined;
+
+    // If it's already a full URL (e.g., from blob or absolute http path), return directly
+    if (logoPreview.startsWith("blob:") || logoPreview.startsWith("http")) {
+      return logoPreview;
+    }
+
+    // Remove trailing slash from base URL and leading slash from image path to prevent "//"
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL_IMAGE?.replace(/\/$/, "") || "";
+    const path = logoPreview.replace(/^\//, "");
+
+    const fullUrl = `${baseUrl}${path}`;
+    console.log("Image URL:", fullUrl); // Debug line
+
+    return fullUrl;
+  };
+
   const onSubmit = (data: UserFormData) => {
+    console.log("Form submitted with mode:", mode, "Data:", data); // Debug log
+
     if (isCreate) {
       const payload: CreateUsers = {
-        email: data.email.trim(),
-        username: data.username.trim(),
-        first_name: data.first_name.trim(),
-        last_name: data.last_name.trim(),
+        email: data?.email?.trim()!,
+        username: data?.username?.trim()!,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
         phoneNumber: data?.phoneNumber?.trim(),
-        userType: data.userType,
+        userType: data?.userType!,
         businessId: data.businessId,
         roles: data.roles,
         accountStatus: Status.ACTIVE,
@@ -205,36 +235,32 @@ function ModalUser({
         address: data.address,
         notes: data.notes,
         password: data?.password?.trim()!,
-        confirmPassword: data?.confirmPassword?.trim()!,
       };
-      console.log("New user: ", payload);
+      console.log("Create Payload:", payload); // Debug log
       onSave(payload);
     } else {
       const payload: UpdateUsers = {
-        email: data.email,
-        username: data.username,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        phoneNumber: data.phoneNumber,
-        userType: data.userType,
+        id: data.id ?? "",
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        phoneNumber: data.phoneNumber?.trim(),
         profileImageUrl: data.profileImageUrl,
         businessId: data.businessId,
         roles: data.roles,
-        accountStatus: Status.ACTIVE,
+        accountStatus: data.accountStatus, // Use form data instead of hardcoded Status.ACTIVE
         position: data.position,
         address: data.address,
         notes: data.notes,
-        password: data.password ? data.password.trim() : undefined,
-        confirmPassword: data.confirmPassword
-          ? data.confirmPassword.trim()
-          : undefined,
       };
+      console.log("Update Payload:", payload);
       onSave(payload);
     }
     onClose();
   };
 
   const handleClose = () => {
+    reset(); // Reset form when closing
+    setLogoPreview(null);
     onClose();
   };
 
@@ -256,56 +282,62 @@ function ModalUser({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 pt-4">
           {/* Email Field */}
-          <div className="space-y-1">
-            <Label htmlFor="email">
-              Email <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="email"
-                  type="email"
-                  placeholder="email@example.com"
-                  disabled={isSubmitting}
-                  autoComplete="email"
-                  className={errors.email ? "border-red-500" : ""}
-                />
+          {isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="email">
+                Email <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="email"
+                    type="email"
+                    placeholder="email@example.com"
+                    disabled={isSubmitting}
+                    autoComplete="email"
+                    className={errors.email ? "border-red-500" : ""}
+                  />
+                )}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Username Field */}
-          <div className="space-y-1">
-            <Label htmlFor="username">
-              Username <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="username"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="username"
-                  type="text"
-                  placeholder="johndoe"
-                  disabled={isSubmitting}
-                  autoComplete="username"
-                  className={errors.username ? "border-red-500" : ""}
-                />
+          {isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="username">
+                Username <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="username"
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    disabled={isSubmitting}
+                    autoComplete="username"
+                    className={errors.username ? "border-red-500" : ""}
+                  />
+                )}
+              />
+              {errors.username && (
+                <p className="text-sm text-destructive">
+                  {errors.username.message}
+                </p>
               )}
-            />
-            {errors.username && (
-              <p className="text-sm text-destructive">
-                {errors.username.message}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* First Name Field */}
           <div className="space-y-1">
@@ -314,7 +346,7 @@ function ModalUser({
             </Label>
             <Controller
               control={control}
-              name="first_name"
+              name="firstName"
               render={({ field }) => (
                 <Input
                   {...field}
@@ -323,13 +355,13 @@ function ModalUser({
                   placeholder="John"
                   disabled={isSubmitting}
                   autoComplete="given-name"
-                  className={errors.first_name ? "border-red-500" : ""}
+                  className={errors.firstName ? "border-red-500" : ""}
                 />
               )}
             />
-            {errors.first_name && (
+            {errors.firstName && (
               <p className="text-sm text-destructive">
-                {errors.first_name.message}
+                {errors.firstName.message}
               </p>
             )}
           </div>
@@ -341,7 +373,7 @@ function ModalUser({
             </Label>
             <Controller
               control={control}
-              name="last_name"
+              name="lastName"
               render={({ field }) => (
                 <Input
                   {...field}
@@ -350,13 +382,13 @@ function ModalUser({
                   placeholder="Doe"
                   disabled={isSubmitting}
                   autoComplete="family-name"
-                  className={errors.last_name ? "border-red-500" : ""}
+                  className={errors.lastName ? "border-red-500" : ""}
                 />
               )}
             />
-            {errors.last_name && (
+            {errors.lastName && (
               <p className="text-sm text-destructive">
-                {errors.last_name.message}
+                {errors.lastName.message}
               </p>
             )}
           </div>
@@ -389,43 +421,45 @@ function ModalUser({
           </div>
 
           {/* User Type Field */}
-          <div className="space-y-1">
-            <Label htmlFor="userType">
-              User Type <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="userType"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={(value) => field.onChange([value])}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger
-                    id="user-type-select"
-                    className={`bg-white dark:bg-inherit ${
-                      errors.userType ? "border-red-500" : ""
-                    }`}
+          {isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="userType">
+                User Type <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="userType"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange([value])}
+                    disabled={isSubmitting}
                   >
-                    <SelectValue placeholder="Select user type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {USER_TYPE_OPTIONS.map((role) => (
-                      <SelectItem key={role.value} value={role.value}>
-                        {role.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      id="user-type-select"
+                      className={`bg-white dark:bg-inherit ${
+                        errors.userType ? "border-red-500" : ""
+                      }`}
+                    >
+                      <SelectValue placeholder="Select user type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {USER_TYPE_OPTIONS.map((role) => (
+                        <SelectItem key={role.value} value={role.value}>
+                          {role.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.userType && (
+                <p className="text-sm text-destructive">
+                  {errors.userType.message}
+                </p>
               )}
-            />
-            {errors.userType && (
-              <p className="text-sm text-destructive">
-                {errors.userType.message}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Business ID Field - Create Mode Only */}
           {isCreate && (
@@ -456,7 +490,7 @@ function ModalUser({
           )}
 
           {/* Password Field - Create Mode Only or Update Mode with optional password */}
-          {(isCreate || !isCreate) && (
+          {isCreate && (
             <>
               <div className="space-y-1">
                 <Label htmlFor="password">
@@ -496,52 +530,6 @@ function ModalUser({
                 {errors.password && (
                   <p className="text-sm text-destructive">
                     {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Confirm Password Field */}
-              <div className="space-y-1">
-                <Label htmlFor="confirmPassword">
-                  Confirm Password{" "}
-                  {isCreate && <span className="text-red-500">*</span>}
-                </Label>
-                <div className="relative">
-                  <Controller
-                    control={control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="confirmPassword"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        disabled={isSubmitting}
-                        autoComplete="new-password"
-                        className={
-                          errors.confirmPassword
-                            ? "border-red-500 pr-10"
-                            : "pr-10"
-                        }
-                      />
-                    )}
-                  />
-                  <button
-                    type="button"
-                    onClick={togglePasswordVisibility}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-500" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-500" />
-                    )}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-sm text-destructive">
-                    {errors.confirmPassword.message}
                   </p>
                 )}
               </div>
@@ -695,68 +683,51 @@ function ModalUser({
             )}
           </div>
 
-          {/* Profile URL Field */}
-          <div className="space-y-2">
-            <Label htmlFor="profileImageUrl" className="text-sm font-medium">
-              Profile Photo <span className="text-red-500">*</span>
-            </Label>
-
-            <Controller
-              control={control}
-              name="profileImageUrl"
-              render={({ field: { value, onChange } }) => (
-                <div className="flex items-center gap-6">
-                  {/* Image Preview */}
-                  <div className="relative group">
-                    <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-muted shadow-sm">
-                      <img
-                        src={
-                          value
-                            ? `${process.env.NEXT_PUBLIC_API_BASE_URL_IMAGE}${value}`
-                            : "/assets/no-image.png"
-                        }
-                        alt="Profile"
-                        className="object-cover h-full w-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Upload Button */}
-                  <div className="flex flex-col gap-2">
-                    <input
-                      id="profileImageUrl"
-                      type="file"
-                      accept="image/*"
-                      disabled={isSubmitting}
-                      onChange={(e) => handleImageUpload(e, onChange)}
-                      className="hidden"
+          <Card className="mt-6 ">
+            <CardContent className="p-4">
+              {/* Profile URL Field */}
+              <div className="flex flex-col items-center gap-2">
+                {/* Profile Image Preview or Placeholder */}
+                {logoPreview ? (
+                  <div className="relative w-24 h-24">
+                    <img
+                      src={getImageSource()}
+                      alt="Profile Preview"
+                      className="w-full h-full rounded-full object-cover border border-gray-300"
                     />
-                    <label htmlFor="profileImageUrl">
-                      <span className="inline-block cursor-pointer rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary/90">
-                        Upload Image
-                      </span>
-                    </label>
-
-                    {value && (
-                      <button
-                        type="button"
-                        onClick={() => onChange("")}
-                        className="text-xs text-muted-foreground hover:underline"
-                      >
-                        Remove photo
-                      </button>
-                    )}
+                    {/* Remove Button (X) */}
+                    <button
+                      type="button"
+                      onClick={handleRemoveLogo}
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
+                      title="Remove profile image"
+                    >
+                      ×
+                    </button>
                   </div>
-                </div>
-              )}
-            />
+                ) : (
+                  <div
+                    className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border border-dashed border-gray-400 hover:border-blue-500 cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Upload profile image"
+                  >
+                    <span className="text-gray-500 text-2xl">+</span>
+                  </div>
+                )}
 
-            {errors.profileImageUrl && (
-              <p className="text-sm text-destructive">
-                {errors.profileImageUrl.message}
-              </p>
-            )}
-          </div>
+                {/* Hidden File Input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  title="Upload profile image"
+                  placeholder="Choose profile image"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-4">

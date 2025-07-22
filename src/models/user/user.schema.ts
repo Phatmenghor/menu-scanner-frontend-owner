@@ -1,7 +1,7 @@
 import z from "zod";
 import { UserModel } from "./user.response";
 
-// Base schema with common fields (you would define this based on your BaseStaffSchema)
+// Base schema with common fields
 const BaseStaffSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   roles: z.array(z.string()).optional(),
@@ -15,89 +15,43 @@ const BaseStaffSchema = z.object({
   notes: z.string().optional(),
 });
 
-// Base user schema picking specific fields from BaseStaffSchema
-const BaseUserSchema = BaseStaffSchema.pick({
-  email: true,
-  profileImageUrl: true,
-  accountStatus: true,
-  roles: true,
-  phoneNumber: true,
-  userType: true,
-  businessId: true,
-  position: true,
-  address: true,
-  notes: true,
-}).extend({
-  username: z.string().min(1, "Username is required"),
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
+// Base user schema tailored to full user form
+const BaseUserSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phoneNumber: z.string().optional(),
+  profileImageUrl: z.string().optional(),
+  accountStatus: z.string().optional(),
+  businessId: z.string().optional(),
+  roles: z.array(z.string()).optional(),
+  position: z.string().optional(),
+  address: z.string().optional(),
+  notes: z.string().optional(),
 });
 
-// Schema for creating a user with password validation
+// Schema for creating a user (email, userType, username, password required)
 export const createUserSchema = BaseUserSchema.extend({
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z
-    .string()
-    .min(8, "Confirm Password must be at least 8 characters"),
-}).refine(
-  (data) => {
-    return data.password === data.confirmPassword;
-  },
-  {
-    path: ["confirmPassword"],
-    message: "Passwords do not match",
-  }
-);
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  userType: z.string().min(1, "User type is required"),
+  username: z.string().min(1, "Username is required"),
+});
 
-// Schema for updating a user (password fields are optional)
+// Schema for updating a user (only editable fields, no password, email, or userType)
 export const updateUserSchema = BaseUserSchema.extend({
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .optional(),
-  confirmPassword: z
-    .string()
-    .min(8, "Confirm Password must be at least 8 characters")
-    .optional(),
-}).refine(
-  (data) => {
-    // If password or confirmPassword is provided, ensure both match
-    if (data.password || data.confirmPassword) {
-      return data.password === data.confirmPassword;
-    }
-    // Otherwise, skip validation
-    return true;
-  },
-  {
-    path: ["confirmPassword"],
-    message: "Passwords do not match",
-  }
-);
+  id: z.string().min(1, "UserId is required").optional(),
+});
 
-// Combined form schema for both create and update modes
+// Combined form schema (same as update, but allows password optionally for UI)
 export const UserFormSchema = BaseUserSchema.extend({
+  email: z.string().email("Please enter a valid email address").optional(),
+  username: z.string().min(1, "Username is required").optional(),
+  userType: z.string().min(1, "User type is required").optional(),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
+    .min(6, "Password must be at least 6 characters")
     .optional(),
-  confirmPassword: z
-    .string()
-    .min(8, "Confirm Password must be at least 8 characters")
-    .optional(),
-}).refine(
-  (data) => {
-    // If password or confirmPassword is provided, ensure both match
-    if (data.password || data.confirmPassword) {
-      return data.password === data.confirmPassword;
-    }
-    // Otherwise, skip validation
-    return true;
-  },
-  {
-    path: ["confirmPassword"],
-    message: "Passwords do not match",
-  }
-);
+});
 
 // Type definitions
 export type CreateUserSchema = z.infer<typeof createUserSchema>;

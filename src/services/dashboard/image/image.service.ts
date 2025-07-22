@@ -3,7 +3,7 @@ import { axiosClientWithAuth } from "@/utils/axios";
 
 export async function uploadImageService(data: UploadImageRequest) {
   try {
-    const response = await axiosClientWithAuth.post(`/images`, data);
+    const response = await axiosClientWithAuth.post(`/api/images`, data);
     return response.data;
   } catch (error: any) {
     // Extract error message from response if available

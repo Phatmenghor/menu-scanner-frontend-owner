@@ -1,4 +1,3 @@
-import { locales } from "@/i18n";
 import { AppLanguage } from "../language/language";
 
 export enum Status {
