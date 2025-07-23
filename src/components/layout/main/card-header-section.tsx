@@ -73,7 +73,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                     {item.href ? (
                       <BreadcrumbLink
                         href={item.href}
-                        className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+                        className="text-gray-600 hover:text-gray-500 transition-colors duration-200"
                       >
                         {item.label}
                       </BreadcrumbLink>
@@ -128,7 +128,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                 <Input
                   type="search"
                   placeholder={searchPlaceholder}
-                  className="pl-10 w-full placeholder:text-gray-500 focus:border-pink-500 focus:ring-pink-500/20 transition-all duration-200"
+                  className="pl-10 w-full text-gray-200 placeholder:text-gray-500 focus:border-pink-500 focus:ring-pink-500/20 hover:border-gray-600 transition-all duration-200"
                   value={searchValue}
                   onChange={onSearchChange}
                 />

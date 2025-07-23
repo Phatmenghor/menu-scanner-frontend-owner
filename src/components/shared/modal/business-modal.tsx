@@ -21,7 +21,7 @@ import {
   BusinessFormData,
   createBusinessSchema,
   updateBusinessSchema,
-} from "@/models/dashboard/business/business.schema";
+} from "@/models/dashboard/master-data/business/business.schema";
 import {
   Select,
   SelectContent,

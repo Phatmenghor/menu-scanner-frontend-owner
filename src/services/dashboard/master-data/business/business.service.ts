@@ -2,7 +2,7 @@ import {
   AllBusinessRequest,
   CreateBusinessRequest,
   UpdateBusinessRequest,
-} from "@/models/dashboard/business/business.request.model";
+} from "@/models/dashboard/master-data/business/business.request.model";
 import { axiosClientWithAuth } from "@/utils/axios";
 
 export async function getAllBusinessService(data: AllBusinessRequest) {

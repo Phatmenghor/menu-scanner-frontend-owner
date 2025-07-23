@@ -24,6 +24,8 @@ import {
   BusinessStatus,
   ModalMode,
   Status,
+  SUBSCRIPTION_PLAN_OPTIONS,
+  SubscriptionPlanStatus,
   UserRole,
   UserType,
 } from "@/constants/AppResource/status/status";
@@ -80,23 +82,36 @@ import ModalBusiness from "@/components/shared/modal/business-modal";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
 import { BusinessDetailSheet } from "@/components/index/dashboard/master-data/business/business-detail-sheet";
+import {
+  AllSubscriptionPlan,
+  SubscriptionPlanModel,
+} from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
+import { SubscriptionPlanFormData } from "@/models/dashboard/master-data/subscription-plan/subscription-plan.schema";
+import {
+  createSubscriptionService,
+  deletedSubscriptionPlanService,
+  getAllSubscriptionService,
+  updateSubscriptionPlanService,
+} from "@/services/dashboard/master-data/subscrion-plan/subscription-plan.service";
+import { CreateSubscriptionPlanRequest } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-request";
+import { SubscriptionPlanFilters } from "@/components/index/dashboard/master-data/subscription-plan/subscription-plan-filter";
 
-export default function BusinessPage() {
+export default function SubscriptionPlanPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState<AllBusinessResponse | null>(null);
-  const [initializeBusiness, setInitializeBusiness] =
-    useState<BusinessFormData | null>(null);
-  const [selectedBusiness, setSelectedBusiness] =
-    useState<BusinessModel | null>(null);
+  const [data, setData] = useState<AllSubscriptionPlan | null>(null);
+  const [initializeSubscriptionPlan, setInitializeSubscriptionPlan] =
+    useState<SubscriptionPlanFormData | null>(null);
+  const [selectedSubscriptionPlan, setSelectedSubscriptionPlan] =
+    useState<SubscriptionPlanModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBusinessDetailOpen, setIsBusinessDetailOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<BusinessStatus | undefined>(
-    undefined
-  );
+  const [statusFilter, setStatusFilter] = useState<
+    SubscriptionPlanStatus | undefined
+  >(undefined);
   const [hasSubscription, setHasSubscription] = useState<boolean | undefined>(
     undefined
   );
@@ -107,6 +122,14 @@ export default function BusinessPage() {
     useState<BusinessModel | null>(null);
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
+
+  //filter state
+  const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
+  const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
+  const [minDuration, setMinDuration] = useState<number | undefined>(undefined);
+  const [maxDuration, setMaxDuration] = useState<number | undefined>(undefined);
+  const [publicOnly, setPublicOnly] = useState(false);
+  const [freeOnly, setFreeOnly] = useState(false);
 
   const t = useTranslations("user");
   const headers = getUserTableHeaders(t);
@@ -122,7 +145,7 @@ export default function BusinessPage() {
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
     usePagination({
-      baseRoute: ROUTES.DASHBOARD.BUSINESS,
+      baseRoute: ROUTES.DASHBOARD.SUBSCRIPTION_PLAN,
       defaultPageSize: 10,
     });
 
@@ -135,35 +158,51 @@ export default function BusinessPage() {
     }
   }, [searchParams, updateUrlWithPage]);
 
-  const loadBusiness = useCallback(async () => {
+  const loadSubscriptionPlan = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getAllBusinessService({
+      const response = await getAllSubscriptionService({
         status: statusFilter,
-        hasActiveSubscription: hasSubscription,
+        freeOnly: freeOnly,
+        publicOnly: publicOnly,
+        maxDurationDays: maxDuration,
+        minDurationDays: minDuration,
+        maxPrice: maxPrice,
+        minPrice: minPrice,
         search: debouncedSearchQuery,
         pageNo: currentPage,
         pageSize: 10,
       });
-      console.log("Fetched businesses:", response);
+      console.log("Fetched subscription plan:", response);
       setData(response);
     } catch (error: any) {
-      console.log("Failed to fetch businesses: ", error);
+      console.log("Failed to fetch subscription plan: ", error);
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchQuery, statusFilter, hasSubscription, currentPage]);
+  }, [
+    debouncedSearchQuery,
+    statusFilter,
+    hasSubscription,
+    currentPage,
+    maxPrice,
+    minPrice,
+    minDuration,
+    maxDuration,
+    publicOnly,
+    freeOnly,
+  ]);
 
   useEffect(() => {
-    loadBusiness();
-  }, [loadBusiness]);
+    loadSubscriptionPlan();
+  }, [loadSubscriptionPlan]);
 
   // Simplified search change handler - just updates the state, debouncing handles the rest
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  const handleExportToPdf = async (data: AllBusinessResponse | null) => {
+  const handleExportToPdf = async (data: AllSubscriptionPlan | null) => {
     setIsExportingToExcel(true);
     try {
       const columns: ExcelColumn[] = [
@@ -226,24 +265,23 @@ export default function BusinessPage() {
     }
   };
 
-  async function handleSubmit(formData: BusinessFormData) {
+  async function handleSubmit(formData: SubscriptionPlanFormData) {
     console.log("Submitting form:", formData, "mode:", mode);
 
     setIsSubmitting(true);
     try {
       const isCreate = mode === ModalMode.CREATE_MODE;
 
-      const payload = {
-        email: formData.email!,
-        name: formData.name!,
-        status: formData.status,
-        address: formData.address,
+      const payload: CreateSubscriptionPlanRequest = {
+        name: formData.name,
+        durationDays: formData.durationDays,
+        price: formData.price,
         description: formData.description,
-        phone: formData.phone,
+        status: formData.status,
       };
 
       if (isCreate) {
-        const response = await createBusinessService(payload);
+        const response = await createSubscriptionService(payload);
         if (response) {
           // Update users list
           setData((prev) =>
@@ -268,9 +306,7 @@ export default function BusinessPage() {
 
           AppToast({
             type: "success",
-            message: `Business ${
-              response.username || formData.email
-            } added successfully`,
+            message: `Subscription Plan ${response.username} added successfully`,
             duration: 4000,
             position: "top-right",
           });
@@ -280,10 +316,13 @@ export default function BusinessPage() {
       } else {
         // Update mode
         if (!formData?.id) {
-          throw new Error("Business ID is required for update");
+          throw new Error("Subscription Plan ID is required for update");
         }
 
-        const response = await updateBusinessService(formData?.id, payload);
+        const response = await updateSubscriptionPlanService(
+          formData?.id,
+          payload
+        );
         if (response) {
           // Update users list
           setData((prev) =>
@@ -299,7 +338,7 @@ export default function BusinessPage() {
 
           AppToast({
             type: "success",
-            message: `Business ${
+            message: `Subscription Plan ${
               response.username || response.email
             } updated successfully`,
             duration: 4000,
@@ -310,25 +349,27 @@ export default function BusinessPage() {
         }
       }
     } catch (error: any) {
-      console.error("Error submitting business form:", error);
+      console.error("Error submitting Subscription Plan form:", error);
       toast.error(error.message || "An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  async function handleDeleteBusiness() {
-    if (!selectedBusiness || !selectedBusiness.id) return;
+  async function handleDeleteSubscriptionPlan() {
+    if (!selectedSubscriptionPlan || !selectedSubscriptionPlan.id) return;
 
     setIsSubmitting(true);
     try {
-      const response = await deletedBusinessService(selectedBusiness.id);
+      const response = await deletedSubscriptionPlanService(
+        selectedSubscriptionPlan.id
+      );
 
       if (response) {
         AppToast({
           type: "success",
-          message: `Business ${
-            selectedBusiness.name ?? ""
+          message: `Subscription plan ${
+            selectedSubscriptionPlan.name ?? ""
           } deleted successfully`,
           duration: 4000,
           position: "top-right",
@@ -337,33 +378,35 @@ export default function BusinessPage() {
         if (data && data.content.length === 1 && currentPage > 1) {
           updateUrlWithPage(currentPage - 1);
         } else {
-          await loadBusiness();
+          await loadSubscriptionPlan();
         }
       } else {
         AppToast({
           type: "error",
-          message: `Failed to delete business`,
+          message: `Failed to delete Subscription plan`,
           duration: 4000,
           position: "top-right",
         });
       }
     } catch (error) {
-      console.error("Error deleting business:", error);
-      toast.error("An error occurred while deleting the business");
+      console.error("Error deleting Subscription plan:", error);
+      toast.error("An error occurred while deleting the Subscription plan");
     } finally {
       setIsSubmitting(false);
       setIsDeleteDialogOpen(false);
     }
   }
 
-  const handleEditBusiness = (user: BusinessFormData) => {
-    setInitializeBusiness(user);
+  const handleEdit = (subPlan: SubscriptionPlanModel) => {
+    setInitializeSubscriptionPlan(subPlan);
     setMode(ModalMode.UPDATE_MODE);
     setIsModalOpen(!isModalOpen);
   };
 
   // Status toggle handler
-  const handleStatusToggle = async (formData: BusinessModel | null) => {
+  const handleStatusToggle = async (
+    formData: SubscriptionPlanFormData | null
+  ) => {
     if (!formData?.id) return;
 
     setIsSubmitting(true);
@@ -371,7 +414,7 @@ export default function BusinessPage() {
       const newStatus =
         formData?.status === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
 
-      const response = await updateBusinessService(formData?.id, {
+      const response = await updateSubscriptionPlanService(formData?.id, {
         status: newStatus,
       });
 
@@ -390,7 +433,7 @@ export default function BusinessPage() {
 
         AppToast({
           type: "success",
-          message: `Business status updated successfully`,
+          message: `Subscription plan status updated successfully`,
           duration: 4000,
           position: "top-right",
         });
@@ -399,44 +442,40 @@ export default function BusinessPage() {
       } else {
         AppToast({
           type: "error",
-          message: `Failed to update business status`,
+          message: `Failed to update Subscription plan status`,
           duration: 4000,
           position: "top-right",
         });
-        loadBusiness(); // reload in case of failure
+        loadSubscriptionPlan(); // reload in case of failure
       }
     } catch (error: any) {
       toast.error(
-        error?.message || "An error occurred while updating business status"
+        error?.message ||
+          "An error occurred while updating Subscription plan status"
       );
-      loadBusiness(); // reload in case of failure
+      loadSubscriptionPlan(); // reload in case of failure
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleToggleStatus = (business: BusinessModel) => {
-    setSelectedBusinessToggle(business);
-    setIsToggleStatusDialogOpen(true);
-  };
-
   // Handle status filter change - directly updates the filter value
-  const handleStatusChange = (status: BusinessStatus) => {
+  const handleStatusChange = (status: SubscriptionPlanStatus) => {
     setStatusFilter(status);
   };
 
-  const handleViewBusinessDetail = (business: BusinessModel | null) => {
-    setSelectedBusiness(business);
+  const handleView = (subPlan: SubscriptionPlanModel | null) => {
+    setSelectedSubscriptionPlan(subPlan);
     setIsBusinessDetailOpen(true);
   };
 
   const handleCloseViewBusinessDetail = () => {
-    setSelectedBusiness(null);
+    setSelectedSubscriptionPlan(null);
     setIsBusinessDetailOpen(false);
   };
 
-  const handleDelete = (user: BusinessModel) => {
-    setSelectedBusiness(user);
+  const handleDelete = (user: SubscriptionPlanModel) => {
+    setSelectedSubscriptionPlan(user);
     setIsDeleteDialogOpen(true);
   };
 
@@ -446,12 +485,28 @@ export default function BusinessPage() {
     setSearchQuery("");
     updateUrlWithPage(1, true);
     setData(null); // Reset users to trigger reload};
-    loadBusiness(); // Reload users with default filters
+    loadSubscriptionPlan(); // Reload users with default filters
+    setMinPrice(undefined);
+    setMaxPrice(undefined);
+    setMinDuration(undefined);
+    setMaxDuration(undefined);
+    setPublicOnly(false);
+    setFreeOnly(false);
   };
 
   const handleCreateBusiness = () => {
     setIsModalOpen(!isModalOpen);
     setMode(ModalMode.CREATE_MODE);
+  };
+
+  const handlePriceChange = (min?: number, max?: number) => {
+    setMinPrice(min);
+    setMaxPrice(max);
+  };
+
+  const handleDurationChange = (min?: number, max?: number) => {
+    setMinDuration(min);
+    setMaxDuration(max);
   };
 
   return (
@@ -460,9 +515,9 @@ export default function BusinessPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Business List", href: "" },
+            { label: "Subscription Plan List", href: "" },
           ]}
-          title="Business"
+          title="Subscription Plan"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}
@@ -470,93 +525,23 @@ export default function BusinessPage() {
           onSearchChange={handleSearchChange}
           openModal={handleCreateBusiness}
           children={
-            <div className="flex flex-wrap items-center justify-start gap-4 w-full">
-              {/* <div className="relative w-full md:w-[350px]">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              aria-label="search-business"
-              autoComplete="search-business"
-              type="search"
-              placeholder={t("search")}
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="pl-8 w-full min-w-[200px] text-xs md:min-w-[300px] h-9"
-              disabled={isSubmitting}
+            <SubscriptionPlanFilters
+              statusFilter={statusFilter}
+              onStatusChange={handleStatusChange}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              onPriceChange={handlePriceChange}
+              minDuration={minDuration}
+              maxDuration={maxDuration}
+              onDurationChange={handleDurationChange}
+              publicOnly={publicOnly}
+              freeOnly={freeOnly}
+              setPublicOnly={setPublicOnly}
+              setFreeOnly={setFreeOnly}
+              onExport={() => handleExportToPdf(data)}
+              onReset={handleResetFilters}
+              disableReset={!statusFilter && !publicOnly && !freeOnly}
             />
-          </div> */}
-
-              <div className="flex items-center gap-3">
-                <Select value={statusFilter} onValueChange={handleStatusChange}>
-                  <SelectTrigger className="min-w-[150px] h-9 text-sm">
-                    <SelectValue placeholder="Select Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BUSINESS_STATUS_OPTIONS.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="text-sm"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex flex-col space-y-1">
-                  <Select
-                    value={
-                      hasSubscription === true
-                        ? "true"
-                        : hasSubscription === false
-                        ? "false"
-                        : "all"
-                    }
-                    onValueChange={(value) => {
-                      if (value === "true") {
-                        setHasSubscription(true);
-                      } else if (value === "false") {
-                        setHasSubscription(false);
-                      } else {
-                        setHasSubscription(undefined); // 'all' selected
-                      }
-                    }}
-                  >
-                    <SelectTrigger
-                      className="min-w-[150px] h-9 text-sm text-black"
-                      id="subscription-filter"
-                    >
-                      <SelectValue placeholder="All" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="true">Subscribed</SelectItem>
-                      <SelectItem value="false">Not Subscribed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  onClick={() => handleExportToPdf(data)}
-                  variant="outline"
-                  className="gap-2 text-sm sm:text-base text-black lg:text-sm px-3 sm:px-4 lg:px-6 py-2 lg:py-3"
-                >
-                  <img
-                    src={AppIcons.Excel}
-                    alt="excel Icon"
-                    className="lg:h-5 lg:w-5 text-muted-foreground flex-shrink-0"
-                  />
-                  <span>Excel</span>
-                  <Download className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
-                </Button>
-                <Button
-                  onClick={handleResetFilters}
-                  disabled={!statusFilter}
-                  className="flex items-center"
-                >
-                  <RotateCw className="mr-2 h-4 w-4" />
-                  Reset
-                </Button>
-              </div>
-            </div>
           }
         />
 
@@ -569,16 +554,22 @@ export default function BusinessPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {BusinessTableHeaders.map((header, index) => (
+                  {[
+                    "No",
+                    "Plan Name",
+                    "Price",
+                    "Duration",
+                    "Status",
+                    "Subscriptions",
+                    "Visibility",
+                    "Created At",
+                    "Actions",
+                  ].map((header, index) => (
                     <TableHead
                       key={index}
                       className="text-xs font-semibold text-muted-foreground"
                     >
-                      <div
-                        className={`flex items-center gap-1 ${header.className}`}
-                      >
-                        <span>{header.label}</span>
-                      </div>
+                      <span>{header}</span>
                     </TableHead>
                   ))}
                 </TableRow>
@@ -587,145 +578,87 @@ export default function BusinessPage() {
                 {!data || data.content.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={BusinessTableHeaders.length}
+                      colSpan={9}
                       className="text-center py-8 text-muted-foreground"
                     >
-                      No businesses found
+                      No subscription plans found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  data.content.map((business, index) => {
-                    const logoUrl =
-                      business?.logoUrl && process.env.NEXT_PUBLIC_API_BASE_URL
-                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${business.logoUrl}`
-                        : undefined;
+                  data.content.map((plan, index) => (
+                    <TableRow key={plan.id} className="text-sm">
+                      {/* Index */}
+                      <TableCell className="font-medium truncate">
+                        {indexDisplay(data.pageNo, data.pageSize, index)}
+                      </TableCell>
 
-                    return (
-                      <TableRow key={business.id} className="text-sm">
-                        {/* Index */}
-                        <TableCell className="font-medium truncate">
-                          {indexDisplay(data.pageNo, data.pageSize, index)}
-                        </TableCell>
+                      {/* Plan Name */}
+                      <TableCell className="text-xs font-medium">
+                        {plan.name}
+                      </TableCell>
 
-                        {/* Business Info with Logo */}
-                        <TableCell>
-                          <div>
-                            <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
-                              <AvatarImage
-                                src={business.logoUrl ? logoUrl : ""}
-                                alt={`${business.name} logo`}
-                              />
-                              <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">
-                                {business?.name?.charAt(0).toUpperCase() || "B"}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
-                        </TableCell>
+                      {/* Price */}
+                      <TableCell className="text-xs">
+                        {plan.isFree
+                          ? "Free"
+                          : plan.pricingDisplay || `$${plan.price}`}
+                      </TableCell>
 
-                        {/* Business Type & Cuisine */}
-                        <TableCell className="text-xs">
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              {business?.name}
-                            </span>
-                          </div>
-                        </TableCell>
+                      {/* Duration */}
+                      <TableCell className="text-xs">
+                        {plan.durationDays} days
+                      </TableCell>
 
-                        {/* Business Type & Cuisine */}
-                        <TableCell className="text-xs">
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              {business?.businessType}
-                            </span>
-                            {business?.cuisineType && (
-                              <span className="text-muted-foreground">
-                                {business?.cuisineType}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
+                      {/* Status */}
+                      <TableCell className="text-xs capitalize">
+                        {plan.status}
+                      </TableCell>
 
-                        {/* Contact Info */}
-                        <TableCell className="text-xs">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium">
-                              {business?.email}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-muted-foreground">
-                              {business?.phone}
-                            </span>
-                          </div>
-                        </TableCell>
+                      {/* Subscriptions Count */}
+                      <TableCell className="text-xs">
+                        {plan.activeSubscriptionsCount}
+                      </TableCell>
 
-                        {/* Subscription Info */}
-                        <TableCell className="text-xs">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium">
-                              {business?.currentSubscriptionPlan || "No Plan"}
-                            </span>
-                            {business?.daysRemaining && (
-                              <span
-                                className={`text-xs ${
-                                  business?.isExpiringSoon
-                                    ? "text-yellow-600"
-                                    : "text-muted-foreground"
-                                }`}
-                              >
-                                {business.daysRemaining} days left
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
+                      {/* Visibility */}
+                      <TableCell className="text-xs">
+                        {plan.isPublic
+                          ? "Public"
+                          : plan.isPrivate
+                          ? "Private"
+                          : "-"}
+                      </TableCell>
 
-                        {/* Status Switch */}
-                        <TableCell>
-                          <div className="flex flex-col justify-center">
-                            <BusinessStatusBadge
-                              status={business?.status}
-                              isSubscriptionActive={
-                                business?.isSubscriptionActive
-                              }
-                              isExpiringSoon={business?.isExpiringSoon}
-                            />
-                          </div>
-                        </TableCell>
+                      {/* Created At */}
+                      <TableCell className="text-xs text-muted-foreground">
+                        {DateTimeFormat(plan.createdAt)}
+                      </TableCell>
 
-                        {/* Created At */}
-                        <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(business?.createdAt)}
-                        </TableCell>
-
-                        {/* Actions */}
-                        <TableCell className="text-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditBusiness(business)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewBusinessDetail(business)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(business)}
-                          >
-                            <Trash className="w-3 h-3" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
+                      {/* Actions */}
+                      <TableCell className="text-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(plan)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleView(plan)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(plan)}
+                        >
+                          <Trash className="w-3 h-3" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
@@ -733,41 +666,31 @@ export default function BusinessPage() {
             <ModalBusiness
               isOpen={isModalOpen}
               onClose={() => {
-                setInitializeBusiness(null);
+                setInitializeSubscriptionPlan(null);
                 setIsModalOpen(false);
               }}
               isSubmitting={isSubmitting}
               onSave={handleSubmit}
-              Data={initializeBusiness}
+              Data={initializeSubscriptionPlan}
               mode={mode}
-            />
-
-            <ResetPasswordModal
-              isOpen={isResetPasswordDialogOpen}
-              userName={selectedBusiness?.name || selectedBusiness?.email}
-              onClose={() => {
-                setIsResetPasswordDialogOpen(false);
-                setSelectedBusiness(null);
-              }}
-              userId={selectedBusiness?.id}
             />
 
             <BusinessDetailSheet
               isOpen={isBusinessDetailOpen}
               onClose={() => handleCloseViewBusinessDetail()}
-              business={selectedBusiness}
+              business={selectedSubscriptionPlan}
             />
 
             <DeleteConfirmationDialog
               isOpen={isDeleteDialogOpen}
               onClose={() => {
                 setIsDeleteDialogOpen(false);
-                setSelectedBusiness(null);
+                setSelectedSubscriptionPlan(null);
               }}
-              onDelete={handleDeleteBusiness}
+              onDelete={handleDeleteSubscriptionPlan}
               title="Delete Admin"
               description={`Are you sure you want to delete the admin`}
-              itemName={selectedBusiness?.name || selectedBusiness?.email}
+              itemName={selectedSubscriptionPlan?.name || "---"}
               isSubmitting={isSubmitting}
             />
 
@@ -789,7 +712,7 @@ export default function BusinessPage() {
                     ? "Disable"
                     : "Enable"
                 }`,
-                onClick: () => handleStatusToggle(selectedBusinessToggle),
+                onClick: () => handleStatusToggle(sel),
                 variant: "primary",
               }}
               size="md"

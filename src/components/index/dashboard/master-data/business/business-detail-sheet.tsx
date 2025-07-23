@@ -36,7 +36,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BusinessModel } from "@/models/dashboard/business/business.response.model";
+import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
 
 interface BusinessDetailSheetProps {
   isOpen: boolean;

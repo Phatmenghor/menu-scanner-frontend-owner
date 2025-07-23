@@ -41,7 +41,7 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Check, RotateCw, Search, UserPlus } from "lucide-react";
+import { Check, Eye, Plus, RotateCw, Search, UserPlus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -68,6 +68,8 @@ import { AppToast } from "@/components/shared/toast/app-toast";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
+import { CardHeaderSection } from "@/components/layout/main/card-header-section";
+import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
 
 export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,6 +87,8 @@ export default function UserPage() {
   const [userTypeFilter, setUserTypeFilter] = useState<UserType>(
     UserType.PLATFORM_USER
   );
+  const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
+
   const [roleFilter, setRoleFilter] = useState<UserRole>(
     UserRole.PLATFORM_OWNER
   );
@@ -454,6 +458,16 @@ export default function UserPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleViewUserDetail = (user: UserModel | null) => {
+    setSelectedUser(user);
+    setIsUserDetailOpen(true);
+  };
+
+  const handleCloseViewUserDetail = () => {
+    setSelectedUser(null);
+    setIsUserDetailOpen(false);
+  };
+
   const handleResetFilters = () => {
     setUserTypeFilter(UserType.PLATFORM_USER);
     setRoleFilter(UserRole.PLATFORM_OWNER);
@@ -467,101 +481,86 @@ export default function UserPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Users</h2>
-            <p className="text-muted-foreground">
-              Manage your users and their permissions
-            </p>
-          </div>
-          <Button
-            onClick={() => {
-              setIsModalOpen(!isModalOpen);
-              setMode(ModalMode.CREATE_MODE);
-            }}
-            className="flex items-center"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
-        </div>
-        <div className="flex flex-wrap items-center justify-start gap-4 w-full">
-          <div className="relative w-full md:w-[350px]">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              aria-label="search-user"
-              autoComplete="search-user"
-              type="search"
-              placeholder={t("search")}
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="pl-8 w-full min-w-[200px] text-xs md:min-w-[300px] h-9"
-              disabled={isSubmitting}
-            />
-          </div>
-          <div>
-            <Button onClick={() => handleExportToPdf(users)}>Excel</Button>
-          </div>
-          <div className="flex items-center gap-3">
-            <Select value={statusFilter} onValueChange={handleStatusChange}>
-              <SelectTrigger className="min-w-[150px] h-9 text-sm">
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_FILTER.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <CardHeaderSection
+          breadcrumbs={[
+            { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
+            { label: "PlateForm Users List", href: "" },
+          ]}
+          title="PlateForm Users"
+          searchValue={searchQuery}
+          searchPlaceholder="Search..."
+          buttonIcon={<Plus className="w-3 h-3" />}
+          buttonText="Add new"
+          onSearchChange={handleSearchChange}
+          openModal={() => {
+            setIsModalOpen(!isModalOpen);
+            setMode(ModalMode.CREATE_MODE);
+          }}
+          children={
+            <div className="flex items-center gap-3">
+              <Select value={statusFilter} onValueChange={handleStatusChange}>
+                <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_FILTER.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-sm"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Select value={userTypeFilter} onValueChange={handleUserTypeChange}>
-              <SelectTrigger className="min-w-[150px] h-9 text-sm">
-                <SelectValue placeholder="Select User Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {USER_TYPE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
-              <SelectTrigger className="min-w-[150px] h-9 text-sm">
-                <SelectValue placeholder="Select User Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {USER_ROLE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              onClick={handleResetFilters}
-              disabled={!roleFilter && !statusFilter && !userTypeFilter}
-              className="flex items-center"
-            >
-              <RotateCw className="mr-2 h-4 w-4" />
-              Reset
-            </Button>
-          </div>
-        </div>
+              <Select
+                value={userTypeFilter}
+                onValueChange={handleUserTypeChange}
+              >
+                <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
+                  <SelectValue placeholder="Select User Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {USER_TYPE_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-sm"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
+                <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
+                  <SelectValue placeholder="Select User Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {USER_ROLE_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-sm"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={handleResetFilters}
+                disabled={!roleFilter && !statusFilter && !userTypeFilter}
+                className="flex items-center"
+              >
+                <RotateCw className="mr-2 h-4 w-4" />
+                Reset
+              </Button>
+            </div>
+          }
+        />
 
         <div className="w-full">
           <Separator className="bg-gray-300" />
@@ -572,7 +571,7 @@ export default function UserPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {headers.map((header, index) => (
+                  {UserTableHeaders.map((header, index) => (
                     <TableHead
                       key={index}
                       className="text-xs font-semibold text-muted-foreground"
@@ -625,10 +624,11 @@ export default function UserPage() {
                                 {user?.email?.charAt(0).toUpperCase() || "U"}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-sm font-semibold">
-                              {user?.email}
-                            </span>
                           </div>
+                        </TableCell>
+
+                        <TableCell className="text-xs text-muted-foreground">
+                          {user?.email || "---"}
                         </TableCell>
 
                         {/* FullName */}
@@ -639,7 +639,7 @@ export default function UserPage() {
 
                         {/* Role */}
                         <TableCell className="text-xs text-muted-foreground">
-                          <RoleBadge role={user?.userType} />
+                          <RoleBadge role={user?.userType || "---"} />
                         </TableCell>
 
                         {/* Status Switch */}
@@ -677,6 +677,13 @@ export default function UserPage() {
 
                         {/* Actions */}
                         <TableCell className="text-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewUserDetail(user)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -726,6 +733,12 @@ export default function UserPage() {
                 setSelectedUser(null);
               }}
               userId={selectedUser?.id}
+            />
+
+            <UserDetailSheet
+              onClose={handleCloseViewUserDetail}
+              open={isUserDetailOpen}
+              user={selectedUser}
             />
 
             <DeleteConfirmationDialog

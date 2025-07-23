@@ -28,6 +28,7 @@ export const ROUTES = {
     USER_ROLES: "/users/roles",
     PROFILE: "/profile",
     BUSINESS: "/business",
+    SUBSCRIPTION_PLAN: "/subscription-plan",
   },
 } as const;
 
@@ -59,6 +60,10 @@ export const sidebarItems: SidebarItem[] = [
       {
         title: "Business",
         href: ROUTES.DASHBOARD.BUSINESS,
+      },
+      {
+        title: "Subscription Plan",
+        href: ROUTES.DASHBOARD.SUBSCRIPTION_PLAN,
       },
     ],
   },

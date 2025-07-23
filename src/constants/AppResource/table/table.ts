@@ -9,6 +9,7 @@ import {
 
 export const UserTableHeaders = [
   { label: "#", className: "" },
+  { label: "Profile", className: "", icon: Mail },
   { label: "Email", className: "", icon: Mail },
   { label: "FullName", className: "", icon: User2 },
   { label: "UserType", className: "", icon: Shield },

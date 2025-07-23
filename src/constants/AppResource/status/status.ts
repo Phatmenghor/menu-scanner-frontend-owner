@@ -40,6 +40,16 @@ export enum UserRole {
   CUSTOMER = "CUSTOMER",
 }
 
+export enum SubscriptionPlanStatus {
+  PUBLIC = "PUBLIC",
+  PRIVATE = "PRIVATE",
+}
+
+export const SUBSCRIPTION_PLAN_OPTIONS = [
+  { value: SubscriptionPlanStatus.PUBLIC, label: "Public" },
+  { value: SubscriptionPlanStatus.PRIVATE, label: "Private" },
+];
+
 export const USER_ROLE_OPTIONS = [
   // Platform Roles
   { value: UserRole.PLATFORM_OWNER, label: "Platform Owner" },
