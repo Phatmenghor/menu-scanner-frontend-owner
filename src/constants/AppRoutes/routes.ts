@@ -25,6 +25,7 @@ export const ROUTES = {
     NOTIFICATIONS: "/notifications",
     USER_MANAGEMENT: "/users/manage",
     USER_ROLES: "/users/roles",
+    PROFILE: "/profile",
   },
 } as const;
 
@@ -55,7 +56,7 @@ export const sidebarItems: SidebarItem[] = [
     subroutes: [
       {
         title: "Manage Users",
-        href: ROUTES.DASHBOARD.USER_MANAGEMENT,
+        href: ROUTES.DASHBOARD.USERS,
       },
       {
         title: "User Roles",

@@ -44,7 +44,7 @@ import {
 import { Check, RotateCw, Search, UserPlus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
@@ -58,7 +58,7 @@ import {
 } from "@/services/dashboard/user/user.service";
 import { CreateUserRequest } from "@/models/user/user.request";
 import { UserFormData } from "@/models/user/user.schema";
-import ModalUser from "@/components/shared/modal/modal";
+import ModalUser from "@/components/shared/modal/user-modal";
 import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
@@ -595,18 +595,11 @@ export default function UserPage() {
                   </TableRow>
                 ) : (
                   users.content.map((user, index) => {
-                    // const profileImageUrl = useMemo(() => {
-                    //   if (
-                    //     user?.profileUrl &&
-                    //     process.env.NEXT_PUBLIC_API_BASE_URL
-                    //   ) {
-                    //     return new URL(
-                    //       user.profileUrl,
-                    //       `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/`
-                    //     ).toString();
-                    //   }
-                    //   return "/placeholder.svg?height=36&width=36";
-                    // }, [user]);
+                    const profileImageUrl =
+                      user?.profileImageUrl &&
+                      process.env.NEXT_PUBLIC_API_BASE_URL
+                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${user.profileImageUrl}`
+                        : undefined;
 
                     return (
                       <TableRow key={user.id} className="text-sm">
@@ -620,7 +613,9 @@ export default function UserPage() {
                           <div className="flex items-center gap-3 min-w-[180px]">
                             <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
                               <AvatarImage
-                                // src={user.profileUrl ? profileImageUrl : ""}
+                                src={
+                                  user.profileImageUrl ? profileImageUrl : ""
+                                }
                                 alt="Profile"
                               />
                               <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">

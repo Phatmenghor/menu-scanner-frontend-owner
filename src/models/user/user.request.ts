@@ -44,3 +44,9 @@ export interface ChangePasswordByAdminModel {
   newPassword: string;
   confirmPassword: string;
 }
+
+export interface ChangePasswordModel {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

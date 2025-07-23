@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { sidebarItems } from "@/constants/AppRoutes/routes";
+import { ROUTES, sidebarItems } from "@/constants/AppRoutes/routes";
 import { getUserInfo } from "@/utils/local-storage/userInfo";
 import { UserAuthResponse } from "@/models/auth/auth.response";
 import Image from "next/image";
@@ -252,20 +252,22 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Modern Footer with user info */}
         {!collapsed && authUser && (
           <div className="border-t border-border/50 p-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 hover:bg-accent/50 transition-colors duration-300 cursor-pointer group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                {authUser.fullName?.charAt(0) || "U"}
+            <Link href={ROUTES.DASHBOARD.PROFILE}>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 hover:bg-accent/50 transition-colors duration-300 cursor-pointer group">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                  {authUser.fullName?.charAt(0) || "U"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {authUser.fullName || "GUEST USER"}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {authUser.email || "user@example.com"}
+                  </p>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50"></div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">
-                  {authUser.fullName || "GUEST USER"}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {authUser.email || "user@example.com"}
-                </p>
-              </div>
-              <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50"></div>
-            </div>
+            </Link>
           </div>
         )}
 
