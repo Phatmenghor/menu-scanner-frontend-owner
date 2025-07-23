@@ -46,7 +46,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getStatusBadge } from "@/components/shared/badge/status-badge";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
@@ -65,6 +64,7 @@ import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-dele
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 
 export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,6 +87,10 @@ export default function UserPage() {
   );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
+    useState(false);
+  const [selectedUserToggle, setSelectedUserToggle] =
+    useState<UserModel | null>(null);
+  const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
 
   const t = useTranslations("user");
@@ -265,7 +269,7 @@ export default function UserPage() {
             message: `User ${
               response.username || formData.email
             } added successfully`,
-            duration: 3000,
+            duration: 4000,
             position: "top-right",
           });
 
@@ -308,7 +312,7 @@ export default function UserPage() {
             message: `User ${
               response.username || response.email
             } updated successfully`,
-            duration: 3000,
+            duration: 4000,
             position: "top-right",
           });
 
@@ -334,7 +338,7 @@ export default function UserPage() {
         AppToast({
           type: "success",
           message: `User ${selectedUser.fullName ?? ""} deleted successfully`,
-          duration: 3000,
+          duration: 4000,
           position: "top-right",
         });
         // After deletion, check if we need to go back a page
@@ -344,7 +348,12 @@ export default function UserPage() {
           await loadUsers();
         }
       } else {
-        toast.error("Failed to delete user");
+        AppToast({
+          type: "error",
+          message: `Failed to delete user`,
+          duration: 4000,
+          position: "top-right",
+        });
       }
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -359,6 +368,64 @@ export default function UserPage() {
     setInitializeUser(user);
     setMode(ModalMode.UPDATE_MODE);
     setIsModalOpen(!isModalOpen);
+  };
+
+  // Status toggle handler
+  const handleStatusToggle = async (user: UserModel | null) => {
+    if (!user?.id) return;
+
+    setIsSubmitting(true);
+    try {
+      const newStatus =
+        user?.accountStatus === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
+
+      const response = await updateUserService(user?.id, {
+        accountStatus: newStatus,
+      });
+
+      if (response) {
+        // Optimistic update
+        setUsers((prev) =>
+          prev
+            ? {
+                ...prev,
+                content: prev.content.map((user) =>
+                  user.id === selectedUserToggle?.id ? response : user
+                ),
+              }
+            : prev
+        );
+
+        AppToast({
+          type: "success",
+          message: `User status updated successfully`,
+          duration: 4000,
+          position: "top-right",
+        });
+        setSelectedUserToggle(null);
+        setIsToggleStatusDialogOpen(false);
+      } else {
+        AppToast({
+          type: "error",
+          message: `Failed to update user status`,
+          duration: 4000,
+          position: "top-right",
+        });
+        loadUsers(); // reload in case of failure
+      }
+    } catch (error: any) {
+      toast.error(
+        error?.message || "An error occurred while updating user status"
+      );
+      loadUsers(); // reload in case of failure
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleToggleStatus = (user: UserModel) => {
+    setSelectedUserToggle(user);
+    setIsToggleStatusDialogOpen(true);
   };
 
   // Handle status filter change - directly updates the filter value
@@ -581,8 +648,8 @@ export default function UserPage() {
                         <TableCell>
                           <Switch
                             checked={user?.accountStatus === "ACTIVE"}
-                            // onCheckedChange={() => handleCanToggle(user, canModify)}
-                            // disabled={isSubmitting || !canModify}
+                            onCheckedChange={() => handleToggleStatus(user)}
+                            disabled={isSubmitting}
                             aria-label="Toggle user status"
                             className={cn(
                               "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
@@ -674,6 +741,30 @@ export default function UserPage() {
               description={`Are you sure you want to delete the admin`}
               itemName={selectedUser?.fullName || selectedUser?.email}
               isSubmitting={isSubmitting}
+            />
+
+            <ConfirmDialog
+              open={isToggleStatusDialogOpen}
+              onOpenChange={() => {
+                setIsToggleStatusDialogOpen(false);
+                setSelectedUserToggle(null);
+              }}
+              title="Change user status"
+              description={`Are you sure you want to ${
+                selectedUserToggle?.accountStatus === "ACTIVE"
+                  ? "disable"
+                  : "enable"
+              } this user: ${selectedUserToggle?.email}?`}
+              confirmButton={{
+                text: `${
+                  selectedUserToggle?.accountStatus === "ACTIVE"
+                    ? "Disable"
+                    : "Enable"
+                }`,
+                onClick: () => handleStatusToggle(selectedUserToggle),
+                variant: "primary",
+              }}
+              size="md"
             />
 
             <PaginationPage
