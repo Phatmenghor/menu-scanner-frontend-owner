@@ -79,6 +79,7 @@ import { BusinessStatusBadge } from "@/components/shared/badge/business-status-b
 import ModalBusiness from "@/components/shared/modal/business-modal";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
+import { BusinessDetailSheet } from "@/components/index/dashboard/business/business-detail-sheet";
 
 export default function BusinessPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,6 +91,7 @@ export default function BusinessPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBusinessDetailOpen, setIsBusinessDetailOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<BusinessStatus | undefined>(
@@ -423,17 +425,14 @@ export default function BusinessPage() {
     setStatusFilter(status);
   };
 
-  const handleSubscriptionChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const value = e.target.value;
-    if (value === "true") {
-      setHasSubscription(true);
-    } else if (value === "false") {
-      setHasSubscription(false);
-    } else {
-      setHasSubscription(undefined);
-    }
+  const handleViewBusinessDetail = (business: BusinessModel | null) => {
+    setSelectedBusiness(business);
+    setIsBusinessDetailOpen(true);
+  };
+
+  const handleCloseViewBusinessDetail = () => {
+    setSelectedBusiness(null);
+    setIsBusinessDetailOpen(false);
   };
 
   const handleDelete = (user: BusinessModel) => {
@@ -523,7 +522,7 @@ export default function BusinessPage() {
                     }}
                   >
                     <SelectTrigger
-                      className="min-w-[150px] h-9 text-sm"
+                      className="min-w-[150px] h-9 text-sm text-black"
                       id="subscription-filter"
                     >
                       <SelectValue placeholder="All" />
@@ -538,7 +537,7 @@ export default function BusinessPage() {
                 <Button
                   onClick={() => handleExportToPdf(data)}
                   variant="outline"
-                  className="gap-2 text-sm sm:text-base lg:text-sm px-3 sm:px-4 lg:px-6 py-2 lg:py-3"
+                  className="gap-2 text-sm sm:text-base text-black lg:text-sm px-3 sm:px-4 lg:px-6 py-2 lg:py-3"
                 >
                   <img
                     src={AppIcons.Excel}
@@ -610,7 +609,7 @@ export default function BusinessPage() {
 
                         {/* Business Info with Logo */}
                         <TableCell>
-                          <div className="flex items-center gap-3 min-w-[200px]">
+                          <div>
                             <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
                               <AvatarImage
                                 src={business.logoUrl ? logoUrl : ""}
@@ -620,14 +619,15 @@ export default function BusinessPage() {
                                 {business?.name?.charAt(0).toUpperCase() || "B"}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-semibold truncate">
-                                {business?.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground truncate">
-                                {business?.description}
-                              </span>
-                            </div>
+                          </div>
+                        </TableCell>
+
+                        {/* Business Type & Cuisine */}
+                        <TableCell className="text-xs">
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {business?.name}
+                            </span>
                           </div>
                         </TableCell>
 
@@ -651,6 +651,10 @@ export default function BusinessPage() {
                             <span className="font-medium">
                               {business?.email}
                             </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          <div className="flex flex-col gap-1">
                             <span className="text-muted-foreground">
                               {business?.phone}
                             </span>
@@ -679,7 +683,7 @@ export default function BusinessPage() {
 
                         {/* Status Switch */}
                         <TableCell>
-                          <div className="flex flex-col items-center gap-2">
+                          <div className="flex flex-col justify-center">
                             <BusinessStatusBadge
                               status={business?.status}
                               isSubscriptionActive={
@@ -687,38 +691,6 @@ export default function BusinessPage() {
                               }
                               isExpiringSoon={business?.isExpiringSoon}
                             />
-                            <Switch
-                              checked={
-                                business?.status === BusinessStatus.ACTIVE
-                              }
-                              onCheckedChange={() =>
-                                handleToggleStatus(business)
-                              }
-                              disabled={
-                                isSubmitting ||
-                                business?.status === BusinessStatus.SUSPENDED ||
-                                business?.status === BusinessStatus.PENDING
-                              }
-                              aria-label="Toggle business status"
-                              className={cn(
-                                "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                                business?.status === BusinessStatus.SUSPENDED ||
-                                  business?.status === BusinessStatus.PENDING
-                                  ? "bg-gray-300 dark:bg-gray-600 opacity-50 cursor-not-allowed"
-                                  : "bg-gray-300 dark:bg-gray-600 data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary"
-                              )}
-                            >
-                              <div
-                                className={cn(
-                                  "inline-block h-6 w-6 transform rounded-full bg-white dark:bg-gray-100 shadow-md transition-transform",
-                                  "translate-x-1 data-[state=checked]:translate-x-5"
-                                )}
-                              >
-                                {business.status === BusinessStatus.ACTIVE && (
-                                  <Check className="h-6 w-6 m-auto text-orange-600 dark:text-orange-300" />
-                                )}
-                              </div>
-                            </Switch>
                           </div>
                         </TableCell>
 
@@ -739,7 +711,7 @@ export default function BusinessPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            // onClick={() => handleViewDetails(business)}
+                            onClick={() => handleViewBusinessDetail(business)}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -778,6 +750,12 @@ export default function BusinessPage() {
                 setSelectedBusiness(null);
               }}
               userId={selectedBusiness?.id}
+            />
+
+            <BusinessDetailSheet
+              isOpen={isBusinessDetailOpen}
+              onClose={() => handleCloseViewBusinessDetail()}
+              business={selectedBusiness}
             />
 
             <DeleteConfirmationDialog

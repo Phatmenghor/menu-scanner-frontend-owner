@@ -35,9 +35,11 @@ export function getUserTableHeaders(t: (key: string) => string) {
 
 export const BusinessTableHeaders = [
   { label: "#", className: "" },
-  { label: "Business", className: "" },
+  { label: "Logo", className: "" },
+  { label: "Name", className: "" },
   { label: "Type", className: "" },
-  { label: "Contact", className: "" },
+  { label: "Email", className: "" },
+  { label: "Phone", className: "" },
   { label: "Subscription", className: "" },
   { label: "Status", className: "" },
   { label: "Created", className: "" },

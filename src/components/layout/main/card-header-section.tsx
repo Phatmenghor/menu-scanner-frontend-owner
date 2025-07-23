@@ -62,7 +62,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
 
   return (
     <div>
-      <Card className="shadow-xl">
+      <Card>
         <CardContent className="py-6 space-y-4">
           {/* Breadcrumb Section */}
           <Breadcrumb>
@@ -73,12 +73,12 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                     {item.href ? (
                       <BreadcrumbLink
                         href={item.href}
-                        className="text-gray-400 hover:text-gray-200 transition-colors duration-200"
+                        className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
                       >
                         {item.label}
                       </BreadcrumbLink>
                     ) : (
-                      <BreadcrumbPage className="text-gray-200 font-medium">
+                      <BreadcrumbPage className="text-gray-400 font-medium">
                         {item.label}
                       </BreadcrumbPage>
                     )}
@@ -114,12 +114,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
 
             {title && (
               <div className="flex flex-col">
-                <h5 className="lg:text-2xl text-xl font-bold text-white mb-1">
-                  {title}
-                </h5>
-                <p className="text-gray-400 text-sm lg:text-base">
-                  Manage {title.toLowerCase()}
-                </p>
+                <h5 className="lg:text-2xl text-xl font-bold mb-1">{title}</h5>
               </div>
             )}
           </div>
@@ -133,7 +128,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                 <Input
                   type="search"
                   placeholder={searchPlaceholder}
-                  className="pl-10 w-full text-gray-200 placeholder:text-gray-500 focus:border-pink-500 focus:ring-pink-500/20 hover:border-gray-600 transition-all duration-200"
+                  className="pl-10 w-full placeholder:text-gray-500 focus:border-pink-500 focus:ring-pink-500/20 transition-all duration-200"
                   value={searchValue}
                   onChange={onSearchChange}
                 />

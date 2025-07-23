@@ -57,7 +57,7 @@ export const BusinessStatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusConfig.className}`}
+      className={`px-1 py-1 rounded-lg text-center text-xs font-medium ${statusConfig.className}`}
     >
       {statusConfig.label}
     </span>
