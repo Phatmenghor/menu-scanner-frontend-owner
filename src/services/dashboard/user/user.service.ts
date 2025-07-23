@@ -4,10 +4,9 @@ import {
   ChangePasswordModel,
   CreateUserRequest,
   UpdateUserRequest,
-} from "@/models/user/user.request";
-import { axiosClientWithAuth, axiosServer } from "@/utils/axios";
+} from "@/models/dashboard/user/user.request";
+import { axiosClientWithAuth } from "@/utils/axios";
 import axios from "axios";
-import { UUID } from "crypto";
 
 export async function getAllUserService(data: AllUserRequest) {
   try {

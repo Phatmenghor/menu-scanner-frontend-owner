@@ -8,6 +8,7 @@ import {
   Shield,
   Users,
   LucideIcon,
+  Database,
 } from "lucide-react";
 
 export const ROUTES = {
@@ -26,6 +27,7 @@ export const ROUTES = {
     USER_MANAGEMENT: "/users/manage",
     USER_ROLES: "/users/roles",
     PROFILE: "/profile",
+    BUSINESS: "/business",
   },
 } as const;
 
@@ -50,17 +52,35 @@ export const sidebarItems: SidebarItem[] = [
     icon: Home,
   },
   {
-    title: "Users",
-    section: "users",
+    title: "Master Data",
+    section: "Master Data",
+    icon: Database,
+    subroutes: [
+      {
+        title: "Business",
+        href: ROUTES.DASHBOARD.BUSINESS,
+      },
+    ],
+  },
+  {
+    title: "PlateForm User",
+    section: "PlateForm Owner",
     icon: Users,
     subroutes: [
       {
         title: "Manage Users",
         href: ROUTES.DASHBOARD.USERS,
       },
+    ],
+  },
+  {
+    title: "Business User",
+    section: "Business User",
+    icon: Users,
+    subroutes: [
       {
-        title: "User Roles",
-        href: ROUTES.DASHBOARD.USER_ROLES,
+        title: "Manage Users",
+        href: ROUTES.DASHBOARD.USERS,
       },
     ],
   },

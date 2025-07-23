@@ -22,19 +22,19 @@ export default function DashboardLayout({
   }, [pathname, isMobile]);
 
   return (
-    <div className="dashboard-fixed-height flex bg-background">
+    <div className="flex overflow-x-hidden h-screen w-full bg-background">
       <DashboardSidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div
         className={cn(
-          "dashboard-content flex-1 transition-all duration-300",
+          "dashboard-content flex-1 transition-all overflow-hidden duration-300",
           isMobile ? "w-full" : isSidebarOpen ? "ml-56" : "ml-[60px]"
         )}
       >
         <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="dashboard-main px-4 pt-4 md:pt-6 md:px-6">
+        <main className="dashboard-main overflow-y-scroll mb-30 p-2 md:p-4">
           {children}
         </main>
       </div>

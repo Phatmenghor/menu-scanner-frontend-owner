@@ -32,10 +32,9 @@ import {
   UserFormData,
   CreateUsers,
   UpdateUsers,
-} from "@/models/user/user.schema";
-import { UploadImageRequest } from "@/models/image/image.request.model";
+} from "@/models/dashboard/user/user.schema";
+import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { uploadImageService } from "@/services/dashboard/image/image.service";
-import { UserModel } from "@/models/user/user.response";
 import { Card, CardContent } from "@/components/ui/card";
 
 export type UserModalData = Partial<CreateUsers> &
@@ -72,9 +71,6 @@ function ModalUser({
   const isCreate = mode === ModalMode.CREATE_MODE;
   const schema = isCreate ? createUserSchema : updateUserSchema;
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserModel | null>(
-    Data?.selectedUser || null
-  );
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

@@ -1,20 +1,6 @@
 import z from "zod";
 import { UserModel } from "./user.response";
 
-// Base schema with common fields
-const BaseStaffSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  roles: z.array(z.string()).optional(),
-  phoneNumber: z.string().optional(),
-  profileImageUrl: z.string().optional(),
-  accountStatus: z.string().optional(),
-  userType: z.string().min(1, "User type is required"),
-  businessId: z.string().optional(),
-  position: z.string().optional(),
-  address: z.string().optional(),
-  notes: z.string().optional(),
-});
-
 // Base user schema tailored to full user form
 const BaseUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),

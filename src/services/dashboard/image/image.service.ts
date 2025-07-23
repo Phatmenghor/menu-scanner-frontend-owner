@@ -1,4 +1,4 @@
-import { UploadImageRequest } from "@/models/image/image.request.model";
+import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { axiosClientWithAuth } from "@/utils/axios";
 
 export async function uploadImageService(data: UploadImageRequest) {

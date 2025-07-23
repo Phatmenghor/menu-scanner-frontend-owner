@@ -68,6 +68,20 @@ export const USER_TYPE_OPTIONS = [
   { value: UserType.CUSTOMER, label: "Customer" },
 ];
 
+export enum BusinessStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  SUSPENDED = "SUSPENDED",
+  PENDING = "PENDING",
+}
+
+export const BUSINESS_STATUS_OPTIONS = [
+  { value: BusinessStatus.ACTIVE, label: "Active" },
+  { value: BusinessStatus.INACTIVE, label: "Inactive" },
+  { value: BusinessStatus.SUSPENDED, label: "Suspended" },
+  { value: BusinessStatus.PENDING, label: "Pending Approval" },
+];
+
 // Define locale display names and flags
 export const localeConfig = {
   en: {

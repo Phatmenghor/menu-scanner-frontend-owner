@@ -49,15 +49,18 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
-import { AllUserResponse, UserModel } from "@/models/user/user.response";
+import {
+  AllUserResponse,
+  UserModel,
+} from "@/models/dashboard/user/user.response";
 import {
   createUserService,
   deletedUserService,
   getAllUserService,
   updateUserService,
 } from "@/services/dashboard/user/user.service";
-import { CreateUserRequest } from "@/models/user/user.request";
-import { UserFormData } from "@/models/user/user.schema";
+import { CreateUserRequest } from "@/models/dashboard/user/user.request";
+import { UserFormData } from "@/models/dashboard/user/user.schema";
 import ModalUser from "@/components/shared/modal/user-modal";
 import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
@@ -744,7 +747,8 @@ export default function UserPage() {
                 setIsToggleStatusDialogOpen(false);
                 setSelectedUserToggle(null);
               }}
-              title="Change user status"
+              centered={true}
+              title="Change User Status"
               description={`Are you sure you want to ${
                 selectedUserToggle?.accountStatus === "ACTIVE"
                   ? "disable"
@@ -759,7 +763,8 @@ export default function UserPage() {
                 onClick: () => handleStatusToggle(selectedUserToggle),
                 variant: "primary",
               }}
-              size="md"
+              cancelButton={{ text: "Cancel", variant: "secondary" }}
+              onConfirm={() => handleStatusToggle(selectedUserToggle)}
             />
 
             <PaginationPage

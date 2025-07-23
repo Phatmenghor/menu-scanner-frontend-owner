@@ -26,13 +26,13 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserModel } from "@/models/user/user.response";
+import { UserModel } from "@/models/dashboard/user/user.response";
 import {
   getUserProfileService,
   updateUserProfileService,
 } from "@/services/dashboard/user/user.service";
 import ChangePasswordModal from "@/components/shared/modal/change-password-modal";
-import { UpdateUserRequest } from "@/models/user/user.request";
+import { UpdateUserRequest } from "@/models/dashboard/user/user.request";
 import { setUser } from "@/store/features/userSlice";
 
 // Extended form data interface to handle local form state
