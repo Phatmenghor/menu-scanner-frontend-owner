@@ -56,7 +56,7 @@ export default function ModalSubscriptionPlan({
     reset,
     formState: { errors },
   } = useForm<SubscriptionPlanFormData>({
-    resolver: zodResolver(schema), // Use dynamic schema instead of hardcoded UserFormSchema
+    resolver: zodResolver(schema), // Always use the form schema
     defaultValues: {
       id: "",
       name: "",
@@ -88,12 +88,12 @@ export default function ModalSubscriptionPlan({
     console.log("Form submitted with mode:", mode, "Data:", data); // Debug log
 
     const payload = {
-      id: data?.id?.trim(),
+      id: Data?.id?.trim(),
       name: data?.name.trim(),
       status: data?.status.trim(),
-      price: data?.price,
+      price: data?.price ?? 0,
       durationDays: data?.durationDays ?? 0,
-      description: data?.description.trim(),
+      description: data?.description?.trim(),
     };
     console.log(" Payload:", payload);
     onSave(payload);
@@ -145,10 +145,10 @@ export default function ModalSubscriptionPlan({
             )}
           </div>
 
-          {/* Phone Number Field */}
+          {/* Duration Days Field */}
           <div className="space-y-1">
             <Label htmlFor="duration">
-              Durations Days <span className="text-red-500">*</span>
+              Duration Days <span className="text-red-500">*</span>
             </Label>
             <Controller
               control={control}
@@ -157,10 +157,12 @@ export default function ModalSubscriptionPlan({
                 <Input
                   {...field}
                   id="duration"
-                  type="number"
-                  placeholder="+1234567890"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter number of days"
+                  onChange={(e) => field.onChange(e.target.value)}
                   disabled={isSubmitting}
-                  autoComplete="duration"
+                  autoComplete="off"
                   className={errors.durationDays ? "border-red-500" : ""}
                 />
               )}
@@ -172,7 +174,7 @@ export default function ModalSubscriptionPlan({
             )}
           </div>
 
-          {/* price Field */}
+          {/* Price Field */}
           <div className="space-y-1">
             <Label htmlFor="price">
               Price <span className="text-red-500">*</span>
@@ -184,10 +186,12 @@ export default function ModalSubscriptionPlan({
                 <Input
                   {...field}
                   id="price"
-                  type="number"
-                  placeholder="Restaurant A"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Enter price"
+                  onChange={(e) => field.onChange(e.target.value)}
                   disabled={isSubmitting}
-                  autoComplete="price"
+                  autoComplete="off"
                   className={errors.price ? "border-red-500" : ""}
                 />
               )}
@@ -198,45 +202,43 @@ export default function ModalSubscriptionPlan({
           </div>
 
           {/* Status Field */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="status-select">
-                Status <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isSubmitting}
+          <div className="space-y-1">
+            <Label htmlFor="status-select">
+              Status <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              control={control}
+              name="status"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger
+                    id="status-select"
+                    className={`bg-white dark:bg-inherit ${
+                      errors.status ? "border-red-500" : ""
+                    }`}
                   >
-                    <SelectTrigger
-                      id="status-select"
-                      className={`bg-white dark:bg-inherit ${
-                        errors.status ? "border-red-500" : ""
-                      }`}
-                    >
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SUBSCRIPTION_PLAN_OPTIONS.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.status && (
-                <p className="text-sm text-destructive">
-                  {errors.status.message}
-                </p>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUBSCRIPTION_PLAN_OPTIONS.map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-            </div>
-          )}
+            />
+            {errors.status && (
+              <p className="text-sm text-destructive">
+                {errors.status.message}
+              </p>
+            )}
+          </div>
 
           {/* Notes Field - Optional */}
           <div className="space-y-1">

@@ -32,7 +32,7 @@ interface CardHeaderSectionProps {
   buttonText?: string;
   buttonIcon?: React.ReactNode;
   customAddNewButton?: React.ReactNode;
-  handleResetFilters: () => void;
+  handleResetFilters?: () => void;
   disableReset?: boolean;
   buttonHref?: string;
   back?: boolean;
@@ -167,8 +167,6 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                 </div>
               )}
 
-              {customAddNewButton && <div>{customAddNewButton}</div>}
-
               {buttonText && buttonHref && (
                 <div>
                   <Link
@@ -190,6 +188,8 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
               {children && (
                 <div className="w-full [&>*]:text-gray-200">{children}</div>
               )}
+              {customAddNewButton && <div>{customAddNewButton}</div>}
+
               {buttonText && openModal && (
                 <div>
                   <Button

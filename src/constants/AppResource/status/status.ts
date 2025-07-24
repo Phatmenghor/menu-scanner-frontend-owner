@@ -40,6 +40,14 @@ export enum UserRole {
   CUSTOMER = "CUSTOMER",
 }
 
+export enum BusinessUserRole {
+  BUSINESS_OWNER = "BUSINESS_OWNER",
+  BUSINESS_MANAGER = "BUSINESS_MANAGER",
+  BUSINESS_STAFF = "BUSINESS_STAFF",
+
+  CUSTOMER = "CUSTOMER",
+}
+
 export enum SubscriptionPlanStatus {
   PUBLIC = "PUBLIC",
   PRIVATE = "PRIVATE",
@@ -66,11 +74,31 @@ export const USER_ROLE_OPTIONS = [
   { value: UserRole.CUSTOMER, label: "Customer" },
 ];
 
+export const BUSINESS_USER_ROLE_OPTIONS = [
+  // Business Roles
+  { value: BusinessUserRole.BUSINESS_OWNER, label: "Business Owner" },
+  { value: BusinessUserRole.BUSINESS_MANAGER, label: "Business Manager" },
+  { value: BusinessUserRole.BUSINESS_STAFF, label: "Business Staff" },
+
+  // Customer Role
+  { value: BusinessUserRole.CUSTOMER, label: "Customer" },
+];
+
 export enum UserType {
   PLATFORM_USER = "PLATFORM_USER",
   BUSINESS_USER = "BUSINESS_USER",
   CUSTOMER = "CUSTOMER",
 }
+
+export enum BusinessUserType {
+  BUSINESS_USER = "BUSINESS_USER",
+  CUSTOMER = "CUSTOMER",
+}
+
+export const BUSINESS_USER_TYPE_OPTIONS = [
+  { value: BusinessUserType.BUSINESS_USER, label: "Business User" },
+  { value: BusinessUserType.CUSTOMER, label: "Customer" },
+];
 
 export const USER_TYPE_OPTIONS = [
   { value: UserType.PLATFORM_USER, label: "Platform User" },

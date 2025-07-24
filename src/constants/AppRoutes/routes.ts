@@ -29,6 +29,8 @@ export const ROUTES = {
     PROFILE: "/profile",
     BUSINESS: "/business",
     SUBSCRIPTION_PLAN: "/subscription-plan",
+    BUSINESS_USER: "/business-user",
+    MY_BUSINESS: "/my-business",
   },
 } as const;
 
@@ -85,7 +87,11 @@ export const sidebarItems: SidebarItem[] = [
     subroutes: [
       {
         title: "Manage Users",
-        href: ROUTES.DASHBOARD.USERS,
+        href: ROUTES.DASHBOARD.BUSINESS_USER,
+      },
+      {
+        title: "My Business",
+        href: ROUTES.DASHBOARD.MY_BUSINESS,
       },
     ],
   },

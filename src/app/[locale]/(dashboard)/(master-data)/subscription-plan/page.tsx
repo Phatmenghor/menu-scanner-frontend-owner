@@ -91,12 +91,6 @@ export default function SubscriptionPlanPage() {
     undefined
   );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
-    useState(false);
-  const [selectedSubscriptionPlanToggle, setSelectedSubscriptionPlanToggle] =
-    useState<SubscriptionPlanModel | null>(null);
-  const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
-    useState(false);
 
   //filter state
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
@@ -247,7 +241,7 @@ export default function SubscriptionPlanPage() {
     try {
       const isCreate = mode === ModalMode.CREATE_MODE;
 
-      const payload: CreateSubscriptionPlanRequest = {
+      const payload = {
         name: formData.name,
         durationDays: formData.durationDays,
         price: formData.price,
@@ -332,7 +326,7 @@ export default function SubscriptionPlanPage() {
   }
 
   async function handleDeleteSubscriptionPlan() {
-    if (!selectedSubscriptionPlan || !selectedSubscriptionPlan.id) return;
+    if (!selectedSubscriptionPlan || !selectedSubscriptionPlan?.id) return;
 
     setIsSubmitting(true);
     try {
@@ -643,7 +637,7 @@ export default function SubscriptionPlanPage() {
 
             <SubscriptionPlanDetailSheet
               isOpen={isSubPlanDetailOpen}
-              onClose={() => handleCloseViewSubPlanDetail()}
+              onClose={handleCloseViewSubPlanDetail}
               subPlan={selectedSubscriptionPlan}
             />
 

@@ -95,7 +95,6 @@ export function SubscriptionPlanDetailSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      {trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
       <SheetContent className="w-[600px] sm:w-[700px] sm:max-w-none">
         <SheetHeader className="space-y-4">
           <div className="flex items-center gap-4">

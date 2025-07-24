@@ -42,14 +42,12 @@ interface BusinessDetailSheetProps {
   isOpen: boolean;
   onClose: () => void;
   business: BusinessModel | null;
-  trigger?: React.ReactNode;
 }
 
 export function BusinessDetailSheet({
   isOpen,
   onClose,
   business,
-  trigger,
 }: BusinessDetailSheetProps) {
   const getStatusColor = (status: string | null) => {
     switch (status?.toLowerCase()) {

@@ -34,7 +34,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { UserModel } from "@/models/dashboard/user/user.response";
+import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
 
 interface UserDetailSheetProps {
   open: boolean;

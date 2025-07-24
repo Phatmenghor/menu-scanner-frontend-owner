@@ -118,11 +118,13 @@ export default function ModalBusiness({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="w-full max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isCreate ? "Create User" : "Edit User"}</DialogTitle>
+          <DialogTitle>
+            {isCreate ? "Create Business" : "Edit Business"}
+          </DialogTitle>
           <DialogDescription>
             {isCreate
-              ? "Fill out the form to create a new user."
-              : "Update user information below."}
+              ? "Fill out the form to create a new Business."
+              : "Update Business information below."}
           </DialogDescription>
         </DialogHeader>
 

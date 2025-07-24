@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,13 +20,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import {
+  BUSINESS_USER_ROLE_OPTIONS,
+  BUSINESS_USER_TYPE_OPTIONS,
   ModalMode,
   Status,
   STATUS_USER_OPTIONS,
-  USER_ROLE_OPTIONS,
-  USER_TYPE_OPTIONS,
 } from "@/constants/AppResource/status/status";
-
 import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { uploadImageService } from "@/services/dashboard/image/image.service";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,8 +36,6 @@ import {
   updateUserSchema,
   UserFormData,
 } from "@/models/dashboard/user/plateform-user/user.schema";
-import { ComboboxSelectBusiness } from "../combo-box/combobox-business";
-import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
 
 export type UserModalData = Partial<CreateUsers> &
   Partial<UpdateUsers> & {
@@ -55,15 +52,15 @@ type Props = {
   onSave: (data: UserFormData) => void;
 };
 
-const getDefaultRoleValue = () => {
-  return [USER_ROLE_OPTIONS[0]?.value];
+const getDefaultBusinessRoleValue = () => {
+  return [BUSINESS_USER_ROLE_OPTIONS[0]?.value];
 };
 
-const getDefaultUserTypeValue = () => {
-  return USER_TYPE_OPTIONS[0]?.value;
+const getDefaultBusinessUserTypeValue = () => {
+  return BUSINESS_USER_TYPE_OPTIONS[0]?.value;
 };
 
-function ModalUser({
+export default function ModalBusinessUser({
   isOpen,
   onClose,
   Data,
@@ -75,8 +72,6 @@ function ModalUser({
   const schema = isCreate ? createUserSchema : updateUserSchema;
   const [showPassword, setShowPassword] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [selectedBusiness, setSelectedBusiness] =
-    useState<BusinessModel | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,7 +80,6 @@ function ModalUser({
     handleSubmit,
     reset,
     setValue,
-    trigger,
     watch,
     formState: { errors },
   } = useForm<UserFormData>({
@@ -98,9 +92,9 @@ function ModalUser({
       lastName: "",
       phoneNumber: "",
       profileImageUrl: "",
-      userType: getDefaultUserTypeValue(),
+      userType: getDefaultBusinessUserTypeValue(),
       businessId: "",
-      roles: getDefaultRoleValue(),
+      roles: getDefaultBusinessRoleValue(),
       accountStatus: Status.ACTIVE,
       position: "",
       address: "",
@@ -111,7 +105,6 @@ function ModalUser({
   });
 
   const profileUrl = watch("profileImageUrl");
-  watch("businessId");
 
   useEffect(() => {
     if (profileUrl) {
@@ -130,9 +123,9 @@ function ModalUser({
         lastName: Data?.lastName || "",
         phoneNumber: Data?.phoneNumber || "",
         profileImageUrl: Data?.profileImageUrl || "",
-        userType: Data?.userType || getDefaultUserTypeValue(),
+        userType: Data?.userType || getDefaultBusinessUserTypeValue(),
         businessId: Data?.businessId || "",
-        roles: Data?.roles || getDefaultRoleValue(),
+        roles: Data?.roles || getDefaultBusinessRoleValue(),
         accountStatus: Data?.accountStatus || Status.ACTIVE,
         position: Data?.position || "",
         address: Data?.address || "",
@@ -213,7 +206,7 @@ function ModalUser({
         lastName: data.lastName.trim(),
         phoneNumber: data?.phoneNumber?.trim(),
         userType: data?.userType!,
-        businessId: data?.businessId,
+        businessId: data.businessId,
         roles: data.roles,
         accountStatus: Status.ACTIVE,
         profileImageUrl: data.profileImageUrl,
@@ -231,7 +224,7 @@ function ModalUser({
         lastName: data.lastName.trim(),
         phoneNumber: data.phoneNumber?.trim(),
         profileImageUrl: data.profileImageUrl,
-        businessId: data?.businessId,
+        businessId: data.businessId,
         roles: data.roles,
         accountStatus: data.accountStatus, // Use form data instead of hardcoded Status.ACTIVE
         position: data.position,
@@ -250,19 +243,6 @@ function ModalUser({
     onClose();
   };
 
-  const handleBusinessChange = useCallback(
-    (business: BusinessModel | null) => {
-      console.log("business changed:", business);
-      setSelectedBusiness(business);
-      setValue("businessId", business?.id, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      trigger("businessId");
-    },
-    [selectedBusiness]
-  );
-
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -280,35 +260,6 @@ function ModalUser({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 pt-4">
-          {/* Email Field */}
-          {isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="email">
-                Email <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="email"
-                    type="email"
-                    placeholder="email@example.com"
-                    disabled={isSubmitting}
-                    autoComplete="email"
-                    className={errors.email ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-          )}
-
           {/* Username Field */}
           {isCreate && (
             <div className="space-y-1">
@@ -392,6 +343,35 @@ function ModalUser({
             )}
           </div>
 
+          {/* Email Field */}
+          {isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="email">
+                Email <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="email"
+                    type="email"
+                    placeholder="email@example.com"
+                    disabled={isSubmitting}
+                    autoComplete="email"
+                    className={errors.email ? "border-red-500" : ""}
+                  />
+                )}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Phone Number Field */}
           <div className="space-y-1">
             <Label htmlFor="phoneNumber">
@@ -443,7 +423,7 @@ function ModalUser({
                       <SelectValue placeholder="Select user type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {USER_TYPE_OPTIONS.map((role) => (
+                      {BUSINESS_USER_TYPE_OPTIONS.map((role) => (
                         <SelectItem key={role.value} value={role.value}>
                           {role.label}
                         </SelectItem>
@@ -461,30 +441,32 @@ function ModalUser({
           )}
 
           {/* Business ID Field - Create Mode Only */}
-          <div className="space-y-1">
-            <Label htmlFor="businessId">
-              Business ID <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="businessId"
-              render={({ field }) => {
-                return (
-                  <ComboboxSelectBusiness
-                    dataSelect={selectedBusiness}
-                    onChangeSelected={handleBusinessChange}
+          {isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="businessId">
+                Business ID <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="businessId"
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="businessId"
+                    type="text"
+                    placeholder="Business UUID"
                     disabled={isSubmitting}
+                    className={errors.businessId ? "border-red-500" : ""}
                   />
-                );
-              }}
-            />
-
-            {errors.businessId && (
-              <p className="text-sm text-destructive">
-                {errors.businessId.message}
-              </p>
-            )}
-          </div>
+                )}
+              />
+              {errors.businessId && (
+                <p className="text-sm text-destructive">
+                  {errors.businessId.message}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Password Field - Create Mode Only or Update Mode with optional password */}
           {isCreate && (
@@ -556,7 +538,7 @@ function ModalUser({
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {USER_ROLE_OPTIONS.map((role) => (
+                    {BUSINESS_USER_ROLE_OPTIONS.map((role) => (
                       <SelectItem key={role.value} value={role.value}>
                         {role.label}
                       </SelectItem>
@@ -745,5 +727,3 @@ function ModalUser({
     </Dialog>
   );
 }
-
-export default ModalUser;

@@ -20,13 +20,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  BUSINESS_USER_ROLE_OPTIONS,
+  BUSINESS_USER_TYPE_OPTIONS,
+  BusinessUserRole,
+  BusinessUserType,
   ModalMode,
   Status,
   STATUS_FILTER,
-  USER_ROLE_OPTIONS,
-  USER_TYPE_OPTIONS,
-  UserRole,
-  UserType,
 } from "@/constants/AppResource/status/status";
 import {
   getUserTableHeaders,
@@ -71,11 +71,7 @@ import {
   getAllUserService,
   updateUserService,
 } from "@/services/dashboard/user/user.service";
-import {
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/models/dashboard/user/plateform-user/user.request";
-import ModalUser from "@/components/shared/modal/user-modal";
+import { CreateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
 import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
@@ -84,9 +80,10 @@ import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
+import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 
-export default function UserPage() {
+export default function BusinessUserPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<AllUserResponse | null>(null);
   const [initializeUser, setInitializeUser] = useState<UserFormData | null>(
@@ -99,13 +96,13 @@ export default function UserPage() {
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
-  const [userTypeFilter, setUserTypeFilter] = useState<UserType>(
-    UserType.PLATFORM_USER
+  const [userTypeFilter, setUserTypeFilter] = useState<BusinessUserType>(
+    BusinessUserType.BUSINESS_USER
   );
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
 
-  const [roleFilter, setRoleFilter] = useState<UserRole>(
-    UserRole.PLATFORM_OWNER
+  const [roleFilter, setRoleFilter] = useState<BusinessUserRole>(
+    BusinessUserRole.BUSINESS_OWNER
   );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
@@ -130,7 +127,7 @@ export default function UserPage() {
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
     usePagination({
-      baseRoute: ROUTES.DASHBOARD.USERS,
+      baseRoute: ROUTES.DASHBOARD.BUSINESS_USER,
       defaultPageSize: 10,
     });
 
@@ -254,7 +251,6 @@ export default function UserPage() {
           lastName: formData.lastName,
           email: formData.email!,
           userType: formData.userType!,
-          businessId: formData.businessId,
           password: formData.password!,
           phoneNumber: formData.phoneNumber,
           accountStatus: formData.accountStatus,
@@ -305,14 +301,14 @@ export default function UserPage() {
           throw new Error("User ID is required for update");
         }
 
-        const updatePayload: UpdateUserRequest = {
+        const updatePayload = {
           firstName: formData.firstName,
           lastName: formData.lastName,
           phoneNumber: formData.phoneNumber,
+
           accountStatus: formData.accountStatus,
           profileImageUrl: formData.profileImageUrl,
           address: formData.address,
-          businessId: formData.businessId,
           roles: formData.roles,
           notes: formData.notes,
           position: formData.position,
@@ -458,11 +454,11 @@ export default function UserPage() {
     setStatusFilter(status);
   };
 
-  const handleUserTypeChange = (userType: UserType) => {
+  const handleUserTypeChange = (userType: BusinessUserType) => {
     setUserTypeFilter(userType);
   };
 
-  const handleRoleFilterChange = (userType: UserRole) => {
+  const handleRoleFilterChange = (userType: BusinessUserRole) => {
     setRoleFilter(userType);
   };
 
@@ -487,8 +483,8 @@ export default function UserPage() {
   };
 
   const handleResetFilters = () => {
-    setUserTypeFilter(UserType.PLATFORM_USER);
-    setRoleFilter(UserRole.PLATFORM_OWNER);
+    setUserTypeFilter(BusinessUserType.BUSINESS_USER);
+    setRoleFilter(BusinessUserRole.BUSINESS_OWNER);
     setStatusFilter(Status.ACTIVE);
     setSearchQuery("");
     updateUrlWithPage(1, true);
@@ -502,9 +498,9 @@ export default function UserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "PlateForm Users List", href: "" },
+            { label: "Business Users List", href: "" },
           ]}
-          title="PlateForm Users"
+          title="Business Users"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}
@@ -542,7 +538,7 @@ export default function UserPage() {
                 <SelectValue placeholder="Select User Type" />
               </SelectTrigger>
               <SelectContent>
-                {USER_TYPE_OPTIONS.map((option) => (
+                {BUSINESS_USER_TYPE_OPTIONS.map((option) => (
                   <SelectItem
                     key={option.value}
                     value={option.value}
@@ -562,8 +558,9 @@ export default function UserPage() {
                   className="min-w-[150px] h-9 text-black px-3 text-sm justify-between"
                   role="combobox"
                 >
-                  {USER_ROLE_OPTIONS.find((role) => role.value === roleFilter)
-                    ?.label || "Select User Role"}
+                  {BUSINESS_USER_ROLE_OPTIONS.find(
+                    (role) => role.value === roleFilter
+                  )?.label || "Select User Role"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="p-0 w-[200px]">
@@ -572,7 +569,7 @@ export default function UserPage() {
                   <CommandList>
                     <CommandEmpty>No role found.</CommandEmpty>
                     <CommandGroup>
-                      {USER_ROLE_OPTIONS.map((option) => (
+                      {BUSINESS_USER_ROLE_OPTIONS.map((option) => (
                         <CommandItem
                           key={option.value}
                           value={option.value}
@@ -745,7 +742,7 @@ export default function UserPage() {
               </TableBody>
             </Table>
 
-            <ModalUser
+            <ModalBusinessUser
               isOpen={isModalOpen}
               onClose={() => {
                 setInitializeUser(null);

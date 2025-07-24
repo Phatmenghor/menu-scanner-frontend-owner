@@ -120,6 +120,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel htmlFor="username">
                         {t("login.username")}
+                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -144,6 +145,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel htmlFor="password">
                         {t("login.password")}
+                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <div className="relative">

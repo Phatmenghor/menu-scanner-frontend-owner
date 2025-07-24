@@ -4,7 +4,7 @@ import {
   ChangePasswordModel,
   CreateUserRequest,
   UpdateUserRequest,
-} from "@/models/dashboard/user/user.request";
+} from "@/models/dashboard/user/plateform-user/user.request";
 import { axiosClientWithAuth } from "@/utils/axios";
 import axios from "axios";
 
