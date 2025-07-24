@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowLeft, Ghost } from "lucide-react";
+import { Search, ArrowLeft, Ghost, RotateCw, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,12 +32,15 @@ interface CardHeaderSectionProps {
   buttonText?: string;
   buttonIcon?: React.ReactNode;
   customAddNewButton?: React.ReactNode;
+  handleResetFilters: () => void;
+  disableReset?: boolean;
   buttonHref?: string;
   back?: boolean;
   openModal?: () => void;
   customSelect?: React.ReactNode;
   tabs?: React.ReactNode;
   children?: React.ReactNode;
+  children1?: React.ReactNode;
 }
 
 export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
@@ -48,10 +51,13 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
   customAddNewButton,
   onSearchChange,
   buttonText,
+  children1,
   buttonIcon,
   children,
   backHref,
   back,
+  handleResetFilters,
+  disableReset,
   buttonHref,
   openModal,
   customSelect,
@@ -123,15 +129,33 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Search input */}
             {onSearchChange && (
-              <div className="relative w-full lg:w-[400px] group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200" />
-                <Input
-                  type="search"
-                  placeholder={searchPlaceholder}
-                  className="pl-10 w-full text-gray-200 placeholder:text-gray-500 focus:border-pink-500 focus:ring-pink-500/20 hover:border-gray-600 transition-all duration-200"
-                  value={searchValue}
-                  onChange={onSearchChange}
-                />
+              <div className="flex w-full lg:w-[400px] items-center gap-2">
+                <div className="relative w-full group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <Input
+                    type="search"
+                    placeholder={searchPlaceholder}
+                    className="pl-10 w-full text-gray-200 placeholder:text-gray-500 focus:border-pink-500 focus:ring-pink-500/20 hover:border-gray-600 transition-all duration-200"
+                    value={searchValue}
+                    onChange={onSearchChange}
+                  />
+                </div>
+                <Button
+                  onClick={handleResetFilters}
+                  disabled={disableReset}
+                  variant="outline"
+                  size="icon"
+                  className={`
+                  transition-all duration-300
+                  ${
+                    disableReset
+                      ? "opacity-50 cursor-not-allowed"
+                      : "text-gray-500"
+                  }
+                `}
+                >
+                  <RefreshCcw className="h-4 w-4" />
+                </Button>
               </div>
             )}
 
@@ -164,7 +188,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                 </div>
               )}
               {children && (
-                <div className="px-0 pb-0 [&>*]:text-gray-200">{children}</div>
+                <div className="w-full [&>*]:text-gray-200">{children}</div>
               )}
               {buttonText && openModal && (
                 <div>
@@ -184,6 +208,9 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
               )}
             </div>
           </div>
+          {children1 && (
+            <div className="px-0 pb-0 [&>*]:text-gray-200">{children1}</div>
+          )}
         </CardContent>
 
         {/* Tabs Section */}

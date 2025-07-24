@@ -18,6 +18,18 @@ export const UserTableHeaders = [
   { label: "Actions", className: "", icon: Settings },
 ];
 
+export const SubscriptionPlanTableHeaders = [
+  { label: "#", className: "" },
+  { label: "Plan Name", className: "" },
+  { label: "Price", className: "" },
+  { label: "Duration", className: "" },
+  { label: "Status", className: "" },
+  { label: "Subscriptions", className: "" },
+  { label: "Visibility", className: "" },
+  { label: "Created At", className: "" },
+  { label: "Actions", className: "" },
+];
+
 export function getUserTableHeaders(t: (key: string) => string) {
   return [
     { label: "#", className: "" },

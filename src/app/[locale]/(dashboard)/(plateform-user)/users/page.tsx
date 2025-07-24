@@ -41,7 +41,17 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Check, Eye, Plus, RotateCw, Search, UserPlus } from "lucide-react";
+import {
+  Check,
+  Circle,
+  Eye,
+  Pen,
+  Plus,
+  RotateCw,
+  Search,
+  Trash,
+  UserPlus,
+} from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -496,6 +506,8 @@ export default function UserPage() {
             setIsModalOpen(!isModalOpen);
             setMode(ModalMode.CREATE_MODE);
           }}
+          handleResetFilters={handleResetFilters}
+          disableReset={!roleFilter && !statusFilter && !userTypeFilter}
           children={
             <div className="flex items-center gap-3">
               <Select value={statusFilter} onValueChange={handleStatusChange}>
@@ -550,14 +562,6 @@ export default function UserPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button
-                onClick={handleResetFilters}
-                disabled={!roleFilter && !statusFilter && !userTypeFilter}
-                className="flex items-center"
-              >
-                <RotateCw className="mr-2 h-4 w-4" />
-                Reset
-              </Button>
             </div>
           }
         />
@@ -689,21 +693,22 @@ export default function UserPage() {
                             size="sm"
                             onClick={() => handleEditUser(user)}
                           >
-                            Edit
+                            <Pen className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleResetPassword(user)}
                           >
-                            Reset
+                            {" "}
+                            <RotateCw className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => handleDelete(user)}
                           >
-                            Delete
+                            <Trash className="w-4 h-4" />
                           </Button>
                         </TableCell>
                       </TableRow>

@@ -1,15 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -20,18 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BUSINESS_STATUS_OPTIONS,
   BusinessStatus,
   ModalMode,
   Status,
-  SUBSCRIPTION_PLAN_OPTIONS,
   SubscriptionPlanStatus,
-  UserRole,
-  UserType,
 } from "@/constants/AppResource/status/status";
 import {
-  BusinessTableHeaders,
   getUserTableHeaders,
+  SubscriptionPlanTableHeaders,
 } from "@/constants/AppResource/table/table";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
@@ -42,8 +29,6 @@ import {
   ExcelSheet,
 } from "@/utils/export-file/excel";
 import {
-  Check,
-  Download,
   Edit,
   Eye,
   Plus,
@@ -59,28 +44,14 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
-import { updateUserService } from "@/services/dashboard/user/user.service";
-import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
-import { BusinessFormData } from "@/models/dashboard/master-data/business/business.schema";
-import {
-  AllBusinessResponse,
-  BusinessModel,
-} from "@/models/dashboard/master-data/business/business.response.model";
-import {
-  createBusinessService,
-  deletedBusinessService,
-  getAllBusinessService,
-  updateBusinessService,
-} from "@/services/dashboard/master-data/business/business.service";
-import { BusinessStatusBadge } from "@/components/shared/badge/business-status-badge";
+import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
 import ModalBusiness from "@/components/shared/modal/business-modal";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
-import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
 import { BusinessDetailSheet } from "@/components/index/dashboard/master-data/business/business-detail-sheet";
 import {
   AllSubscriptionPlan,
@@ -95,6 +66,10 @@ import {
 } from "@/services/dashboard/master-data/subscrion-plan/subscription-plan.service";
 import { CreateSubscriptionPlanRequest } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-request";
 import { SubscriptionPlanFilters } from "@/components/index/dashboard/master-data/subscription-plan/subscription-plan-filter";
+import ModalSubscriptionPlan from "@/components/shared/modal/subscription-plan-modal";
+import { SubscriptionPlanDetailSheet } from "@/components/index/dashboard/master-data/subscription-plan/subscription-plan-detail-sheet";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 export default function SubscriptionPlanPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,7 +81,7 @@ export default function SubscriptionPlanPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isBusinessDetailOpen, setIsBusinessDetailOpen] = useState(false);
+  const [isSubPlanDetailOpen, setIsSubPlanDetailOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
@@ -118,8 +93,8 @@ export default function SubscriptionPlanPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
     useState(false);
-  const [selectedBusinessToggle, setSelectedBusinessToggle] =
-    useState<BusinessModel | null>(null);
+  const [selectedSubscriptionPlanToggle, setSelectedSubscriptionPlanToggle] =
+    useState<SubscriptionPlanModel | null>(null);
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
 
@@ -403,62 +378,6 @@ export default function SubscriptionPlanPage() {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Status toggle handler
-  const handleStatusToggle = async (
-    formData: SubscriptionPlanFormData | null
-  ) => {
-    if (!formData?.id) return;
-
-    setIsSubmitting(true);
-    try {
-      const newStatus =
-        formData?.status === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
-
-      const response = await updateSubscriptionPlanService(formData?.id, {
-        status: newStatus,
-      });
-
-      if (response) {
-        // Optimistic update
-        setData((prev) =>
-          prev
-            ? {
-                ...prev,
-                content: prev.content.map((b) =>
-                  b.id === selectedBusinessToggle?.id ? response : b
-                ),
-              }
-            : prev
-        );
-
-        AppToast({
-          type: "success",
-          message: `Subscription plan status updated successfully`,
-          duration: 4000,
-          position: "top-right",
-        });
-        setSelectedBusinessToggle(null);
-        setIsToggleStatusDialogOpen(false);
-      } else {
-        AppToast({
-          type: "error",
-          message: `Failed to update Subscription plan status`,
-          duration: 4000,
-          position: "top-right",
-        });
-        loadSubscriptionPlan(); // reload in case of failure
-      }
-    } catch (error: any) {
-      toast.error(
-        error?.message ||
-          "An error occurred while updating Subscription plan status"
-      );
-      loadSubscriptionPlan(); // reload in case of failure
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // Handle status filter change - directly updates the filter value
   const handleStatusChange = (status: SubscriptionPlanStatus) => {
     setStatusFilter(status);
@@ -466,12 +385,12 @@ export default function SubscriptionPlanPage() {
 
   const handleView = (subPlan: SubscriptionPlanModel | null) => {
     setSelectedSubscriptionPlan(subPlan);
-    setIsBusinessDetailOpen(true);
+    setIsSubPlanDetailOpen(true);
   };
 
-  const handleCloseViewBusinessDetail = () => {
+  const handleCloseViewSubPlanDetail = () => {
     setSelectedSubscriptionPlan(null);
-    setIsBusinessDetailOpen(false);
+    setIsSubPlanDetailOpen(false);
   };
 
   const handleDelete = (user: SubscriptionPlanModel) => {
@@ -524,6 +443,68 @@ export default function SubscriptionPlanPage() {
           buttonText="Add new"
           onSearchChange={handleSearchChange}
           openModal={handleCreateBusiness}
+          disableReset={!statusFilter && !publicOnly && !freeOnly}
+          handleResetFilters={handleResetFilters}
+          children1={
+            <div className="max-w-md flex flex-row gap-3">
+              {/* Duration Range */}
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    value={minDuration ?? ""}
+                    onChange={(e) =>
+                      handleDurationChange(
+                        Number(e.target.value) || undefined,
+                        maxDuration
+                      )
+                    }
+                    placeholder="Duration Min"
+                    className="h-9 text-sm bg-white text-black dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    min="0"
+                  />
+                  <Input
+                    type="number"
+                    value={maxDuration ?? ""}
+                    onChange={(e) =>
+                      handleDurationChange(
+                        minDuration,
+                        Number(e.target.value) || undefined
+                      )
+                    }
+                    placeholder="Duration Max"
+                    className="h-9 text-sm bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    min="0"
+                  />
+                </div>
+              </div>
+              {/* Plan Type Filters */}
+              <div className="space-y-1 flex justify-center">
+                <div className="flex flex-row gap-2">
+                  <label className="inline-flex items-center gap-2 cursor-pointer group">
+                    <Checkbox
+                      checked={publicOnly}
+                      onCheckedChange={(val) => setPublicOnly(Boolean(val))}
+                      className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-gray-300 dark:border-gray-600"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+                      Public
+                    </span>
+                  </label>
+                  <label className="inline-flex items-center gap-2 cursor-pointer group">
+                    <Checkbox
+                      checked={freeOnly}
+                      onCheckedChange={(val) => setFreeOnly(Boolean(val))}
+                      className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-gray-300 dark:border-gray-600"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+                      Free
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          }
           children={
             <SubscriptionPlanFilters
               statusFilter={statusFilter}
@@ -531,16 +512,11 @@ export default function SubscriptionPlanPage() {
               minPrice={minPrice}
               maxPrice={maxPrice}
               onPriceChange={handlePriceChange}
-              minDuration={minDuration}
-              maxDuration={maxDuration}
-              onDurationChange={handleDurationChange}
               publicOnly={publicOnly}
               freeOnly={freeOnly}
               setPublicOnly={setPublicOnly}
               setFreeOnly={setFreeOnly}
               onExport={() => handleExportToPdf(data)}
-              onReset={handleResetFilters}
-              disableReset={!statusFilter && !publicOnly && !freeOnly}
             />
           }
         />
@@ -554,22 +530,12 @@ export default function SubscriptionPlanPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {[
-                    "No",
-                    "Plan Name",
-                    "Price",
-                    "Duration",
-                    "Status",
-                    "Subscriptions",
-                    "Visibility",
-                    "Created At",
-                    "Actions",
-                  ].map((header, index) => (
+                  {SubscriptionPlanTableHeaders.map((header, index) => (
                     <TableHead
                       key={index}
                       className="text-xs font-semibold text-muted-foreground"
                     >
-                      <span>{header}</span>
+                      <span>{header.label}</span>
                     </TableHead>
                   ))}
                 </TableRow>
@@ -663,7 +629,7 @@ export default function SubscriptionPlanPage() {
               </TableBody>
             </Table>
 
-            <ModalBusiness
+            <ModalSubscriptionPlan
               isOpen={isModalOpen}
               onClose={() => {
                 setInitializeSubscriptionPlan(null);
@@ -675,10 +641,10 @@ export default function SubscriptionPlanPage() {
               mode={mode}
             />
 
-            <BusinessDetailSheet
-              isOpen={isBusinessDetailOpen}
-              onClose={() => handleCloseViewBusinessDetail()}
-              business={selectedSubscriptionPlan}
+            <SubscriptionPlanDetailSheet
+              isOpen={isSubPlanDetailOpen}
+              onClose={() => handleCloseViewSubPlanDetail()}
+              subPlan={selectedSubscriptionPlan}
             />
 
             <DeleteConfirmationDialog
@@ -688,34 +654,10 @@ export default function SubscriptionPlanPage() {
                 setSelectedSubscriptionPlan(null);
               }}
               onDelete={handleDeleteSubscriptionPlan}
-              title="Delete Admin"
-              description={`Are you sure you want to delete the admin`}
+              title="Delete Subscription Plan"
+              description={`Are you sure you want to delete the subscription plan`}
               itemName={selectedSubscriptionPlan?.name || "---"}
               isSubmitting={isSubmitting}
-            />
-
-            <ConfirmDialog
-              open={isToggleStatusDialogOpen}
-              onOpenChange={() => {
-                setIsToggleStatusDialogOpen(false);
-                setSelectedBusinessToggle(null);
-              }}
-              title="Change user status"
-              description={`Are you sure you want to ${
-                selectedBusinessToggle?.status === BusinessStatus.ACTIVE
-                  ? "disable"
-                  : "enable"
-              } this user: ${selectedBusinessToggle?.email}?`}
-              confirmButton={{
-                text: `${
-                  selectedBusinessToggle?.status === "ACTIVE"
-                    ? "Disable"
-                    : "Enable"
-                }`,
-                onClick: () => handleStatusToggle(sel),
-                variant: "primary",
-              }}
-              size="md"
             />
 
             <PaginationPage

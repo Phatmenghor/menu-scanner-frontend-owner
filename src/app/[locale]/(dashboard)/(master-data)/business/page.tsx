@@ -467,6 +467,8 @@ export default function BusinessPage() {
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="Add new"
+          disableReset={!statusFilter}
+          handleResetFilters={handleResetFilters}
           onSearchChange={handleSearchChange}
           openModal={handleCreateBusiness}
           children={
@@ -546,14 +548,6 @@ export default function BusinessPage() {
                   />
                   <span>Excel</span>
                   <Download className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
-                </Button>
-                <Button
-                  onClick={handleResetFilters}
-                  disabled={!statusFilter}
-                  className="flex items-center"
-                >
-                  <RotateCw className="mr-2 h-4 w-4" />
-                  Reset
                 </Button>
               </div>
             </div>

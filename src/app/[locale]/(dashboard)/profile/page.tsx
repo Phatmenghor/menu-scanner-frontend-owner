@@ -34,6 +34,7 @@ import {
 import ChangePasswordModal from "@/components/shared/modal/change-password-modal";
 import { UpdateUserRequest } from "@/models/dashboard/user/user.request";
 import { setUser } from "@/store/features/userSlice";
+import { useRouter } from "next/navigation";
 
 // Extended form data interface to handle local form state
 interface FormData {
@@ -63,6 +64,7 @@ export default function UserProfilePage() {
     profileImageUrl: "",
   });
 
+  const router = useRouter();
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     pushNotifications: false,
@@ -156,7 +158,7 @@ export default function UserProfilePage() {
 
   if (isProfileLoading) {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] text-white flex items-center justify-center">
+      <div className="min-h-screen text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-600 mx-auto"></div>
           <p className="mt-4 text-gray-400">Loading profile...</p>
@@ -166,23 +168,23 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white">
+    <div className="min-h-screen text-white">
       {/* Header */}
-      <div className="border-b border-gray-800 bg-[#2a2a2a] px-6 py-4">
+      <div className="border-b border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/users">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-white"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Users
-              </Button>
-            </Link>
+            <Button
+              onClick={() => router.back()}
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+            </Button>
             <div>
-              <h1 className="text-2xl font-semibold">User Profile</h1>
+              <h1 className="text-2xl text-black font-semibold">
+                User Profile
+              </h1>
               <p className="text-gray-400">
                 Manage your account settings and preferences
               </p>
@@ -192,11 +194,7 @@ export default function UserProfilePage() {
             {isEditing ? (
               <></>
             ) : (
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="bg-pink-600 hover:bg-pink-700"
-                size="sm"
-              >
+              <Button onClick={() => setIsEditing(true)} size="sm">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile
               </Button>
@@ -206,24 +204,24 @@ export default function UserProfilePage() {
       </div>
 
       <div className="p-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-full mx-auto">
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="bg-[#2a2a2a] border-gray-700">
+            <TabsList>
               <TabsTrigger
                 value="profile"
-                className="data-[state=active]:bg-pink-600"
+                className="data-[state=active]:bg-primary"
               >
                 Profile
               </TabsTrigger>
               <TabsTrigger
                 value="security"
-                className="data-[state=active]:bg-pink-600"
+                className="data-[state=active]:bg-primary"
               >
                 Security
               </TabsTrigger>
               <TabsTrigger
                 value="notifications"
-                className="data-[state=active]:bg-pink-600"
+                className="data-[state=active]:bg-primary"
               >
                 Notifications
               </TabsTrigger>
@@ -231,7 +229,7 @@ export default function UserProfilePage() {
 
             <TabsContent value="profile" className="space-y-6">
               {/* Profile Header Card */}
-              <Card className="bg-[#2a2a2a] border-gray-700">
+              <Card>
                 <CardContent className="p-6">
                   <div className="flex items-start gap-6">
                     <div className="relative">
@@ -239,7 +237,7 @@ export default function UserProfilePage() {
                         <AvatarImage
                           src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${userProfile?.profileImageUrl}`}
                         />
-                        <AvatarFallback className="bg-pink-600 text-white text-2xl">
+                        <AvatarFallback className="bg-primary text-white text-2xl">
                           {userProfile?.fullName?.charAt(0) || "U"}
                         </AvatarFallback>
                       </Avatar>
@@ -285,7 +283,7 @@ export default function UserProfilePage() {
               </Card>
 
               {/* Personal Information */}
-              <Card className="bg-[#2a2a2a] border-gray-700">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Mail className="h-5 w-5" />
@@ -303,7 +301,7 @@ export default function UserProfilePage() {
                           handleInputChange("firstName", e.target.value)
                         }
                         disabled={!isEditing}
-                        className="bg-[#1a1a1a] border-gray-600 disabled:opacity-60"
+                        className="disabled:opacity-60"
                       />
                     </div>
                     <div className="space-y-2">
@@ -315,7 +313,7 @@ export default function UserProfilePage() {
                           handleInputChange("lastName", e.target.value)
                         }
                         disabled={!isEditing}
-                        className="bg-[#1a1a1a] border-gray-600 disabled:opacity-60"
+                        className="disabled:opacity-60"
                       />
                     </div>
                     <div className="space-y-2">
@@ -328,7 +326,7 @@ export default function UserProfilePage() {
                           handleInputChange("email", e.target.value)
                         }
                         disabled={true} // Email should typically not be editable
-                        className="bg-[#1a1a1a] border-gray-600 disabled:opacity-60"
+                        className="disabled:opacity-60"
                       />
                     </div>
                     <div className="space-y-2">
@@ -340,7 +338,7 @@ export default function UserProfilePage() {
                           handleInputChange("phoneNumber", e.target.value)
                         }
                         disabled={!isEditing}
-                        className="bg-[#1a1a1a] border-gray-600 disabled:opacity-60"
+                        className="disabled:opacity-60"
                       />
                     </div>
                     <div className="md:col-span-2 space-y-2">
@@ -352,7 +350,7 @@ export default function UserProfilePage() {
                           handleInputChange("address", e.target.value)
                         }
                         disabled={!isEditing}
-                        className="bg-[#1a1a1a] border-gray-600 disabled:opacity-60"
+                        className="disabled:opacity-60"
                       />
                     </div>
                   </div>
@@ -385,7 +383,7 @@ export default function UserProfilePage() {
             </TabsContent>
 
             <TabsContent value="security" className="space-y-6">
-              <Card className="bg-[#2a2a2a] border-gray-700">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Key className="h-5 w-5" />
@@ -447,7 +445,7 @@ export default function UserProfilePage() {
             </TabsContent>
 
             <TabsContent value="notifications" className="space-y-6">
-              <Card className="bg-[#2a2a2a] border-gray-700">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Bell className="h-5 w-5" />
@@ -534,7 +532,7 @@ export default function UserProfilePage() {
           </Tabs>
 
           {/* Danger Zone */}
-          <Card className="bg-[#2a2a2a] border-red-800">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-400">
                 <Trash2 className="h-5 w-5" />

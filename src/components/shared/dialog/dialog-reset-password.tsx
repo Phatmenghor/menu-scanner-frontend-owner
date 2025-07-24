@@ -20,8 +20,10 @@ import {
   Copy,
   Eye,
   EyeOff,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AdminChangePasswordService } from "@/services/dashboard/user/user.service";
 
 export default function ResetPasswordModal({
   userId,
@@ -39,30 +41,24 @@ export default function ResetPasswordModal({
   const [showPassword, setShowPassword] = useState(false);
   const defaultPassword = "88889999";
 
-  // Simulate API call
-  const AdminChangePasswordService = async (params: any) => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(true), 1500);
-    });
-  };
-
   const onReset = async () => {
-    if (!userId) return toast.error("User ID missing");
+    if (!userId) {
+      toast.error("User ID missing");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const ok = await AdminChangePasswordService({
+      await AdminChangePasswordService({
         userId: userId,
         newPassword: defaultPassword,
         confirmPassword: defaultPassword,
       });
-      if (ok) {
-        setShowSuccess(true);
-        toast.success("Password reset successfully");
-      } else {
-        toast.error("Reset failed");
-      }
+      setShowSuccess(true);
+      toast.success("Password reset successfully");
     } catch (error) {
-      toast.error("Reset failed");
+      console.error("Password reset failed:", error);
+      toast.error("Reset failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -79,13 +75,22 @@ export default function ResetPasswordModal({
       await navigator.clipboard.writeText(defaultPassword);
       toast.success("Password copied to clipboard");
     } catch (error) {
+      console.error("Failed to copy password:", error);
       toast.error("Failed to copy password");
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[95vw] mx-auto rounded-2xl border border-gray-700 shadow-2xl bg-gray-900 p-0 overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md w-[95vw] mx-auto rounded-2xl border border-gray-200 bg-white shadow-2xl p-0 overflow-hidden">
+        {/* Close Button */}
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 z-10 p-1 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
         <div className="relative">
           <div className="relative p-8 space-y-6">
             {showSuccess ? (
@@ -93,33 +98,33 @@ export default function ResetPasswordModal({
               <>
                 <div className="flex flex-col items-center space-y-4">
                   <div className="relative">
-                    <div className="w-16 h-16 bg-gradient-to-br from-pink-500/20 to-pink-400/10 rounded-full flex items-center justify-center border border-pink-500/30">
-                      <CheckCircle2 className="w-8 h-8 text-pink-400" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500/20 to-green-400/10 rounded-full flex items-center justify-center border border-green-500/30">
+                      <CheckCircle2 className="w-8 h-8 text-green-400" />
                     </div>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center animate-pulse">
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
                       <div className="w-2 h-2 bg-white rounded-full" />
                     </div>
                   </div>
 
                   <div className="text-center space-y-2">
-                    <DialogTitle className="text-2xl font-bold text-white">
+                    <DialogTitle className="text-2xl font-bold text-gray-900">
                       Password Reset Complete!
                     </DialogTitle>
-                    <DialogDescription className="text-gray-400 text-base leading-relaxed">
+                    <DialogDescription className="text-gray-600 text-base leading-relaxed">
                       The user's password has been successfully reset to the
                       default password.
                     </DialogDescription>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-pink-500/10 to-pink-400/5 border border-pink-500/30 rounded-xl p-4">
+                <div className="bg-gradient-to-r from-green-50 to-green-25 border border-green-200 rounded-xl p-4">
                   <div className="flex items-center gap-3">
-                    <Shield className="w-5 h-5 text-pink-400" />
+                    <Shield className="w-5 h-5 text-green-600" />
                     <div className="flex-1">
-                      <p className="text-pink-300 font-medium text-sm">
+                      <p className="text-green-700 font-medium text-sm">
                         Security Notice
                       </p>
-                      <p className="text-pink-200/70 text-sm">
+                      <p className="text-green-600 text-sm">
                         User should change password on next login
                       </p>
                     </div>
@@ -130,7 +135,7 @@ export default function ResetPasswordModal({
                   <Button
                     type="button"
                     onClick={handleClose}
-                    className="bg-pink-500 hover:bg-pink-600 text-white font-medium px-8 py-3 rounded-lg transition-all duration-200"
+                    className="bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-3 rounded-lg transition-all duration-200"
                   >
                     Got it
                   </Button>
@@ -141,8 +146,8 @@ export default function ResetPasswordModal({
               <>
                 <div className="flex flex-col items-center space-y-4">
                   <div className="relative">
-                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-500/20 to-orange-400/10 rounded-full flex items-center justify-center border border-yellow-500/30">
-                      <RotateCcw className="w-8 h-8 text-yellow-400" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-500/20 to-orange-500/10 rounded-full flex items-center justify-center border border-yellow-500/30">
+                      <RotateCcw className="w-8 h-8 text-yellow-500" />
                     </div>
                     <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
                       <AlertTriangle className="w-3 h-3 text-gray-900" />
@@ -168,7 +173,7 @@ export default function ResetPasswordModal({
                     </div>
                     <div className="flex-1">
                       <p className="text-white font-medium">Target User</p>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-gray-300 text-sm">
                         {userName || "Unknown User"}
                       </p>
                     </div>
@@ -183,20 +188,25 @@ export default function ResetPasswordModal({
                     <div className="flex-1">
                       <p className="text-white font-medium">New Password</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <code className="text-sm bg-gray-800 border border-gray-600 px-2 py-1 rounded font-mono text-gray-300">
-                          {showPassword ? defaultPassword : "••••••••"}
-                        </code>
+                        <div className="flex-1 bg-gray-700 border border-gray-600 px-3 py-2 rounded-md">
+                          <code className="text-sm font-mono text-gray-300">
+                            {showPassword ? defaultPassword : "••••••••"}
+                          </code>
+                        </div>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="h-6 w-6 p-0 hover:bg-gray-700 text-gray-400 hover:text-white"
+                          className="h-8 w-8 p-0 hover:bg-gray-600 text-gray-400 hover:text-white"
+                          title={
+                            showPassword ? "Hide password" : "Show password"
+                          }
                         >
                           {showPassword ? (
-                            <EyeOff className="w-3 h-3" />
+                            <EyeOff className="w-4 h-4" />
                           ) : (
-                            <Eye className="w-3 h-3" />
+                            <Eye className="w-4 h-4" />
                           )}
                         </Button>
                         <Button
@@ -204,11 +214,28 @@ export default function ResetPasswordModal({
                           variant="ghost"
                           size="sm"
                           onClick={copyPassword}
-                          className="h-6 w-6 p-0 hover:bg-gray-700 text-gray-400 hover:text-white"
+                          className="h-8 w-8 p-0 hover:bg-gray-600 text-gray-400 hover:text-white"
+                          title="Copy password"
                         >
-                          <Copy className="w-3 h-3" />
+                          <Copy className="w-4 h-4" />
                         </Button>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warning Message */}
+                <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-amber-300 font-medium text-sm">
+                        This action cannot be undone
+                      </p>
+                      <p className="text-amber-200/70 text-sm">
+                        The user will be logged out of all devices and must use
+                        the new password to sign in.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -218,9 +245,9 @@ export default function ResetPasswordModal({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={onClose}
+                    onClick={handleClose}
                     disabled={isSubmitting}
-                    className="min-w-[120px] rounded-lg border-gray-600 bg-transparent hover:bg-gray-800 text-gray-300 hover:text-white font-medium"
+                    className="min-w-[120px] rounded-lg border-gray-600 bg-transparent hover:bg-gray-800 text-gray-300 hover:text-white font-medium transition-colors"
                   >
                     Cancel
                   </Button>
@@ -228,7 +255,7 @@ export default function ResetPasswordModal({
                     type="button"
                     onClick={onReset}
                     disabled={isSubmitting}
-                    className=" text-white font-medium min-w-[120px] rounded-lg transition-all duration-200 disabled:opacity-50"
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium min-w-[120px] rounded-lg transition-all duration-200 disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center gap-2">

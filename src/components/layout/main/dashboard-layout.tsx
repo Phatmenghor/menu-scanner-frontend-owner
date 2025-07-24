@@ -29,12 +29,12 @@ export default function DashboardLayout({
       />
       <div
         className={cn(
-          "dashboard-content flex-1 transition-all overflow-hidden duration-300",
+          "dashboard-content flex-1 transition-all overflow-y-auto duration-300",
           isMobile ? "w-full" : isSidebarOpen ? "ml-56" : "ml-[60px]"
         )}
       >
         <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="dashboard-main overflow-y-scroll mb-30 p-2 md:p-4">
+        <main className="dashboard-main overflow-y-auto mb-30 p-2 md:p-4">
           {children}
         </main>
       </div>
