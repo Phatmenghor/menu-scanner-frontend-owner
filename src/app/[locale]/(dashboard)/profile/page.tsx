@@ -35,6 +35,7 @@ import ChangePasswordModal from "@/components/shared/modal/change-password-modal
 import { UpdateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
 import { setUser } from "@/store/features/userSlice";
 import { useRouter } from "next/navigation";
+import { AppToast } from "@/components/shared/toast/app-toast";
 
 // Extended form data interface to handle local form state
 interface FormData {
@@ -122,9 +123,21 @@ export default function UserProfilePage() {
       setUserProfile(response);
 
       setIsEditing(false);
+      AppToast({
+        type: "success",
+        message: "Profile updated successfully",
+        duration: 3000,
+        position: "top-right",
+      });
       console.log("Profile updated successfully");
     } catch (error) {
       console.error("Error updating user profile:", error);
+      AppToast({
+        type: "error",
+        message: "Fail to updated profile",
+        duration: 3000,
+        position: "top-right",
+      });
     } finally {
       setIsSubmitting(false);
     }

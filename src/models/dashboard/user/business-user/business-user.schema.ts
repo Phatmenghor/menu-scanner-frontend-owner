@@ -1,24 +1,19 @@
 import { z } from "zod";
 
 export const updateMyBusinessSchema = z.object({
-  logoUrl: z.string().url().optional(),
+  logoUrl: z.string().url().optional().or(z.literal("")),
   name: z.string().optional(),
   description: z.string().optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
-  website: z.string().url().optional(),
+  website: z.string().url().optional().or(z.literal("")),
 
-  businessType: z
-    .enum(["Restaurant", "Cafe", "Bar", "Food Truck", "Bakery"])
-    .optional(),
-  cuisineType: z
-    .enum(["Khmer", "Chinese", "Thai", "Vietnamese", "Western", "Mixed"])
-    .optional(),
-
+  businessType: z.string().optional(),
+  cuisineType: z.string().optional(),
   operatingHours: z.string().optional(),
 
-  facebookUrl: z.string().url().optional(),
-  instagramUrl: z.string().url().optional(),
+  facebookUrl: z.string().url().optional().or(z.literal("")),
+  instagramUrl: z.string().url().optional().or(z.literal("")),
   telegramContact: z.string().optional(),
 
   usdToKhrRate: z

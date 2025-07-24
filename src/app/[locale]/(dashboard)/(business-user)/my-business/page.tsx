@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,11 @@ import {
 } from "@/models/dashboard/user/business-user/business-user.schema";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { ROUTES } from "@/constants/AppRoutes/routes";
+import { AppToast } from "@/components/shared/toast/app-toast";
+import { UpdateMyBusinessRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
+import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
+import { uploadImageService } from "@/services/dashboard/image/image.service";
+import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
 
 export default function BusinessPage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -53,8 +58,18 @@ export default function BusinessPage() {
   const [businessData, setBusinessData] = useState<MyBusinessModel | null>(
     null
   );
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { handleSubmit, control } = useForm<MyBusinessFormData>({
+  const {
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    setValue,
+    formState: { isSubmitting },
+  } = useForm<MyBusinessFormData>({
     resolver: zodResolver(updateMyBusinessSchema),
     defaultValues: {
       logoUrl: "",
@@ -63,15 +78,15 @@ export default function BusinessPage() {
       phone: "",
       address: "",
       website: "",
-      businessType: undefined,
-      cuisineType: undefined,
+      businessType: "",
+      cuisineType: "",
       operatingHours: "",
       facebookUrl: "",
       instagramUrl: "",
       telegramContact: "",
-      usdToKhrRate: undefined,
-      taxRate: undefined,
-      serviceChargeRate: undefined,
+      usdToKhrRate: 0,
+      taxRate: 0,
+      serviceChargeRate: 0,
       acceptsOnlinePayment: false,
       acceptsCashPayment: false,
       acceptsBankTransfer: false,
@@ -79,10 +94,123 @@ export default function BusinessPage() {
     },
   });
 
+  const logoUrl = watch("logoUrl");
+
+  useEffect(() => {
+    if (logoUrl) {
+      setLogoPreview(logoUrl);
+    }
+  }, [logoUrl]);
+
+  useEffect(() => {
+    if (businessData) {
+      reset({
+        logoUrl: businessData?.logoUrl || "",
+        name: businessData?.name || "",
+        description: businessData?.description || "",
+        phone: businessData?.phone || "",
+        address: businessData?.address || "",
+        website: businessData?.website || "",
+        businessType: businessData?.businessType || "",
+        cuisineType: businessData?.cuisineType || "",
+        operatingHours: businessData?.operatingHours || "",
+        facebookUrl: businessData?.facebookUrl || "",
+        instagramUrl: businessData?.instagramUrl || "",
+        telegramContact: businessData?.telegramContact || "",
+        usdToKhrRate: businessData?.usdToKhrRate || 0,
+        taxRate: businessData?.taxRate || 0,
+        serviceChargeRate: businessData?.serviceChargeRate || 0,
+        acceptsOnlinePayment: businessData?.acceptsOnlinePayment || false,
+        acceptsCashPayment: businessData?.acceptsCashPayment || false,
+        acceptsBankTransfer: businessData?.acceptsBankTransfer || false,
+        acceptsMobilePayment: businessData?.acceptsMobilePayment || false,
+      });
+      setLogoPreview(businessData.logoUrl);
+    }
+  }, [businessData, reset]);
+
+  // Clean up blob URLs
+  useEffect(() => {
+    return () => {
+      if (logoPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
+  }, [logoPreview]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        const base64Data = base64String.split(",")[1];
+
+        const payload: UploadImageRequest = {
+          base64: base64Data,
+          type: file.type,
+        };
+
+        const response = await uploadImageService(payload);
+        if (response?.imageUrl) {
+          setValue("logoUrl", response?.imageUrl, {
+            shouldValidate: true,
+          });
+          console.log(
+            "Image Preview URL:",
+            process.env.NEXT_PUBLIC_API_BASE_URL + response.imageUrl
+          );
+
+          setLogoPreview(response?.imageUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Failed to upload image", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoPreview(null);
+    setValue("logoUrl", "", { shouldDirty: true });
+  };
+
+  const getImageSource = () => {
+    return logoPreview?.startsWith("http")
+      ? logoPreview
+      : (process.env.NEXT_PUBLIC_API_BASE_URL ?? "") + logoPreview;
+  };
+
   const loadMyBusiness = useCallback(async () => {
     try {
       const response = await getMyBusinessService();
       setBusinessData(response);
+      reset({
+        logoUrl: response?.logoUrl || "",
+        name: response?.name || "",
+        description: response?.description || "",
+        phone: response?.phone || "",
+        address: response?.address || "",
+        website: response?.website || "",
+        businessType: response?.businessType || "",
+        cuisineType: response?.cuisineType || "",
+        operatingHours: response?.operatingHours || "",
+        facebookUrl: response?.facebookUrl || "",
+        instagramUrl: response?.instagramUrl || "",
+        telegramContact: response?.telegramContact || "",
+        usdToKhrRate: response?.usdToKhrRate || 0,
+        taxRate: response?.taxRate || 0,
+        serviceChargeRate: response?.serviceChargeRate || 0,
+        acceptsOnlinePayment: response?.acceptsOnlinePayment || false,
+        acceptsCashPayment: response?.acceptsCashPayment || false,
+        acceptsBankTransfer: response?.acceptsBankTransfer || false,
+        acceptsMobilePayment: response?.acceptsMobilePayment || false,
+      });
     } catch (error) {
       console.error("Fail to fetch my business");
     }
@@ -103,37 +231,61 @@ export default function BusinessPage() {
   const onSubmit = async (formData: MyBusinessFormData) => {
     setIsLoading(true);
     try {
-      const payload: MyBusinessFormData = {
-        logoUrl: formData.logoUrl?.trim(),
-        name: formData.name?.trim(),
-        description: formData.description?.trim(),
-        phone: formData.phone?.trim(),
-        address: formData.address?.trim(),
-        website: formData.website?.trim(),
-
-        businessType: formData.businessType,
-        cuisineType: formData.cuisineType,
-        operatingHours: formData.operatingHours?.trim(),
-
-        facebookUrl: formData.facebookUrl?.trim(),
-        instagramUrl: formData.instagramUrl?.trim(),
-        telegramContact: formData.telegramContact?.trim(),
-
-        usdToKhrRate: formData.usdToKhrRate,
-        taxRate: formData.taxRate,
-        serviceChargeRate: formData.serviceChargeRate,
-
-        acceptsOnlinePayment: formData.acceptsOnlinePayment,
-        acceptsCashPayment: formData.acceptsCashPayment,
-        acceptsBankTransfer: formData.acceptsBankTransfer,
-        acceptsMobilePayment: formData.acceptsMobilePayment,
+      const cleanValue = (value: any) => {
+        if (
+          value === null ||
+          value === undefined ||
+          (typeof value === "string" && value.trim() === "") ||
+          value === 0
+        ) {
+          return undefined;
+        }
+        return typeof value === "string" ? value.trim() : value;
       };
 
-      await updateMyBusinessService(payload);
+      const payload: UpdateMyBusinessRequest = {
+        logoUrl: cleanValue(formData.logoUrl),
+        name: cleanValue(formData.name),
+        description: cleanValue(formData.description),
+        phone: cleanValue(formData.phone),
+        address: cleanValue(formData.address),
+        website: cleanValue(formData.website),
+
+        businessType: cleanValue(formData.businessType),
+        cuisineType: cleanValue(formData.cuisineType),
+        operatingHours: cleanValue(formData.operatingHours),
+
+        facebookUrl: cleanValue(formData.facebookUrl),
+        instagramUrl: cleanValue(formData.instagramUrl),
+        telegramContact: cleanValue(formData.telegramContact),
+
+        usdToKhrRate: cleanValue(formData.usdToKhrRate),
+        taxRate: cleanValue(formData.taxRate),
+        serviceChargeRate: cleanValue(formData.serviceChargeRate),
+
+        acceptsOnlinePayment: cleanValue(formData.acceptsOnlinePayment),
+        acceptsCashPayment: cleanValue(formData.acceptsCashPayment),
+        acceptsBankTransfer: cleanValue(formData.acceptsBankTransfer),
+        acceptsMobilePayment: cleanValue(formData.acceptsMobilePayment),
+      };
+
+      const response = await updateMyBusinessService(payload);
+      setBusinessData(response);
       setIsEditing(false);
-      toast.success("Business information updated successfully");
+
+      AppToast({
+        type: "success",
+        message: "Business information updated successfully",
+        duration: 3000,
+        position: "top-right",
+      });
     } catch (error) {
-      toast.error("Failed to update business information");
+      AppToast({
+        type: "error",
+        message: "Failed to update business information",
+        duration: 3000,
+        position: "top-right",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -180,13 +332,14 @@ export default function BusinessPage() {
                     <X className="w-4 h-4 mr-2" />
                     Cancel
                   </Button>
-                  <Button disabled={isLoading}>
+                  <Button type="submit" disabled={isLoading}>
                     <Save className="w-4 h-4 mr-2" />
                     {isLoading ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
               ) : (
                 <Button
+                  type="button"
                   onClick={handleEdit}
                   className="text-white border-0 flex gap-2 font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/25 group"
                 >
@@ -210,24 +363,61 @@ export default function BusinessPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="text-center">
-                  <Avatar className="w-24 h-24 mx-auto mb-4">
-                    <AvatarImage
-                      src={businessData?.logoUrl || "/placeholder.svg"}
-                      alt={businessData?.name}
-                    />
-                    <AvatarFallback className="text-2xl">
-                      {businessData?.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {isEditing && (
-                    <Button variant="outline" size="sm">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Change Logo
-                    </Button>
+                  {isEditing ? (
+                    <div className="flex flex-col items-center gap-2">
+                      {/* Profile Image Preview or Placeholder */}
+                      {logoPreview ? (
+                        <div className="relative w-24 h-24">
+                          <img
+                            src={getImageSource()}
+                            alt="Profile Preview"
+                            className="w-full h-full rounded-full object-cover border border-gray-300"
+                          />
+                          {/* Remove Button (X) */}
+                          <button
+                            type="button"
+                            onClick={handleRemoveLogo}
+                            className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
+                            title="Remove profile image"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border border-dashed border-gray-400 hover:border-blue-500 cursor-pointer"
+                          onClick={() => fileInputRef.current?.click()}
+                          title="Upload profile image"
+                        >
+                          <span className="text-gray-500 text-2xl">+</span>
+                        </div>
+                      )}
+
+                      {/* Hidden File Input */}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        title="Upload profile image"
+                        placeholder="Choose profile image"
+                      />
+                    </div>
+                  ) : (
+                    <Avatar className="w-24 h-24 mx-auto mb-4">
+                      <AvatarImage
+                        src={getImageSource() || "/placeholder.svg"}
+                        alt={businessData?.name}
+                      />
+                      <AvatarFallback className="text-2xl">
+                        {businessData?.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                   )}
                 </div>
 
@@ -237,7 +427,7 @@ export default function BusinessPage() {
                       Business Name
                     </Label>
                     <p className="text-lg font-semibold text-gray-900">
-                      {businessData?.name}
+                      {businessData?.name || "---"}
                     </p>
                   </div>
 
@@ -248,7 +438,7 @@ export default function BusinessPage() {
                     <div className="flex items-center gap-2 mt-1">
                       <ChefHat className="w-4 h-4 text-gray-500" />
                       <span className="text-gray-900">
-                        {businessData?.businessType}
+                        {businessData?.businessType || "---"}
                       </span>
                     </div>
                   </div>
@@ -257,7 +447,9 @@ export default function BusinessPage() {
                     <Label className="text-sm font-medium text-gray-600">
                       Cuisine Type
                     </Label>
-                    <p className="text-gray-900">{businessData?.cuisineType}</p>
+                    <p className="text-gray-900">
+                      {businessData?.cuisineType || "---"}
+                    </p>
                   </div>
 
                   <Separator />
@@ -272,7 +464,7 @@ export default function BusinessPage() {
                       </Badge>
                       {businessData?.hasActiveSubscription && (
                         <span className="text-sm text-gray-600">
-                          {businessData?.daysRemaining} days left
+                          {businessData?.daysRemaining || "---"} days left
                         </span>
                       )}
                     </div>
@@ -283,7 +475,7 @@ export default function BusinessPage() {
                       Current Plan
                     </Label>
                     <p className="text-gray-900 font-medium">
-                      {businessData?.currentPlan}
+                      {businessData?.currentPlan || "---"}
                     </p>
                   </div>
                 </div>
@@ -306,10 +498,21 @@ export default function BusinessPage() {
                       <Controller
                         control={control}
                         name="name"
-                        render={({ field }) => <Input id="name" {...field} />}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            id="name"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="name"
+                          />
+                        )}
                       />
                     ) : (
-                      <p className="mt-1 text-gray-900">{businessData?.name}</p>
+                      <p className="mt-1 text-gray-900">
+                        {businessData?.name || "---"}
+                      </p>
                     )}
                   </div>
 
@@ -320,12 +523,19 @@ export default function BusinessPage() {
                         control={control}
                         name="businessType"
                         render={({ field }) => (
-                          <Input id="businessType" {...field} />
+                          <Input
+                            {...field}
+                            id="businessType"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="businessType"
+                          />
                         )}
                       />
                     ) : (
                       <p className="mt-1 text-gray-900">
-                        {businessData?.businessType}
+                        {businessData?.businessType || "---"}
                       </p>
                     )}
                   </div>
@@ -337,12 +547,19 @@ export default function BusinessPage() {
                         control={control}
                         name="cuisineType"
                         render={({ field }) => (
-                          <Input id="cuisineType" {...field} />
+                          <Input
+                            {...field}
+                            id="cuisineType"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="cuisineType"
+                          />
                         )}
                       />
                     ) : (
                       <p className="mt-1 text-gray-900">
-                        {businessData?.cuisineType}
+                        {businessData?.cuisineType || "---"}
                       </p>
                     )}
                   </div>
@@ -354,14 +571,21 @@ export default function BusinessPage() {
                         control={control}
                         name="operatingHours"
                         render={({ field }) => (
-                          <Input id="operatingHours" {...field} />
+                          <Input
+                            {...field}
+                            id="operatingHours"
+                            type="number"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="operatingHours"
+                          />
                         )}
                       />
                     ) : (
                       <div className="flex items-center gap-2 mt-1">
                         <Clock className="w-4 h-4 text-gray-500" />
                         <span className="text-gray-900">
-                          {businessData?.operatingHours}
+                          {businessData?.operatingHours || "---"}
                         </span>
                       </div>
                     )}
@@ -375,12 +599,19 @@ export default function BusinessPage() {
                       control={control}
                       name="description"
                       render={({ field }) => (
-                        <Textarea id="description" {...field} rows={3} />
+                        <Textarea
+                          {...field}
+                          id="description"
+                          autoFocus
+                          disabled={isSubmitting}
+                          autoComplete="description"
+                          rows={3}
+                        />
                       )}
                     />
                   ) : (
                     <p className="mt-1 text-gray-900">
-                      {businessData?.description}
+                      {businessData?.description || "---"}
                     </p>
                   )}
                 </div>
@@ -400,13 +631,22 @@ export default function BusinessPage() {
                       <Controller
                         control={control}
                         name="phone"
-                        render={({ field }) => <Input id="phone" {...field} />}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            id="phone"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="phone"
+                          />
+                        )}
                       />
                     ) : (
                       <div className="flex items-center gap-2 mt-1">
                         <Phone className="w-4 h-4 text-gray-500" />
                         <span className="text-gray-900">
-                          {businessData?.phone}
+                          {businessData?.phone || "---"}
                         </span>
                       </div>
                     )}
@@ -419,7 +659,14 @@ export default function BusinessPage() {
                         control={control}
                         name="website"
                         render={({ field }) => (
-                          <Input id="website" {...field} />
+                          <Input
+                            {...field}
+                            id="website"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="website"
+                          />
                         )}
                       />
                     ) : (
@@ -431,7 +678,7 @@ export default function BusinessPage() {
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
                         >
-                          {businessData?.website}
+                          {businessData?.website || "---"}
                         </a>
                       </div>
                     )}
@@ -445,14 +692,21 @@ export default function BusinessPage() {
                       control={control}
                       name="address"
                       render={({ field }) => (
-                        <Textarea id="address" {...field} rows={2} />
+                        <Textarea
+                          {...field}
+                          id="address"
+                          autoFocus
+                          disabled={isSubmitting}
+                          autoComplete="address"
+                          rows={2}
+                        />
                       )}
                     />
                   ) : (
                     <div className="flex items-start gap-2 mt-1">
                       <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
                       <span className="text-gray-900">
-                        {businessData?.address}
+                        {businessData?.address || "---"}
                       </span>
                     </div>
                   )}
@@ -474,12 +728,23 @@ export default function BusinessPage() {
                         control={control}
                         name="facebookUrl"
                         render={({ field }) => (
-                          <Input id="facebookUrl" {...field} />
+                          <Input
+                            {...field}
+                            id="facebookUrl"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="facebookUrl"
+                          />
                         )}
                       />
                     ) : (
                       <div className="flex items-center gap-2 mt-1">
-                        <Facebook className="w-4 h-4 text-blue-600" />
+                        <img
+                          src={AppIcons.Facebook}
+                          alt="Facebook Icon"
+                          className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
+                        />{" "}
                         <a
                           href={businessData?.facebookUrl}
                           target="_blank"
@@ -499,12 +764,23 @@ export default function BusinessPage() {
                         control={control}
                         name="instagramUrl"
                         render={({ field }) => (
-                          <Input id="instagramUrl" {...field} />
+                          <Input
+                            {...field}
+                            id="instagramUrl"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="instagramUrl"
+                          />
                         )}
                       />
                     ) : (
                       <div className="flex items-center gap-2 mt-1">
-                        <Instagram className="w-4 h-4 text-pink-600" />
+                        <img
+                          src={AppIcons.Instagram}
+                          alt="Instagram Icon"
+                          className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
+                        />{" "}
                         <a
                           href={businessData?.instagramUrl}
                           target="_blank"
@@ -524,14 +800,25 @@ export default function BusinessPage() {
                         control={control}
                         name="telegramContact"
                         render={({ field }) => (
-                          <Input id="telegramContact" {...field} />
+                          <Input
+                            {...field}
+                            id="telegramContact"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="telegramContact"
+                          />
                         )}
                       />
                     ) : (
                       <div className="flex items-center gap-2 mt-1">
-                        <MessageCircle className="w-4 h-4 text-blue-500" />
+                        <img
+                          src={AppIcons.Telegram}
+                          alt="Telegram Icon"
+                          className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
+                        />{" "}
                         <span className="text-gray-900">
-                          {businessData?.telegramContact}
+                          {businessData?.telegramContact || "---"}
                         </span>
                       </div>
                     )}
@@ -557,7 +844,14 @@ export default function BusinessPage() {
                         control={control}
                         name="usdToKhrRate"
                         render={({ field }) => (
-                          <Input id="usdToKhrRate" type="number" {...field} />
+                          <Input
+                            {...field}
+                            id="usdToKhrRate"
+                            type="number"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="usdToKhrRate"
+                          />
                         )}
                       />
                     ) : (
@@ -574,14 +868,21 @@ export default function BusinessPage() {
                         control={control}
                         name="taxRate"
                         render={({ field }) => (
-                          <Input id="taxRate" type="number" {...field} />
+                          <Input
+                            {...field}
+                            id="taxRate"
+                            type="number"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="taxRate"
+                          />
                         )}
                       />
                     ) : (
                       <div className="flex items-center gap-1 mt-1">
                         <Percent className="w-4 h-4 text-gray-500" />
                         <span className="text-lg font-semibold text-gray-900">
-                          {businessData?.taxRate}%
+                          {businessData?.taxRate}
                         </span>
                       </div>
                     )}
@@ -597,9 +898,12 @@ export default function BusinessPage() {
                         name="serviceChargeRate"
                         render={({ field }) => (
                           <Input
+                            {...field}
                             id="serviceChargeRate"
                             type="number"
-                            {...field}
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="serviceChargeRate"
                           />
                         )}
                       />
@@ -607,7 +911,7 @@ export default function BusinessPage() {
                       <div className="flex items-center gap-1 mt-1">
                         <Percent className="w-4 h-4 text-gray-500" />
                         <span className="text-lg font-semibold text-gray-900">
-                          {businessData?.serviceChargeRate}%
+                          {businessData?.serviceChargeRate}
                         </span>
                       </div>
                     )}
@@ -625,8 +929,8 @@ export default function BusinessPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="flex items-center justify-between">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <div className="flex items-center">
                     <span className="text-sm font-medium">Online Payment</span>
                     {isEditing ? (
                       <Controller
@@ -653,7 +957,7 @@ export default function BusinessPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center">
                     <span className="text-sm font-medium">Cash Payment</span>
                     {isEditing ? (
                       <Controller
@@ -680,7 +984,7 @@ export default function BusinessPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center">
                     <span className="text-sm font-medium">Bank Transfer</span>
                     {isEditing ? (
                       <Controller
@@ -707,7 +1011,7 @@ export default function BusinessPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center">
                     <span className="text-sm font-medium">Mobile Payment</span>
                     {isEditing ? (
                       <Controller
@@ -783,7 +1087,7 @@ export default function BusinessPage() {
                     <div className="flex items-center gap-2 mt-1">
                       <Calendar className="w-4 h-4 text-gray-500" />
                       <span className="text-gray-900">
-                        {formatDate(businessData?.subscriptionEndDate || "---")}
+                        {businessData?.subscriptionEndDate || "---"}
                       </span>
                     </div>
                   </div>
