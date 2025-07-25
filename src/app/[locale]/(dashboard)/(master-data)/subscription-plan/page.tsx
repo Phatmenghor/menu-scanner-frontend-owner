@@ -16,10 +16,7 @@ import {
   Status,
   SubscriptionPlanStatus,
 } from "@/constants/AppResource/status/status";
-import {
-  getUserTableHeaders,
-  SubscriptionPlanTableHeaders,
-} from "@/constants/AppResource/table/table";
+import { getUserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -64,6 +61,7 @@ import ModalSubscriptionPlan from "@/components/shared/modal/subscription-plan-m
 import { SubscriptionPlanDetailSheet } from "@/components/index/dashboard/master-data/subscription-plan/subscription-plan-detail-sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { SubscriptionPlanTableHeaders } from "@/constants/AppResource/table/master-data/subscription-plan";
 
 export default function SubscriptionPlanPage() {
   const [searchQuery, setSearchQuery] = useState("");

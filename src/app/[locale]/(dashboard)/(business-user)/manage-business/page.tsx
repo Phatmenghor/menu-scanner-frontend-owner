@@ -47,27 +47,22 @@ import {
   Trash,
   UserPlus,
 } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
-import { updateUserService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
-import { BusinessFormData } from "@/models/dashboard/master-data/business/business.schema";
 import {
   AllBusinessResponse,
   BusinessModel,
 } from "@/models/dashboard/master-data/business/business.response.model";
 import {
-  createBusinessService,
   deletedBusinessService,
   getAllBusinessService,
   updateBusinessService,
@@ -78,19 +73,23 @@ import { CardHeaderSection } from "@/components/layout/main/card-header-section"
 import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
 import { BusinessDetailSheet } from "@/components/index/dashboard/master-data/business/business-detail-sheet";
 import { BusinessTableHeaders } from "@/constants/AppResource/table/master-data/business";
+import { updateMyBusinessByIdService } from "@/services/dashboard/user/business-user/business-setting.service";
+import { getUserInfo } from "@/utils/local-storage/userInfo";
+import ModalBusinessSetting from "@/components/shared/modal/business-setting-modal";
+import { MyBusinessFormData } from "@/models/dashboard/user/business-user/business-user.schema";
+import { UpdateMyBusinessRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
 
-export default function BusinessPage() {
+export default function ManageBusinessPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<AllBusinessResponse | null>(null);
   const [initializeBusiness, setInitializeBusiness] =
-    useState<BusinessFormData | null>(null);
+    useState<MyBusinessFormData | null>(null);
   const [selectedBusiness, setSelectedBusiness] =
     useState<BusinessModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBusinessDetailOpen, setIsBusinessDetailOpen] = useState(false);
-  const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<BusinessStatus | undefined>(
     undefined
@@ -106,11 +105,10 @@ export default function BusinessPage() {
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
 
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
   const locale = useLocale();
   const pathname = usePathname();
 
+  const user = getUserInfo();
   console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
@@ -120,7 +118,7 @@ export default function BusinessPage() {
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
     usePagination({
-      baseRoute: ROUTES.DASHBOARD.BUSINESS,
+      baseRoute: ROUTES.DASHBOARD.MANAGE_BUSINESS,
       defaultPageSize: 10,
     });
 
@@ -224,88 +222,62 @@ export default function BusinessPage() {
     }
   };
 
-  async function handleSubmit(formData: BusinessFormData) {
-    console.log("Submitting form:", formData, "mode:", mode);
+  async function handleSubmit(formData: MyBusinessFormData) {
+    console.log("Submitting form:", formData);
 
     setIsSubmitting(true);
     try {
-      const isCreate = mode === ModalMode.CREATE_MODE;
-
-      const payload = {
-        email: formData.email!,
-        name: formData.name!,
-        status: formData.status,
-        address: formData.address,
-        description: formData.description,
-        phone: formData.phone,
+      const payload: UpdateMyBusinessRequest = {
+        logoUrl: formData?.logoUrl,
+        name: formData?.name,
+        description: formData?.description,
+        phone: formData?.phone,
+        address: formData?.address,
+        website: formData?.website,
+        businessType: formData?.businessType,
+        cuisineType: formData?.cuisineType,
+        operatingHours: formData?.operatingHours,
+        facebookUrl: formData?.facebookUrl,
+        instagramUrl: formData?.instagramUrl,
+        telegramContact: formData?.telegramContact,
+        usdToKhrRate: formData?.usdToKhrRate,
+        taxRate: formData?.taxRate,
+        serviceChargeRate: formData?.serviceChargeRate,
+        acceptsOnlinePayment: formData?.acceptsOnlinePayment,
+        acceptsCashPayment: formData?.acceptsCashPayment,
+        acceptsBankTransfer: formData?.acceptsBankTransfer,
+        acceptsMobilePayment: formData?.acceptsMobilePayment,
       };
 
-      if (isCreate) {
-        const response = await createBusinessService(payload);
-        if (response) {
-          // Update users list
-          setData((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  content: [response, ...prev.content],
-                  totalElements: prev.totalElements + 1,
-                }
-              : {
-                  content: [response],
-                  pageNo: 1,
-                  pageSize: 10,
-                  totalElements: 1,
-                  totalPages: 1,
-                  hasNext: false,
-                  hasPrevious: false,
-                  first: true,
-                  last: true,
-                }
-          );
+      // Update mode
+      if (!formData?.id) {
+        throw new Error("Business ID is required for update");
+      }
 
-          AppToast({
-            type: "success",
-            message: `Business ${
-              response.username || formData.email
-            } added successfully`,
-            duration: 4000,
-            position: "top-right",
-          });
+      const response = await updateMyBusinessByIdService(formData?.id, payload);
+      if (response) {
+        // Update users list
+        setData((prev) =>
+          prev
+            ? {
+                ...prev,
+                content: prev.content.map((b) =>
+                  b.id === formData.id ? response : b
+                ),
+              }
+            : prev
+        );
 
-          setIsModalOpen(false);
-        }
-      } else {
-        // Update mode
-        if (!formData?.id) {
-          throw new Error("Business ID is required for update");
-        }
+        AppToast({
+          type: "success",
+          message: `Business ${
+            response.username || response.email
+          } updated successfully`,
+          duration: 4000,
+          position: "top-right",
+        });
 
-        const response = await updateBusinessService(formData?.id, payload);
-        if (response) {
-          // Update users list
-          setData((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  content: prev.content.map((b) =>
-                    b.id === formData.id ? response : b
-                  ),
-                }
-              : prev
-          );
-
-          AppToast({
-            type: "success",
-            message: `Business ${
-              response.username || response.email
-            } updated successfully`,
-            duration: 4000,
-            position: "top-right",
-          });
-
-          setIsModalOpen(false);
-        }
+        setIsModalOpen(false);
       }
     } catch (error: any) {
       console.error("Error submitting business form:", error);
@@ -354,9 +326,8 @@ export default function BusinessPage() {
     }
   }
 
-  const handleEditBusiness = (user: BusinessFormData) => {
-    setInitializeBusiness(user);
-    setMode(ModalMode.UPDATE_MODE);
+  const handleEditBusiness = (business: MyBusinessFormData) => {
+    setInitializeBusiness(business);
     setIsModalOpen(!isModalOpen);
   };
 
@@ -413,11 +384,6 @@ export default function BusinessPage() {
     }
   };
 
-  const handleToggleStatus = (business: BusinessModel) => {
-    setSelectedBusinessToggle(business);
-    setIsToggleStatusDialogOpen(true);
-  };
-
   // Handle status filter change - directly updates the filter value
   const handleStatusChange = (status: BusinessStatus) => {
     setStatusFilter(status);
@@ -447,28 +413,21 @@ export default function BusinessPage() {
     loadBusiness(); // Reload users with default filters
   };
 
-  const handleCreateBusiness = () => {
-    setIsModalOpen(!isModalOpen);
-    setMode(ModalMode.CREATE_MODE);
-  };
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="space-y-6">
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Business List", href: "" },
+            { label: "Manage Business List", href: "" },
           ]}
-          title="Business"
+          title="Mange Business"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="Add new"
           disableReset={!statusFilter}
           handleResetFilters={handleResetFilters}
           onSearchChange={handleSearchChange}
-          openModal={handleCreateBusiness}
           children={
             <div className="flex flex-wrap items-center justify-start gap-4 w-full">
               {/* <div className="relative w-full md:w-[350px]">
@@ -719,13 +678,6 @@ export default function BusinessPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(business)}
-                          >
-                            <Trash className="w-3 h-3" />
-                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -734,7 +686,7 @@ export default function BusinessPage() {
               </TableBody>
             </Table>
 
-            <ModalBusiness
+            <ModalBusinessSetting
               isOpen={isModalOpen}
               onClose={() => {
                 setInitializeBusiness(null);
@@ -743,7 +695,6 @@ export default function BusinessPage() {
               isSubmitting={isSubmitting}
               onSave={handleSubmit}
               Data={initializeBusiness}
-              mode={mode}
             />
 
             <ResetPasswordModal

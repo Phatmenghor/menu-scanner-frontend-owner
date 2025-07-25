@@ -23,7 +23,6 @@ import {
   XCircle,
   AlertTriangle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,10 +32,10 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
+import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
 
 interface BusinessDetailSheetProps {
   isOpen: boolean;
@@ -101,7 +100,9 @@ export function BusinessDetailSheet({
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <SheetTitle className="text-xl">{business?.name}</SheetTitle>
+              <SheetTitle className="text-xl">
+                {business?.name || "---"}
+              </SheetTitle>
               <SheetDescription className="text-base">
                 {business?.description || "---"}
               </SheetDescription>
@@ -217,38 +218,44 @@ export function BusinessDetailSheet({
                 <CardTitle>Social Media & Communication</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {business?.facebookUrl && (
-                  <div className="flex items-center gap-3">
-                    <Facebook className="h-4 w-4 text-blue-600" />
-                    <a
-                      href={business?.facebookUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      Facebook Page
-                    </a>
-                  </div>
-                )}
-                {business?.instagramUrl && (
-                  <div className="flex items-center gap-3">
-                    <Instagram className="h-4 w-4 text-pink-600" />
-                    <a
-                      href={business?.instagramUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-pink-600 hover:underline"
-                    >
-                      Instagram Profile
-                    </a>
-                  </div>
-                )}
-                {business?.telegramContact && (
-                  <div className="flex items-center gap-3">
-                    <MessageCircle className="h-4 w-4 text-blue-500" />
-                    <span>{business?.telegramContact || "---"}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-3">
+                  <img
+                    src={AppIcons.Facebook}
+                    alt="Facebook Icon"
+                    className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
+                  />{" "}
+                  <a
+                    href={business?.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {business?.facebookUrl ? " Facebook Page" : "---"}
+                  </a>
+                </div>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={AppIcons.Instagram}
+                    alt="Instagram Icon"
+                    className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
+                  />{" "}
+                  <a
+                    href={business?.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-pink-600 hover:underline"
+                  >
+                    {business?.instagramUrl ? "Instagram Profile" : "---"}
+                  </a>
+                </div>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={AppIcons.Telegram}
+                    alt="Telegram Icon"
+                    className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
+                  />{" "}
+                  <span>{business?.telegramContact || "---"}</span>
+                </div>
               </CardContent>
             </Card>
 
@@ -322,7 +329,7 @@ export function BusinessDetailSheet({
                     </label>
                     <p className="text-lg font-semibold mt-1 flex items-center gap-1">
                       <Percent className="h-4 w-4" />
-                      {business?.taxRate}%
+                      {business?.taxRate || "---"}
                     </p>
                   </div>
                 </div>
@@ -332,7 +339,7 @@ export function BusinessDetailSheet({
                   </label>
                   <p className="text-lg font-semibold mt-1 flex items-center gap-1">
                     <Percent className="h-4 w-4" />
-                    {business?.serviceChargeRate}%
+                    {business?.serviceChargeRate || "---"}
                   </p>
                 </div>
               </CardContent>

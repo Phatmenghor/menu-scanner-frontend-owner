@@ -13,10 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   BUSINESS_STATUS_OPTIONS,
-  BusinessStatus,
   ModalMode,
 } from "@/constants/AppResource/status/status";
-import { CreateUsers, UpdateUsers } from "@/models/dashboard/user/user.schema";
 import {
   BusinessFormData,
   createBusinessSchema,
@@ -29,12 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-export type UserModalData = Partial<CreateUsers> &
-  Partial<UpdateUsers> & {
-    userRole?: string;
-    userStatus?: string;
-  };
 
 type Props = {
   mode: ModalMode;
@@ -128,7 +120,7 @@ export default function ModalBusiness({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 pt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Email Field */}
           <div className="space-y-1">
             <Label htmlFor="email">

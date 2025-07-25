@@ -10,7 +10,13 @@ export const updateMyBusinessSchema = z.object({
 
   businessType: z.string().optional(),
   cuisineType: z.string().optional(),
-  operatingHours: z.string().optional(),
+  operatingHours: z
+    .string()
+    .regex(
+      /^([A-Za-z,-]+):\s*\d{1,2}(AM|PM)-\d{1,2}(AM|PM)$/,
+      "Operating hours must be in format like 'Mon-Sun: 6AM-10PM'"
+    )
+    .optional(),
 
   facebookUrl: z.string().url().optional().or(z.literal("")),
   instagramUrl: z.string().url().optional().or(z.literal("")),
@@ -40,4 +46,8 @@ export const updateMyBusinessSchema = z.object({
   acceptsMobilePayment: z.boolean().optional(),
 });
 
-export type MyBusinessFormData = z.infer<typeof updateMyBusinessSchema>;
+export const updateMyBusiness = updateMyBusinessSchema.extend({
+  id: z.string().min(1, "id is required").optional(),
+});
+
+export type MyBusinessFormData = z.infer<typeof updateMyBusiness>;

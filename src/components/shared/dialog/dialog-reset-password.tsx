@@ -25,7 +25,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AdminChangePasswordService } from "@/services/dashboard/user/user.service";
+import { AdminChangePasswordService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import { AppDefault } from "@/constants/AppResource/default/default";
 
 export default function ResetPasswordModal({

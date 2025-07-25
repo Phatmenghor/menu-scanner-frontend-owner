@@ -36,6 +36,19 @@ export async function updateMyBusinessService(data: UpdateMyBusinessRequest) {
   }
 }
 
+export async function getMyBusinessByIdService(id: string) {
+  try {
+    const response = await axiosClientWithAuth.get(`/api/v1/business/${id}`);
+    return response.data.data;
+  } catch (error: any) {
+    if (error.response && error.response.data && error.response.data.message) {
+      throw new Error(error.response.data.message);
+    }
+    console.error("Error get business by id:", error);
+    throw error;
+  }
+}
+
 export async function updateMyBusinessByIdService(
   id: string,
   data: UpdateMyBusinessRequest

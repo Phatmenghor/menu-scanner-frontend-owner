@@ -30,7 +30,7 @@ import { UserModel } from "@/models/dashboard/user/plateform-user/user.response"
 import {
   getUserProfileService,
   updateUserProfileService,
-} from "@/services/dashboard/user/user.service";
+} from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import ChangePasswordModal from "@/components/shared/modal/change-password-modal";
 import { UpdateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
 import { setUser } from "@/store/features/userSlice";

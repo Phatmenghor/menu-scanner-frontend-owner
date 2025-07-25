@@ -31,7 +31,7 @@ import {
 import {
   getUserTableHeaders,
   UserTableHeaders,
-} from "@/constants/AppResource/table/table";
+} from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -70,7 +70,7 @@ import {
   deletedUserService,
   getAllUserService,
   updateUserService,
-} from "@/services/dashboard/user/user.service";
+} from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import {
   CreateUserRequest,
   UpdateUserRequest,

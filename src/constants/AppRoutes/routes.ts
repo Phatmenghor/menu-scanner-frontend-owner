@@ -28,9 +28,11 @@ export const ROUTES = {
     USER_ROLES: "/users/roles",
     PROFILE: "/profile",
     BUSINESS: "/business",
+    MANAGE_BUSINESS: "/manage-business",
     SUBSCRIPTION_PLAN: "/subscription-plan",
     BUSINESS_USER: "/business-user",
     MY_BUSINESS: "/my-business",
+    SUBSCRIPTION: "/subscription",
   },
 } as const;
 
@@ -90,7 +92,15 @@ export const sidebarItems: SidebarItem[] = [
         href: ROUTES.DASHBOARD.BUSINESS_USER,
       },
       {
-        title: "My Business",
+        title: "Manage Business",
+        href: ROUTES.DASHBOARD.MANAGE_BUSINESS,
+      },
+      {
+        title: "Subscription",
+        href: ROUTES.DASHBOARD.SUBSCRIPTION,
+      },
+      {
+        title: "Setting",
         href: ROUTES.DASHBOARD.MY_BUSINESS,
       },
     ],

@@ -37,7 +37,7 @@ import { MyBusinessModel } from "@/models/dashboard/user/business-user/business-
 import {
   getMyBusinessService,
   updateMyBusinessService,
-} from "@/services/dashboard/user/business.user.service";
+} from "@/services/dashboard/user/business-user/business-setting.service";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {

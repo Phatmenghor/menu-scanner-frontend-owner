@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import z from "zod";
-import { ChangePasswordService } from "@/services/dashboard/user/user.service";
+import { ChangePasswordService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import { AppToast } from "../toast/app-toast";
 
 const changePasswordSchema = z
