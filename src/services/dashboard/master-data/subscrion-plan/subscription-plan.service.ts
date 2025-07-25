@@ -5,7 +5,7 @@ import {
 } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-request";
 import { axiosClientWithAuth } from "@/utils/axios";
 
-export async function getAllSubscriptionService(
+export async function getAllSubscriptionPlanService(
   data: AllSubscriptionPlanRequest
 ) {
   try {

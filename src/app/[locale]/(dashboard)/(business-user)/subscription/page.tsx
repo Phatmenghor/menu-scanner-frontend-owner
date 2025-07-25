@@ -1,7 +1,5 @@
 "use client";
 
-import { RoleBadge } from "@/components/shared/badge/role-badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -20,10 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BUSINESS_USER_ROLE_OPTIONS,
-  BUSINESS_USER_TYPE_OPTIONS,
-  BusinessUserRole,
-  BusinessUserType,
   ModalMode,
   Status,
   STATUS_FILTER,
@@ -33,7 +27,7 @@ import {
   UserTableHeaders,
 } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
-import { DateTimeFormat } from "@/utils/date/date-time-format";
+import { DateTimeFormat, formatDate } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
 import {
   ExcelColumn,
@@ -41,19 +35,6 @@ import {
   ExcelSheet,
 } from "@/utils/export-file/excel";
 import { Check, Eye, Pen, Plus, RotateCw, Trash } from "lucide-react";
-import {
-  Command,
-  CommandInput,
-  CommandItem,
-  CommandEmpty,
-  CommandList,
-  CommandGroup,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -61,18 +42,7 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
-import {
-  AllUserResponse,
-  UserModel,
-} from "@/models/dashboard/user/plateform-user/user.response";
-import {
-  createUserService,
-  deletedUserService,
-  getAllUserService,
-  updateUserService,
-} from "@/services/dashboard/user/plateform-user/plateform-user.service";
-import { CreateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
-import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
+import { AllUserResponse } from "@/models/dashboard/user/plateform-user/user.response";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { Switch } from "@/components/ui/switch";
@@ -80,38 +50,41 @@ import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
-import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
+import {
+  createSubscriptionService,
+  deletedSubscriptionService,
+  getAllSubscriptionService,
+  updateSubscriptionService,
+} from "@/services/dashboard/subscription/subscription.service";
+import { SubscriptionTableHeaders } from "@/constants/AppResource/table/user/subscription";
+import {
+  AllSubscriptionResponse,
+  SubscriptionModel,
+} from "@/models/dashboard/subscription/subscription.response.model";
+import { SubscriptionFormData } from "@/models/dashboard/subscription/subscription.schema";
+import {
+  CreateSubscriptionRequest,
+  UpdateSubscriptionRequest,
+} from "@/models/dashboard/subscription/subscription.request.model";
+import ModalSubscription from "@/components/shared/modal/subscription-modal";
 
-export default function BusinessUserPage() {
+export default function SubscriptionPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<AllUserResponse | null>(null);
-  const [initializeUser, setInitializeUser] = useState<UserFormData | null>(
-    null
-  );
-  const [selectedUser, setSelectedUser] = useState<UserModel | null>(null);
+  const [subscriptions, setSubscriptions] =
+    useState<AllSubscriptionResponse | null>(null);
+  const [initializeSubscription, setInitializeSubscription] =
+    useState<SubscriptionFormData | null>(null);
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<SubscriptionModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
-  const [userTypeFilter, setUserTypeFilter] = useState<BusinessUserType>(
-    BusinessUserType.BUSINESS_USER
-  );
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
-
-  const [roleFilter, setRoleFilter] = useState<BusinessUserRole>(
-    BusinessUserRole.BUSINESS_OWNER
-  );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
-    useState(false);
-  const [selectedUserToggle, setSelectedUserToggle] =
-    useState<UserModel | null>(null);
-  const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
-    useState(false);
-  const [roleFilterOpen, setRoleFilterOpen] = useState(false);
 
   const t = useTranslations("user");
   const headers = getUserTableHeaders(t);
@@ -127,7 +100,7 @@ export default function BusinessUserPage() {
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
     usePagination({
-      baseRoute: ROUTES.DASHBOARD.BUSINESS_USER,
+      baseRoute: ROUTES.DASHBOARD.SUBSCRIPTION,
       defaultPageSize: 10,
     });
 
@@ -140,35 +113,26 @@ export default function BusinessUserPage() {
     }
   }, [searchParams, updateUrlWithPage]);
 
-  const loadUsers = useCallback(async () => {
+  const loadSubs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getAllUserService({
+      const response = await getAllSubscriptionService({
         search: debouncedSearchQuery,
         pageNo: currentPage,
-        roles: [roleFilter.toString()],
         pageSize: 10,
-        userType: userTypeFilter,
-        accountStatus: statusFilter,
       });
-      console.log("Fetched users:", response);
-      setUsers(response);
+      console.log("Fetched subscriptions:", response);
+      setSubscriptions(response);
     } catch (error: any) {
-      console.log("Failed to fetch users: ", error);
+      console.log("Failed to fetch subscriptions: ", error);
     } finally {
       setIsLoading(false);
     }
-  }, [
-    debouncedSearchQuery,
-    statusFilter,
-    userTypeFilter,
-    roleFilter,
-    currentPage,
-  ]);
+  }, [debouncedSearchQuery, currentPage]);
 
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    loadSubs();
+  }, [loadSubs]);
 
   // Simplified search change handler - just updates the state, debouncing handles the rest
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,7 +202,7 @@ export default function BusinessUserPage() {
     }
   };
 
-  async function handleSubmit(formData: UserFormData) {
+  async function handleSubmit(formData: SubscriptionFormData) {
     console.log("Submitting form:", formData, "mode:", mode);
 
     setIsSubmitting(true);
@@ -246,25 +210,18 @@ export default function BusinessUserPage() {
       const isCreate = mode === ModalMode.CREATE_MODE;
 
       if (isCreate) {
-        const createPayload: CreateUserRequest = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email!,
-          userType: formData.userType!,
-          password: formData.password!,
-          phoneNumber: formData.phoneNumber,
-          accountStatus: formData.accountStatus,
-          profileImageUrl: formData.profileImageUrl,
-          address: formData.address,
-          roles: formData.roles,
+        const createPayload: CreateSubscriptionRequest = {
+          businessId: formData.businessId!,
+          planId: formData.planId,
+          autoRenew: formData.autoRenew,
           notes: formData.notes,
-          position: formData.position,
+          startDate: formData.startDate,
         };
 
-        const response = await createUserService(createPayload);
+        const response = await createSubscriptionService(createPayload);
         if (response) {
           // Update users list
-          setUsers((prev) =>
+          setSubscriptions((prev) =>
             prev
               ? {
                   ...prev,
@@ -286,9 +243,7 @@ export default function BusinessUserPage() {
 
           AppToast({
             type: "success",
-            message: `User ${
-              response.username || formData.email
-            } added successfully`,
+            message: `Subscription added successfully`,
             duration: 4000,
             position: "top-right",
           });
@@ -301,28 +256,27 @@ export default function BusinessUserPage() {
           throw new Error("User ID is required for update");
         }
 
-        const updatePayload = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phoneNumber: formData.phoneNumber,
-
-          accountStatus: formData.accountStatus,
-          profileImageUrl: formData.profileImageUrl,
-          address: formData.address,
-          roles: formData.roles,
+        const updatePayload: UpdateSubscriptionRequest = {
+          planId: formData.planId,
+          autoRenew: formData.autoRenew,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          isActive: formData.isActive,
           notes: formData.notes,
-          position: formData.position,
         };
 
-        const response = await updateUserService(formData.id, updatePayload);
+        const response = await updateSubscriptionService(
+          formData.id,
+          updatePayload
+        );
         if (response) {
           // Update users list
-          setUsers((prev) =>
+          setSubscriptions((prev) =>
             prev
               ? {
                   ...prev,
-                  content: prev.content.map((user) =>
-                    user.id === formData.id ? response : user
+                  content: prev.content.map((sub) =>
+                    sub.id === formData.id ? response : sub
                   ),
                 }
               : prev
@@ -330,9 +284,7 @@ export default function BusinessUserPage() {
 
           AppToast({
             type: "success",
-            message: `User ${
-              response.username || response.email
-            } updated successfully`,
+            message: `Subscription updated successfully`,
             duration: 4000,
             position: "top-right",
           });
@@ -341,112 +293,62 @@ export default function BusinessUserPage() {
         }
       }
     } catch (error: any) {
-      console.error("Error submitting user form:", error);
+      console.error("Error submitting subscription form:", error);
       toast.error(error.message || "An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  async function handleDeleteUser() {
-    if (!selectedUser || !selectedUser.id) return;
+  async function handleDeleteSubscription() {
+    if (!selectedSubscription || !selectedSubscription.id) return;
 
     setIsSubmitting(true);
     try {
-      const response = await deletedUserService(selectedUser.id);
+      const response = await deletedSubscriptionService(
+        selectedSubscription.id
+      );
 
       if (response) {
         AppToast({
           type: "success",
-          message: `User ${selectedUser.fullName ?? ""} deleted successfully`,
+          message: `Subscription ${
+            selectedSubscription.planName ?? ""
+          } deleted successfully`,
           duration: 4000,
           position: "top-right",
         });
         // After deletion, check if we need to go back a page
-        if (users && users.content.length === 1 && currentPage > 1) {
+        if (
+          subscriptions &&
+          subscriptions.content.length === 1 &&
+          currentPage > 1
+        ) {
           updateUrlWithPage(currentPage - 1);
         } else {
-          await loadUsers();
+          await loadSubs();
         }
       } else {
         AppToast({
           type: "error",
-          message: `Failed to delete user`,
+          message: `Failed to delete subscription`,
           duration: 4000,
           position: "top-right",
         });
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error("An error occurred while deleting the user");
+      console.error("Error deleting subscription:", error);
+      toast.error("An error occurred while deleting the subscription");
     } finally {
       setIsSubmitting(false);
       setIsDeleteDialogOpen(false);
     }
   }
 
-  const handleEditUser = (user: UserFormData) => {
-    setInitializeUser(user);
+  const handleEditSubscription = (user: SubscriptionFormData) => {
+    setInitializeSubscription(user);
     setMode(ModalMode.UPDATE_MODE);
     setIsModalOpen(!isModalOpen);
-  };
-
-  // Status toggle handler
-  const handleStatusToggle = async (user: UserModel | null) => {
-    if (!user?.id) return;
-
-    setIsSubmitting(true);
-    try {
-      const newStatus =
-        user?.accountStatus === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
-
-      const response = await updateUserService(user?.id, {
-        accountStatus: newStatus,
-      });
-
-      if (response) {
-        // Optimistic update
-        setUsers((prev) =>
-          prev
-            ? {
-                ...prev,
-                content: prev.content.map((user) =>
-                  user.id === selectedUserToggle?.id ? response : user
-                ),
-              }
-            : prev
-        );
-
-        AppToast({
-          type: "success",
-          message: `User status updated successfully`,
-          duration: 4000,
-          position: "top-right",
-        });
-        setSelectedUserToggle(null);
-        setIsToggleStatusDialogOpen(false);
-      } else {
-        AppToast({
-          type: "error",
-          message: `Failed to update user status`,
-          duration: 4000,
-          position: "top-right",
-        });
-        loadUsers(); // reload in case of failure
-      }
-    } catch (error: any) {
-      toast.error(
-        error?.message || "An error occurred while updating user status"
-      );
-      loadUsers(); // reload in case of failure
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleToggleStatus = (user: UserModel) => {
-    setSelectedUserToggle(user);
-    setIsToggleStatusDialogOpen(true);
   };
 
   // Handle status filter change - directly updates the filter value
@@ -454,42 +356,26 @@ export default function BusinessUserPage() {
     setStatusFilter(status);
   };
 
-  const handleUserTypeChange = (userType: BusinessUserType) => {
-    setUserTypeFilter(userType);
-  };
-
-  const handleRoleFilterChange = (userType: BusinessUserRole) => {
-    setRoleFilter(userType);
-  };
-
-  const handleResetPassword = (user: UserModel) => {
-    setSelectedUser(user);
-    setIsResetPasswordDialogOpen(true);
-  };
-
-  const handleDelete = (user: UserModel) => {
-    setSelectedUser(user);
+  const handleDelete = (sub: SubscriptionModel) => {
+    setSelectedSubscription(sub);
     setIsDeleteDialogOpen(true);
   };
 
-  const handleViewUserDetail = (user: UserModel | null) => {
-    setSelectedUser(user);
+  const handleViewSubscriptionDetail = (sub: SubscriptionModel | null) => {
+    setSelectedSubscription(sub);
     setIsUserDetailOpen(true);
   };
 
-  const handleCloseViewUserDetail = () => {
-    setSelectedUser(null);
+  const handleCloseViewSubscriptionDetail = () => {
+    setSelectedSubscription(null);
     setIsUserDetailOpen(false);
   };
 
   const handleResetFilters = () => {
-    setUserTypeFilter(BusinessUserType.BUSINESS_USER);
-    setRoleFilter(BusinessUserRole.BUSINESS_OWNER);
-    setStatusFilter(Status.ACTIVE);
     setSearchQuery("");
     updateUrlWithPage(1, true);
-    setUsers(null); // Reset users to trigger reload};
-    loadUsers(); // Reload users with default filters
+    setSubscriptions(null); // Reset users to trigger reload};
+    loadSubs(); // Reload users with default filters
   };
 
   return (
@@ -498,9 +384,9 @@ export default function BusinessUserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Business Users List", href: "" },
+            { label: "Subscription List", href: "" },
           ]}
-          title="Business Users"
+          title="Subscription"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}
@@ -511,7 +397,7 @@ export default function BusinessUserPage() {
             setMode(ModalMode.CREATE_MODE);
           }}
           handleResetFilters={handleResetFilters}
-          disableReset={!roleFilter && !statusFilter && !userTypeFilter}
+          disableReset={!statusFilter}
         >
           <div className="flex items-center gap-3">
             {/* Status Filter */}
@@ -532,13 +418,13 @@ export default function BusinessUserPage() {
               </SelectContent>
             </Select>
 
-            {/* User Type Filter */}
+            {/* User Type Filter
             <Select value={userTypeFilter} onValueChange={handleUserTypeChange}>
               <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
                 <SelectValue placeholder="Select User Type" />
               </SelectTrigger>
               <SelectContent>
-                {BUSINESS_USER_TYPE_OPTIONS.map((option) => (
+                {USER_TYPE_OPTIONS.map((option) => (
                   <SelectItem
                     key={option.value}
                     value={option.value}
@@ -548,19 +434,18 @@ export default function BusinessUserPage() {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
 
             {/* Role Filter (Command) */}
-            <Popover open={roleFilterOpen} onOpenChange={setRoleFilterOpen}>
+            {/* <Popover open={roleFilterOpen} onOpenChange={setRoleFilterOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className="min-w-[150px] h-9 text-black px-3 text-sm justify-between"
                   role="combobox"
                 >
-                  {BUSINESS_USER_ROLE_OPTIONS.find(
-                    (role) => role.value === roleFilter
-                  )?.label || "Select User Role"}
+                  {USER_ROLE_OPTIONS.find((role) => role.value === roleFilter)
+                    ?.label || "Select User Role"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="p-0 w-[200px]">
@@ -569,7 +454,7 @@ export default function BusinessUserPage() {
                   <CommandList>
                     <CommandEmpty>No role found.</CommandEmpty>
                     <CommandGroup>
-                      {BUSINESS_USER_ROLE_OPTIONS.map((option) => (
+                      {USER_ROLE_OPTIONS.map((option) => (
                         <CommandItem
                           key={option.value}
                           value={option.value}
@@ -586,7 +471,7 @@ export default function BusinessUserPage() {
                   </CommandList>
                 </Command>
               </PopoverContent>
-            </Popover>
+            </Popover> */}
           </div>
         </CardHeaderSection>
 
@@ -599,10 +484,10 @@ export default function BusinessUserPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {UserTableHeaders.map((header, index) => (
+                  {SubscriptionTableHeaders.map((header, index) => (
                     <TableHead
                       key={index}
-                      className="font-semibold text-muted-foreground"
+                      className="text-xs font-semibold text-muted-foreground"
                     >
                       <div
                         className={`flex items-center gap-1 ${header.className}`}
@@ -614,93 +499,87 @@ export default function BusinessUserPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {!users || users.content.length === 0 ? (
+                {!subscriptions || subscriptions.content.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={UserTableHeaders.length}
+                      colSpan={SubscriptionTableHeaders.length}
                       className="text-center py-8 text-muted-foreground"
                     >
-                      No users found
+                      No subscriptions found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.content.map((user, index) => {
-                    const profileImageUrl =
-                      user?.profileImageUrl &&
-                      process.env.NEXT_PUBLIC_API_BASE_URL
-                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${user.profileImageUrl}`
-                        : undefined;
-
+                  subscriptions.content.map((sub, index) => {
                     return (
-                      <TableRow key={user.id} className="text-sm">
+                      <TableRow key={sub.id} className="text-sm">
                         {/* Index */}
                         <TableCell className="font-medium truncate">
-                          {indexDisplay(users.pageNo, users.pageSize, index)}
-                        </TableCell>
-
-                        {/* Avatar */}
-                        <TableCell>
-                          <div className="flex items-center gap-3 min-w-[180px]">
-                            <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
-                              <AvatarImage
-                                src={
-                                  user.profileImageUrl ? profileImageUrl : ""
-                                }
-                                alt="Profile"
-                              />
-                              <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">
-                                {user?.email?.charAt(0).toUpperCase() || "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
+                          {indexDisplay(
+                            subscriptions.pageNo,
+                            subscriptions.pageSize,
+                            index
+                          )}
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
-                          {user?.email || "---"}
+                          {sub?.businessName || "---"}
                         </TableCell>
 
-                        {/* FullName */}
                         <TableCell className="text-muted-foreground">
-                          {user?.fullName ||
-                            `${user.firstName} ${user.lastName}`}
+                          {sub?.planName || "---"}
                         </TableCell>
 
-                        {/* Role */}
                         <TableCell className="text-muted-foreground">
-                          <RoleBadge role={user?.userType || "---"} />
+                          {sub?.planPrice || "---"}
                         </TableCell>
 
-                        {/* Status Switch */}
-                        <TableCell>
-                          <Switch
-                            checked={user?.accountStatus === "ACTIVE"}
-                            onCheckedChange={() => handleToggleStatus(user)}
-                            disabled={isSubmitting}
-                            aria-label="Toggle user status"
-                            className={cn(
-                              "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                              // canModify
-                              1
-                                ? "bg-gray-300 dark:bg-gray-600 data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary"
-                                : "bg-gray-300 dark:bg-primary opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                "inline-block h-6 w-6 transform rounded-full bg-white dark:bg-gray-100 shadow-md transition-transform",
-                                "translate-x-1 data-[state=checked]:translate-x-5"
-                              )}
-                            >
-                              {user.accountStatus === "ACTIVE" && (
-                                <Check className="h-6 w-6 m-auto text-orange-600 dark:text-orange-300" />
-                              )}
-                            </div>
-                          </Switch>
+                        <TableCell className="text-muted-foreground">
+                          {sub?.planDurationDays || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {formatDate(sub?.startDate) || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {formatDate(sub?.endDate) || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {sub?.daysRemaining || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-xs">
+                          {sub?.isExpired ? (
+                            <span className="text-red-500 font-medium">
+                              Expired
+                            </span>
+                          ) : sub?.isActive ? (
+                            <span className="text-green-600 font-medium">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="text-yellow-500 font-medium">
+                              Upcoming
+                            </span>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {sub?.autoRenew || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {sub?.totalPaidAmount || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {sub?.paymentStatusSummary || "---"}
                         </TableCell>
 
                         {/* Created At */}
                         <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(user?.createdAt)}
+                          {DateTimeFormat(sub?.createdAt) || "---"}
                         </TableCell>
 
                         {/* Actions */}
@@ -708,29 +587,21 @@ export default function BusinessUserPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleViewUserDetail(user)}
+                            onClick={() => handleViewSubscriptionDetail(sub)}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleEditUser(user)}
+                            onClick={() => handleEditSubscription(sub)}
                           >
                             <Pen className="w-4 h-4" />
                           </Button>
                           <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleResetPassword(user)}
-                          >
-                            {" "}
-                            <RotateCw className="w-4 h-4" />
-                          </Button>
-                          <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleDelete(user)}
+                            onClick={() => handleDelete(sub)}
                           >
                             <Trash className="w-4 h-4" />
                           </Button>
@@ -742,76 +613,43 @@ export default function BusinessUserPage() {
               </TableBody>
             </Table>
 
-            <ModalBusinessUser
+            <ModalSubscription
               isOpen={isModalOpen}
               onClose={() => {
-                setInitializeUser(null);
+                setInitializeSubscription(null);
                 setIsModalOpen(false);
               }}
               isSubmitting={isSubmitting}
               onSave={handleSubmit}
-              Data={initializeUser}
+              Data={initializeSubscription}
               mode={mode}
             />
 
-            <ResetPasswordModal
-              isOpen={isResetPasswordDialogOpen}
-              userName={selectedUser?.fullName || selectedUser?.email}
-              onClose={() => {
-                setIsResetPasswordDialogOpen(false);
-                setSelectedUser(null);
-              }}
-              userId={selectedUser?.id}
-            />
-
-            <UserDetailSheet
-              onClose={handleCloseViewUserDetail}
+            {/* <UserDetailSheet
+              onClose={handleCloseViewSubscriptionDetail}
               open={isUserDetailOpen}
-              user={selectedUser}
-            />
+              user={selectedSubscription}
+            /> */}
 
             <DeleteConfirmationDialog
               isOpen={isDeleteDialogOpen}
               onClose={() => {
                 setIsDeleteDialogOpen(false);
-                setSelectedUser(null);
+                setSelectedSubscription(null);
               }}
-              onDelete={handleDeleteUser}
+              onDelete={handleDeleteSubscription}
               title="Delete Admin"
               description={`Are you sure you want to delete the admin`}
-              itemName={selectedUser?.fullName || selectedUser?.email}
+              itemName={
+                selectedSubscription?.planName ||
+                selectedSubscription?.displayName
+              }
               isSubmitting={isSubmitting}
-            />
-
-            <ConfirmDialog
-              open={isToggleStatusDialogOpen}
-              onOpenChange={() => {
-                setIsToggleStatusDialogOpen(false);
-                setSelectedUserToggle(null);
-              }}
-              centered={true}
-              title="Change User Status"
-              description={`Are you sure you want to ${
-                selectedUserToggle?.accountStatus === "ACTIVE"
-                  ? "disable"
-                  : "enable"
-              } this user: ${selectedUserToggle?.email}?`}
-              confirmButton={{
-                text: `${
-                  selectedUserToggle?.accountStatus === "ACTIVE"
-                    ? "Disable"
-                    : "Enable"
-                }`,
-                onClick: () => handleStatusToggle(selectedUserToggle),
-                variant: "primary",
-              }}
-              cancelButton={{ text: "Cancel", variant: "secondary" }}
-              onConfirm={() => handleStatusToggle(selectedUserToggle)}
             />
 
             <PaginationPage
               currentPage={currentPage}
-              totalPages={users?.totalPages ?? 10}
+              totalPages={subscriptions?.totalPages ?? 10}
               onPageChange={handlePageChange}
             />
           </div>

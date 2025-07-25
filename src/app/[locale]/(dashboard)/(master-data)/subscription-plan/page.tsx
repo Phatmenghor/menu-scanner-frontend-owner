@@ -53,7 +53,7 @@ import { SubscriptionPlanFormData } from "@/models/dashboard/master-data/subscri
 import {
   createSubscriptionService,
   deletedSubscriptionPlanService,
-  getAllSubscriptionService,
+  getAllSubscriptionPlanService,
   updateSubscriptionPlanService,
 } from "@/services/dashboard/master-data/subscrion-plan/subscription-plan.service";
 import { SubscriptionPlanFilters } from "@/components/index/dashboard/master-data/subscription-plan/subscription-plan-filter";
@@ -122,7 +122,7 @@ export default function SubscriptionPlanPage() {
   const loadSubscriptionPlan = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getAllSubscriptionService({
+      const response = await getAllSubscriptionPlanService({
         status: statusFilter,
         freeOnly: freeOnly,
         publicOnly: publicOnly,
@@ -545,34 +545,32 @@ export default function SubscriptionPlanPage() {
                       </TableCell>
 
                       {/* Plan Name */}
-                      <TableCell className="text-xs font-medium">
+                      <TableCell className=" font-medium">
                         {plan.name}
                       </TableCell>
 
                       {/* Price */}
-                      <TableCell className="text-xs">
+                      <TableCell>
                         {plan.isFree
                           ? "Free"
                           : plan.pricingDisplay || `$${plan.price}`}
                       </TableCell>
 
                       {/* Duration */}
-                      <TableCell className="text-xs">
-                        {plan.durationDays} days
-                      </TableCell>
+                      <TableCell>{plan.durationDays} days</TableCell>
 
                       {/* Status */}
-                      <TableCell className="text-xs capitalize">
+                      <TableCell className="capitalize">
                         {plan.status}
                       </TableCell>
 
                       {/* Subscriptions Count */}
-                      <TableCell className="text-xs">
+                      <TableCell className="">
                         {plan.activeSubscriptionsCount}
                       </TableCell>
 
                       {/* Visibility */}
-                      <TableCell className="text-xs">
+                      <TableCell className="">
                         {plan.isPublic
                           ? "Public"
                           : plan.isPrivate
@@ -581,7 +579,7 @@ export default function SubscriptionPlanPage() {
                       </TableCell>
 
                       {/* Created At */}
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-muted-foreground">
                         {DateTimeFormat(plan.createdAt)}
                       </TableCell>
 

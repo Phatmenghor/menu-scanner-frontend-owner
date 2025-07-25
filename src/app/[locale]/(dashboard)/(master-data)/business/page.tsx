@@ -615,7 +615,7 @@ export default function BusinessPage() {
                         </TableCell>
 
                         {/* Business Type & Cuisine */}
-                        <TableCell className="text-xs">
+                        <TableCell className="">
                           <div className="flex flex-col">
                             <span className="font-medium">
                               {business?.name}
@@ -624,7 +624,7 @@ export default function BusinessPage() {
                         </TableCell>
 
                         {/* Business Type */}
-                        <TableCell className="text-xs">
+                        <TableCell className="">
                           <div className="flex flex-col">
                             <span className="font-medium">
                               {business?.businessType}
@@ -633,7 +633,7 @@ export default function BusinessPage() {
                         </TableCell>
 
                         {/* Cuisine Type  */}
-                        <TableCell className="text-xs">
+                        <TableCell className="">
                           <div className="flex flex-col">
                             {business?.cuisineType && (
                               <span className="text-muted-foreground">
@@ -644,14 +644,14 @@ export default function BusinessPage() {
                         </TableCell>
 
                         {/* Contact Info */}
-                        <TableCell className="text-xs">
+                        <TableCell className="">
                           <div className="flex flex-col gap-1">
                             <span className="font-medium">
                               {business?.email}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs">
+                        <TableCell className="">
                           <div className="flex flex-col gap-1">
                             <span className="text-muted-foreground">
                               {business?.phone}
@@ -660,7 +660,7 @@ export default function BusinessPage() {
                         </TableCell>
 
                         {/* Subscription Info */}
-                        <TableCell className="text-xs">
+                        <TableCell className="">
                           <div className="flex flex-col gap-1">
                             <span className="font-medium">
                               {business?.currentSubscriptionPlan || "No Plan"}
@@ -669,11 +669,11 @@ export default function BusinessPage() {
                         </TableCell>
 
                         {/* Subscription remain day  */}
-                        <TableCell className="text-xs">
+                        <TableCell className="">
                           <div className="flex flex-col gap-1">
                             {business?.daysRemaining && (
                               <span
-                                className={`text-xs ${
+                                className={` ${
                                   business?.isExpiringSoon
                                     ? "text-yellow-600"
                                     : "text-muted-foreground"

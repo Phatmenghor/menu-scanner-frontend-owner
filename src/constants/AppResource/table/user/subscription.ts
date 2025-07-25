@@ -1,0 +1,16 @@
+export const SubscriptionTableHeaders = [
+  { label: "#", className: "max-w-[20%]" },
+  { label: "businessName", className: "max-w-[20%]" },
+  { label: "planName", className: "max-w-[20%]" },
+  { label: "planPrice", className: "max-w-[20%]" },
+  { label: "planDurationDays", className: "max-w-[20%]" },
+  { label: "startDate", className: "max-w-[20%]" },
+  { label: "endDate", className: "max-w-[20%]" },
+  { label: "daysRemaining", className: "max-w-[20%]" },
+  { label: "isActive/isExpired", className: "max-w-[20%]" },
+  { label: "autoRenew", className: "max-w-[20%]" },
+  { label: "totalPaidAmount", className: "max-w-[20%]" },
+  { label: "paymentStatusSummary", className: "max-w-[20%]" },
+  { label: "Created At", className: "max-w-[20%]" },
+  { label: "Actions", className: "max-w-[20%]" },
+];

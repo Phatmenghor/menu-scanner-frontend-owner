@@ -14,18 +14,33 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BusinessStatus } from "@/constants/AppResource/status/status";
 import { cn } from "@/lib/utils";
 import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
 import { getAllBusinessService } from "@/services/dashboard/master-data/business/business.service";
 import { debounce } from "@/utils/debounce/debounce";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import {
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  Users,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 
 interface ComboboxSelectedProps {
   dataSelect: BusinessModel | null;
-  onChangeSelected: (item: BusinessModel) => void; // Callback to notify parent about the selection change
+  onChangeSelected: (item: BusinessModel) => void;
   disabled?: boolean;
 }
 
@@ -41,7 +56,6 @@ export function ComboboxSelectBusiness({
   const [lastPage, setLastPage] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Intersection Observer Hook
   const { ref, inView } = useInView({ threshold: 1 });
 
   // Fetch data from API
@@ -72,12 +86,10 @@ export function ComboboxSelectBusiness({
     }
   };
 
-  // Fetch data on mount
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Handle search input with debounce
   useEffect(() => {
     const delaySearch = setTimeout(() => {
       fetchData(searchTerm, 1);
@@ -86,7 +98,6 @@ export function ComboboxSelectBusiness({
     return () => clearTimeout(delaySearch);
   }, [searchTerm]);
 
-  // Load more when last item is visible
   useEffect(() => {
     if (inView && !lastPage && !loading) {
       fetchData(searchTerm, page + 1);
@@ -105,6 +116,49 @@ export function ComboboxSelectBusiness({
     [searchTerm]
   );
 
+  const getStatusIcon = (
+    status: string,
+    isSubscriptionActive: boolean,
+    isExpiringSoon: boolean
+  ) => {
+    if (status === "ACTIVE" && isSubscriptionActive && !isExpiringSoon) {
+      return <CheckCircle className="h-3 w-3 text-green-500" />;
+    } else if (isExpiringSoon) {
+      return <AlertTriangle className="h-3 w-3 text-yellow-500" />;
+    } else {
+      return <XCircle className="h-3 w-3 text-red-500" />;
+    }
+  };
+
+  const getStatusVariant = (
+    status: string,
+    isSubscriptionActive: boolean,
+    isExpiringSoon: boolean
+  ) => {
+    if (status === "ACTIVE" && isSubscriptionActive && !isExpiringSoon) {
+      return "default";
+    } else if (isExpiringSoon) {
+      return "secondary";
+    } else {
+      return "destructive";
+    }
+  };
+
+  const getStatusText = (
+    status: string,
+    isSubscriptionActive: boolean,
+    isExpiringSoon: boolean,
+    daysRemaining: number
+  ) => {
+    if (status === "ACTIVE" && isSubscriptionActive && !isExpiringSoon) {
+      return "Active";
+    } else if (isExpiringSoon) {
+      return `${daysRemaining} days left`;
+    } else {
+      return "Inactive";
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -119,23 +173,19 @@ export function ComboboxSelectBusiness({
           )}
           disabled={disabled}
         >
-          {/* Always show the name directly from dataSelect prop if available */}
-          {dataSelect ? dataSelect.name : "Select a user..."}
+          {dataSelect ? dataSelect.name : "Select a business..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0"
-        align="start"
-      >
+      <PopoverContent className="w-[500px] p-0" align="start">
         <Command>
           <CommandInput
-            placeholder="Search user..."
+            placeholder="Search business..."
             value={searchTerm}
             onValueChange={onChangeSearch}
           />
           <CommandList
-            className="max-h-60 overflow-y-auto"
+            className="max-h-80 overflow-y-auto"
             onWheel={(e) => {
               e.stopPropagation();
               const target = e.currentTarget;
@@ -149,26 +199,132 @@ export function ComboboxSelectBusiness({
                   key={item.id}
                   value={item.name}
                   onSelect={() => {
-                    onChangeSelected(item); // Notify parent about the change
+                    onChangeSelected(item);
                     setOpen(false);
                   }}
-                  ref={index === data.length - 1 ? ref : null} // Attach observer to last item
+                  ref={index === data.length - 1 ? ref : null}
+                  className="p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 !bg-white data-[selected=true]:!bg-blue-50"
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      dataSelect?.id === item.id ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {item.name}
+                  <div className="flex items-start space-x-3 w-full">
+                    {/* Business Logo/Avatar */}
+                    <Avatar className="h-12 w-12 flex-shrink-0">
+                      <AvatarImage src={item.logoUrl} alt={item.name} />
+                      <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
+                        {item.name
+                          .split(" ")
+                          .map((word) => word[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    {/* Business Information */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 truncate">
+                            {item.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 capitalize">
+                            {item.businessType}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2 ml-2">
+                          {getStatusIcon(
+                            item.status,
+                            item.isSubscriptionActive,
+                            item.isExpiringSoon
+                          )}
+                          <Badge
+                            variant={getStatusVariant(
+                              item.status,
+                              item.isSubscriptionActive,
+                              item.isExpiringSoon
+                            )}
+                            className="text-xs"
+                          >
+                            {getStatusText(
+                              item.status,
+                              item.isSubscriptionActive,
+                              item.isExpiringSoon,
+                              item.daysRemaining
+                            )}
+                          </Badge>
+                          <Check
+                            className={cn(
+                              "h-4 w-4 ml-2",
+                              dataSelect?.id === item.id
+                                ? "opacity-100 text-blue-600"
+                                : "opacity-0"
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div className="grid grid-cols-1 gap-1 mb-2">
+                        {item.email && (
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{item.email}</span>
+                          </div>
+                        )}
+                        {item.phone && (
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Phone className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{item.phone}</span>
+                          </div>
+                        )}
+                        {item.address && (
+                          <div className="flex items-center text-xs text-gray-500">
+                            <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{item.address}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Business Stats */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                          <div className="flex items-center">
+                            <Users className="h-3 w-3 mr-1" />
+                            <span>{item.totalStaff} staff</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            <span>{item.totalCustomers} customers</span>
+                          </div>
+                        </div>
+                        {item.website && (
+                          <div className="flex items-center text-xs text-blue-600">
+                            <Globe className="h-3 w-3 mr-1" />
+                            <span className="truncate max-w-20">Website</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Cuisine Type Badge (if applicable) */}
+                      {item.cuisineType && (
+                        <div className="mt-2">
+                          <Badge variant="outline" className="text-xs">
+                            {item.cuisineType}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>
 
             {/* Loading spinner */}
             {loading && (
-              <div className="text-center py-2">
+              <div className="text-center py-4">
                 <Loader2 className="animate-spin text-gray-500 h-5 w-5 mx-auto" />
+                <p className="text-xs text-gray-500 mt-2">
+                  Loading more businesses...
+                </p>
               </div>
             )}
           </CommandList>

@@ -65,7 +65,7 @@ export async function createSubscriptionService(
   }
 }
 
-export async function updateUserService(
+export async function updateSubscriptionService(
   userId: string,
   data: UpdateSubscriptionRequest
 ) {
