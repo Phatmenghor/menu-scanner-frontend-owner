@@ -104,8 +104,8 @@ export default function ModalBusinessSetting({
       acceptsBankTransfer: Data?.acceptsBankTransfer || false,
       acceptsMobilePayment: Data?.acceptsMobilePayment || false,
     });
-    setLogoPreview(Data?.logoUrl ?? null);
-  }, [Data, reset]);
+    setLogoPreview(Data?.logoUrl || null);
+  }, [Data, reset, isOpen]);
 
   // Clean up blob URLs
   useEffect(() => {
@@ -181,7 +181,7 @@ export default function ModalBusinessSetting({
 
     const payload: MyBusinessFormData = {
       id: cleanValue(Data?.id),
-      logoUrl: formData.logoUrl,
+      logoUrl: cleanValue(formData.logoUrl),
       name: cleanValue(formData.name),
       description: cleanValue(formData.description),
       phone: cleanValue(formData.phone),
@@ -196,9 +196,9 @@ export default function ModalBusinessSetting({
       instagramUrl: cleanValue(formData.instagramUrl),
       telegramContact: cleanValue(formData.telegramContact),
 
-      usdToKhrRate: cleanValue(formData.usdToKhrRate),
-      taxRate: cleanValue(formData.taxRate),
-      serviceChargeRate: cleanValue(formData.serviceChargeRate),
+      usdToKhrRate: Number(cleanValue(formData.usdToKhrRate)),
+      taxRate: Number(cleanValue(formData.taxRate)),
+      serviceChargeRate: Number(cleanValue(formData.serviceChargeRate)),
 
       acceptsOnlinePayment: cleanValue(formData.acceptsOnlinePayment),
       acceptsCashPayment: cleanValue(formData.acceptsCashPayment),
@@ -427,79 +427,97 @@ export default function ModalBusinessSetting({
           </div>
 
           {/* Service Charge Rate Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="serviceChargeRate">Service Charge Rate</Label>
-            <Controller
-              control={control}
-              name="serviceChargeRate"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="serviceChargeRate"
-                  type="number"
-                  placeholder="i.e, 40hours"
-                  disabled={isSubmitting}
-                  autoComplete="serviceChargeRate"
-                  className={errors.serviceChargeRate ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.serviceChargeRate && (
-              <p className="text-sm text-destructive">
-                {errors.serviceChargeRate.message}
-              </p>
+          <Controller
+            control={control}
+            name="serviceChargeRate"
+            rules={{
+              required: "Service charge is required",
+              validate: (value) => {
+                const number = Number(value);
+                if (isNaN(number)) return "Must be a valid number";
+                if (number < 0) return "Cannot be negative";
+                return true;
+              },
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="serviceChargeRate"
+                type="text" // ← use text for better control
+                placeholder="e.g., 40"
+                disabled={isSubmitting}
+                autoComplete="serviceChargeRate"
+                onChange={(e) => field.onChange(e.target.value)}
+                className={errors.serviceChargeRate ? "border-red-500" : ""}
+              />
             )}
-          </div>
+          />
+          {errors.serviceChargeRate && (
+            <p className="text-sm text-destructive">
+              {errors.serviceChargeRate.message}
+            </p>
+          )}
 
           {/* taxRate Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="taxRate">Tax Rate</Label>
-            <Controller
-              control={control}
-              name="taxRate"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="taxRate"
-                  type="number"
-                  placeholder="i.e, 20%"
-                  disabled={isSubmitting}
-                  autoComplete="taxRate"
-                  className={errors.serviceChargeRate ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.taxRate && (
-              <p className="text-sm text-destructive">
-                {errors.taxRate.message}
-              </p>
+          <Controller
+            control={control}
+            name="taxRate"
+            rules={{
+              required: "Tax rate is required",
+              validate: (value) => {
+                const number = Number(value);
+                if (isNaN(number)) return "Must be a valid number";
+                if (number < 0 || number > 100)
+                  return "Tax rate must be between 0 and 100";
+                return true;
+              },
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="taxRate"
+                type="text" // use text to avoid native number input issues
+                placeholder="e.g., 20%"
+                disabled={isSubmitting}
+                autoComplete="taxRate"
+                onChange={(e) => field.onChange(e.target.value)} // keep as string
+                className={errors.taxRate ? "border-red-500" : ""}
+              />
             )}
-          </div>
+          />
+          {errors.taxRate && (
+            <p className="text-sm text-destructive">{errors.taxRate.message}</p>
+          )}
 
           {/* usdToKhrRate Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="usdToKhrRate">Usd To Khr Rate</Label>
-            <Controller
-              control={control}
-              name="usdToKhrRate"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="usdToKhrRate"
-                  type="number"
-                  placeholder="i.e, 20%"
-                  disabled={isSubmitting}
-                  autoComplete="usdToKhrRate"
-                  className={errors.serviceChargeRate ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.usdToKhrRate && (
-              <p className="text-sm text-destructive">
-                {errors.usdToKhrRate.message}
-              </p>
+          <Controller
+            control={control}
+            name="usdToKhrRate"
+            rules={{
+              required: "Rate is required",
+              validate: (value) =>
+                !isNaN(Number(value)) && Number(value) > 0
+                  ? true
+                  : "Must be a valid number",
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="usdToKhrRate"
+                type="text"
+                placeholder="e.g., 4000"
+                disabled={isSubmitting}
+                autoComplete="usdToKhrRate"
+                onChange={(e) => field.onChange(e.target.value)}
+                className={errors.usdToKhrRate ? "border-red-500" : ""}
+              />
             )}
-          </div>
+          />
+          {errors.usdToKhrRate && (
+            <p className="text-sm text-destructive">
+              {errors.usdToKhrRate.message}
+            </p>
+          )}
 
           {/* facebookUrl Field - Optional */}
           <div className="space-y-1">

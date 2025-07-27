@@ -279,7 +279,7 @@ function ModalUser({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 pt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
           {/* Email Field */}
           {isCreate && (
             <div className="space-y-1">
@@ -680,7 +680,7 @@ function ModalUser({
             )}
           </div>
 
-          <Card className="mt-6 ">
+          <Card className="mt-16">
             <CardContent className="p-4">
               {/* Profile URL Field */}
               <div className="flex flex-col items-center gap-2">

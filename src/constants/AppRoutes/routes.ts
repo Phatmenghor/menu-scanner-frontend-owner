@@ -9,6 +9,7 @@ import {
   Users,
   LucideIcon,
   Database,
+  DollarSign,
 } from "lucide-react";
 
 export const ROUTES = {
@@ -33,6 +34,9 @@ export const ROUTES = {
     BUSINESS_USER: "/business-user",
     MY_BUSINESS: "/my-business",
     SUBSCRIPTION: "/subscription",
+    MY_SUBSCRIPTION: "/my-subscription",
+    EXCHANGE_RATE: "/exchange-rate",
+    PAYMENT: "/payment",
   },
 } as const;
 
@@ -80,6 +84,10 @@ export const sidebarItems: SidebarItem[] = [
         title: "Manage Users",
         href: ROUTES.DASHBOARD.USERS,
       },
+      {
+        title: "Subscriptions",
+        href: ROUTES.DASHBOARD.SUBSCRIPTION,
+      },
     ],
   },
   {
@@ -97,7 +105,7 @@ export const sidebarItems: SidebarItem[] = [
       },
       {
         title: "Subscription",
-        href: ROUTES.DASHBOARD.SUBSCRIPTION,
+        href: ROUTES.DASHBOARD.MY_SUBSCRIPTION,
       },
       {
         title: "Setting",
@@ -106,9 +114,19 @@ export const sidebarItems: SidebarItem[] = [
     ],
   },
   {
-    title: "Analytics",
-    href: ROUTES.DASHBOARD.ANALYTICS,
-    icon: BarChart3,
+    title: "Payment",
+    section: "Payment",
+    icon: DollarSign,
+    subroutes: [
+      {
+        title: "Exchange Rates ",
+        href: ROUTES.DASHBOARD.EXCHANGE_RATE,
+      },
+      {
+        title: "Payment",
+        href: ROUTES.DASHBOARD.PAYMENT,
+      },
+    ],
   },
   {
     title: "Messages",
@@ -116,19 +134,9 @@ export const sidebarItems: SidebarItem[] = [
     icon: Inbox,
   },
   {
-    title: "Calendar",
-    href: ROUTES.DASHBOARD.CALENDAR,
-    icon: Calendar,
-  },
-  {
     title: "Settings",
     href: ROUTES.DASHBOARD.SETTINGS,
     icon: Settings,
-  },
-  {
-    title: "Security",
-    href: ROUTES.DASHBOARD.SECURITY,
-    icon: Shield,
   },
   {
     title: "Notifications",

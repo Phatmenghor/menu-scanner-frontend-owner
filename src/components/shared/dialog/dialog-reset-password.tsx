@@ -84,7 +84,7 @@ export default function ResetPasswordModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md min-h-screen">
+      <DialogContent className="sm:max-w-md">
         {showSuccess ? (
           // Success State
           <div className="text-center space-y-6">

@@ -97,7 +97,6 @@ export default function ModalSubscription({
     console.log("Form submitted with mode:", mode, "Data:", data); // Debug log
 
     const today = new Date();
-    const formattedStartDate = format(today, "yyyy-MM-dd");
 
     const calculatedEndDate = selectedPlan?.durationDays
       ? format(addDays(today, selectedPlan.durationDays), "yyyy-MM-dd")
@@ -107,9 +106,9 @@ export default function ModalSubscription({
       id: Data?.id?.trim() || undefined,
       planId: data?.planId.trim() || "",
       businessId: data?.businessId?.trim() || undefined,
-      startDate: formattedStartDate || "",
-      endDate: calculatedEndDate || undefined,
-      notes: data?.notes || undefined,
+      startDate: data?.startDate.trim(),
+      endDate: data.endDate || undefined,
+      notes: data?.notes,
       autoRenew: data?.autoRenew || false,
       isActive: data?.isActive || false,
     };
@@ -168,7 +167,7 @@ export default function ModalSubscription({
           {isCreate && (
             <div className="space-y-1">
               <Label htmlFor="businessId">
-                Business ID <span className="text-red-500">*</span>
+                Business <span className="text-red-500">*</span>
               </Label>
               <Controller
                 name="businessId"
@@ -192,7 +191,7 @@ export default function ModalSubscription({
           {/* Plan ID */}
           <div className="space-y-1">
             <Label htmlFor="planId">
-              Plan ID <span className="text-red-500">*</span>
+              Plan <span className="text-red-500">*</span>
             </Label>
             <Controller
               name="planId"
@@ -211,6 +210,30 @@ export default function ModalSubscription({
               </p>
             )}
           </div>
+
+          {isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="startDate">Start Date</Label>
+              <Controller
+                name="startDate"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="startDate"
+                    type="datetime-local"
+                    disabled={isSubmitting}
+                    className={errors.startDate ? "border-red-500" : ""}
+                  />
+                )}
+              />
+              {errors.startDate && (
+                <p className="text-sm text-destructive">
+                  {errors.startDate.message}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* End Date */}
           {!isCreate && (
@@ -305,7 +328,11 @@ export default function ModalSubscription({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : isCreate ? "Create" : "Update"}
+              {isSubmitting
+                ? "Processing..."
+                : isCreate
+                ? "Subscribe"
+                : "Update"}
             </Button>
           </div>
         </form>

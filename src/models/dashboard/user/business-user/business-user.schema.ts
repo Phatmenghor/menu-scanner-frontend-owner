@@ -22,19 +22,19 @@ export const updateMyBusinessSchema = z.object({
   instagramUrl: z.string().url().optional().or(z.literal("")),
   telegramContact: z.string().optional(),
 
-  usdToKhrRate: z
+  usdToKhrRate: z.coerce
     .number()
     .min(1000, "Exchange rate must be at least 1000 KHR per USD")
     .max(10000, "Exchange rate cannot exceed 10000 KHR per USD")
     .optional(),
 
-  taxRate: z
+  taxRate: z.coerce
     .number()
     .min(0, "Tax rate cannot be negative")
     .max(100, "Tax rate cannot exceed 100%")
     .optional(),
 
-  serviceChargeRate: z
+  serviceChargeRate: z.coerce
     .number()
     .min(0, "Service charge cannot be negative")
     .max(100, "Service charge cannot exceed 100%")

@@ -167,7 +167,7 @@ export function ComboboxSelectBusiness({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-full h-10 flex-1 justify-between",
+            "w-full h-10 flex-1 hover:bg-transparent hover:text-foreground justify-between",
             !dataSelect && "text-muted-foreground",
             disabled && "opacity-50 cursor-not-allowed"
           )}

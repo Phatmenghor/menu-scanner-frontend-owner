@@ -150,7 +150,7 @@ export function ComboboxSelectPlan({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-full h-auto min-h-[2.5rem] flex-1 justify-between p-3",
+            "w-full h-auto min-h-[2.5rem] hover:bg-transparent hover:text-muted-foreground flex-1 justify-between p-3",
             !dataSelect && "text-muted-foreground",
             disabled && "opacity-50 cursor-not-allowed",
             dataSelect && "border-blue-200 bg-blue-50"
