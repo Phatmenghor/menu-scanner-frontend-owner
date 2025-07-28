@@ -15,12 +15,10 @@ import {
   Save,
   X,
 } from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -33,18 +31,29 @@ import {
 } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import ChangePasswordModal from "@/components/shared/modal/change-password-modal";
 import { UpdateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
-import { setUser } from "@/store/features/userSlice";
 import { useRouter } from "next/navigation";
 import { AppToast } from "@/components/shared/toast/app-toast";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { STATUS_USER_OPTIONS } from "@/constants/AppResource/status/status";
 
 // Extended form data interface to handle local form state
 interface FormData {
   firstName: string;
   lastName: string;
   email: string;
+  status: string;
   phoneNumber: string;
   address: string;
   profileImageUrl?: string;
+  position: string;
+  notes: string;
 }
 
 export default function UserProfilePage() {
@@ -60,9 +69,12 @@ export default function UserProfilePage() {
     firstName: "",
     lastName: "",
     email: "",
+    status: "",
     phoneNumber: "",
     address: "",
+    position: "",
     profileImageUrl: "",
+    notes: "",
   });
 
   const router = useRouter();
@@ -76,23 +88,21 @@ export default function UserProfilePage() {
   const loadProfile = useCallback(async () => {
     setIsProfileLoading(true);
     try {
-      const response = await getUserProfileService();
+      const response: UserModel = await getUserProfileService();
       setUserProfile(response);
 
       // Initialize form data from user profile
       if (response) {
-        // Split fullName into firstName and lastName
-        const nameParts = response.fullName?.split(" ") || ["", ""];
-        const firstName = nameParts[0] || "";
-        const lastName = nameParts.slice(1).join(" ") || "";
-
         setFormData({
-          firstName,
-          lastName,
+          firstName: response.firstName,
+          lastName: response.lastName,
+          position: response.position,
           email: response.email || "",
+          status: response.accountStatus,
           phoneNumber: response.phoneNumber || "",
           address: response.address || "",
           profileImageUrl: response.profileImageUrl || "",
+          notes: response.notes || "",
         });
       }
     } catch (error: any) {
@@ -110,6 +120,9 @@ export default function UserProfilePage() {
     setIsSubmitting(true);
     try {
       const updateData: UpdateUserRequest = {
+        notes: formData.notes,
+        accountStatus: formData.status,
+        position: formData.position,
         firstName: formData.firstName,
         lastName: formData.lastName,
         phoneNumber: formData.phoneNumber,
@@ -153,10 +166,13 @@ export default function UserProfilePage() {
       setFormData({
         firstName,
         lastName,
+        status: userProfile.accountStatus,
+        position: userProfile.position,
         email: userProfile.email || "",
         phoneNumber: userProfile.phoneNumber || "",
         address: userProfile.address || "",
         profileImageUrl: userProfile.profileImageUrl || "",
+        notes: userProfile.notes || "",
       });
     }
     setIsEditing(false);
@@ -305,68 +321,237 @@ export default function UserProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        value={formData.firstName}
-                        onChange={(e) =>
-                          handleInputChange("firstName", e.target.value)
-                        }
-                        disabled={!isEditing}
-                        className="disabled:opacity-60"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        value={formData.lastName}
-                        onChange={(e) =>
-                          handleInputChange("lastName", e.target.value)
-                        }
-                        disabled={!isEditing}
-                        className="disabled:opacity-60"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          handleInputChange("email", e.target.value)
-                        }
-                        disabled={true} // Email should typically not be editable
-                        className="disabled:opacity-60"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        value={formData.phoneNumber}
-                        onChange={(e) =>
-                          handleInputChange("phoneNumber", e.target.value)
-                        }
-                        disabled={!isEditing}
-                        className="disabled:opacity-60"
-                      />
-                    </div>
-                    <div className="md:col-span-2 space-y-2">
-                      <Label htmlFor="address">Address</Label>
-                      <Input
-                        id="address"
-                        value={formData.address}
-                        onChange={(e) =>
-                          handleInputChange("address", e.target.value)
-                        }
-                        disabled={!isEditing}
-                        className="disabled:opacity-60"
-                      />
-                    </div>
+                    {!isEditing && (
+                      <div className="space-y-1">
+                        <Label>FullName</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.fullName || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          value={formData.firstName}
+                          onChange={(e) =>
+                            handleInputChange("firstName", e.target.value)
+                          }
+                          disabled={!isEditing}
+                          className="disabled:opacity-60"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Label>First Name</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.firstName || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          value={formData.lastName}
+                          onChange={(e) =>
+                            handleInputChange("lastName", e.target.value)
+                          }
+                          disabled={!isEditing}
+                          className="disabled:opacity-60"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Label>Last Name</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.lastName || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {!isEditing && (
+                      <div className="space-y-1">
+                        <Label>User Identifier</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.userIdentifier || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) =>
+                            handleInputChange("email", e.target.value)
+                          }
+                          disabled={true} // Email should typically not be editable
+                          className="disabled:opacity-60"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Label>Email</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.email || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          value={formData.phoneNumber}
+                          onChange={(e) =>
+                            handleInputChange("phoneNumber", e.target.value)
+                          }
+                          disabled={!isEditing}
+                          className="disabled:opacity-60"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Label>Phone</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.phoneNumber || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="address">Address</Label>
+                        <Input
+                          id="address"
+                          value={formData.address}
+                          onChange={(e) =>
+                            handleInputChange("address", e.target.value)
+                          }
+                          disabled={!isEditing}
+                          className="disabled:opacity-60"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Label>Address</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.address || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isEditing ? (
+                      <div className=" space-y-2">
+                        <Label htmlFor="position">Position</Label>
+                        <Input
+                          id="position"
+                          value={formData.address}
+                          onChange={(e) =>
+                            handleInputChange("position", e.target.value)
+                          }
+                          disabled={!isEditing}
+                          className="disabled:opacity-60"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Label>Position</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.position || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isEditing ? (
+                      <div className=" space-y-2">
+                        <Label htmlFor="status-select">
+                          Status <span className="text-red-500">*</span>
+                        </Label>
+
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) =>
+                            handleInputChange("status", value)
+                          }
+                          disabled={isSubmitting}
+                        >
+                          <SelectTrigger id="status-select">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STATUS_USER_OPTIONS.map((status) => (
+                              <SelectItem
+                                key={status.value}
+                                value={status.value}
+                              >
+                                {status.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Label>Status</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.accountStatus || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="notes">Notes</Label>
+                        <Textarea
+                          id="notes"
+                          value={formData.notes}
+                          onChange={(e) =>
+                            handleInputChange("notes", e.target.value)
+                          }
+                          disabled={!isEditing}
+                          className="disabled:opacity-60"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Label>Notes</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {userProfile?.notes || (
+                            <span className="text-gray-400">---</span>
+                          )}
+                        </p>
+                      </div>
+                    )}
                   </div>
+
                   {isEditing && (
                     <Card>
                       <CardContent className="flex gap-2 p-4 justify-end">

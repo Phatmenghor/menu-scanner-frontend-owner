@@ -3,7 +3,6 @@
 import { ReactNode } from "react";
 import { Provider } from "react-redux";
 import store from "@/store/store";
-import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "sonner";
 
 interface ClientProvidersProps {
@@ -13,15 +12,8 @@ interface ClientProvidersProps {
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
     <Provider store={store}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        {children}
-        <Toaster />
-      </ThemeProvider>
+      {children}
+      <Toaster />
     </Provider>
   );
 }

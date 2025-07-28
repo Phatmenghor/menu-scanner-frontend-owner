@@ -12,6 +12,11 @@ export interface AllUserResponse {
 
 export interface UserModel {
   id: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  userIdentifier: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -26,11 +31,8 @@ export interface UserModel {
   position: string;
   address: string;
   notes: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  updatedBy: string;
 }
+
 export interface CreateUserResponse {
   id: string;
   email: string;
@@ -40,6 +42,7 @@ export interface CreateUserResponse {
   phoneNumber: string;
   userType: string;
   accountStatus: string;
+  userIdentifier: string;
   businessId: string;
   businessName: string;
   roles: string[];

@@ -26,7 +26,6 @@ import {
   USER_ROLE_OPTIONS,
   USER_TYPE_OPTIONS,
 } from "@/constants/AppResource/status/status";
-
 import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { uploadImageService } from "@/services/dashboard/image/image.service";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,7 +51,7 @@ type Props = {
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
-  onSave: (data: UserFormData) => void;
+  onSave: (data: CreateUsers | UpdateUsers) => void;
 };
 
 const getDefaultRoleValue = () => {
@@ -93,7 +92,7 @@ function ModalUser({
     defaultValues: {
       id: Data?.id ?? "",
       email: "",
-      username: "",
+      userIdentifier: "",
       firstName: "",
       lastName: "",
       phoneNumber: "",
@@ -125,7 +124,7 @@ function ModalUser({
       const formData = {
         id: Data?.id || "",
         email: Data?.email || "",
-        username: Data?.username || "",
+        userIdentifier: Data?.userIdentifier || "",
         firstName: Data?.firstName || "",
         lastName: Data?.lastName || "",
         phoneNumber: Data?.phoneNumber || "",
@@ -207,12 +206,12 @@ function ModalUser({
 
     if (isCreate) {
       const payload: CreateUsers = {
-        email: data?.email?.trim()!,
-        username: data?.username?.trim()!,
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
+        email: data?.email?.trim() || "",
+        userIdentifier: data?.userIdentifier?.trim() || "",
+        firstName: data?.firstName?.trim(),
+        lastName: data?.lastName?.trim(),
         phoneNumber: data?.phoneNumber?.trim(),
-        userType: data?.userType!,
+        userType: data?.userType || "",
         businessId: data?.businessId,
         roles: data.roles,
         accountStatus: Status.ACTIVE,
@@ -220,15 +219,15 @@ function ModalUser({
         position: data.position,
         address: data.address,
         notes: data.notes,
-        password: data?.password?.trim()!,
+        password: data?.password?.trim() || "",
       };
       console.log("Create Payload:", payload); // Debug log
       onSave(payload);
     } else {
       const payload: UpdateUsers = {
         id: data.id ?? "",
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
+        firstName: data?.firstName?.trim(),
+        lastName: data?.lastName?.trim(),
         phoneNumber: data.phoneNumber?.trim(),
         profileImageUrl: data.profileImageUrl,
         businessId: data?.businessId,
@@ -280,7 +279,35 @@ function ModalUser({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-          {/* Email Field */}
+          {/* userIdentifier Field */}
+          {isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="userIdentifier">
+                User Identifier <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="userIdentifier"
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="userIdentifier"
+                    type="text"
+                    placeholder="johndoe"
+                    disabled={isSubmitting}
+                    autoComplete="userIdentifier"
+                    className={errors.userIdentifier ? "border-red-500" : ""}
+                  />
+                )}
+              />
+              {errors.userIdentifier && (
+                <p className="text-sm text-destructive">
+                  {errors.userIdentifier.message}
+                </p>
+              )}
+            </div>
+          )}
+
           {isCreate && (
             <div className="space-y-1">
               <Label htmlFor="email">
@@ -304,35 +331,6 @@ function ModalUser({
               {errors.email && (
                 <p className="text-sm text-destructive">
                   {errors.email.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Username Field */}
-          {isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="username">
-                Username <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="username"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="username"
-                    type="text"
-                    placeholder="johndoe"
-                    disabled={isSubmitting}
-                    autoComplete="username"
-                    className={errors.username ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.username && (
-                <p className="text-sm text-destructive">
-                  {errors.username.message}
                 </p>
               )}
             </div>
@@ -571,43 +569,45 @@ function ModalUser({
           </div>
 
           {/* Status Field */}
-          <div className="space-y-1">
-            <Label htmlFor="status-select">
-              Status <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="accountStatus"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger
-                    id="status-select"
-                    className={`bg-white dark:bg-inherit ${
-                      errors.accountStatus ? "border-red-500" : ""
-                    }`}
+          {!isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="status-select">
+                Status <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="accountStatus"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isSubmitting}
                   >
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_USER_OPTIONS.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      id="status-select"
+                      className={`bg-white dark:bg-inherit ${
+                        errors.accountStatus ? "border-red-500" : ""
+                      }`}
+                    >
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_USER_OPTIONS.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.accountStatus && (
+                <p className="text-sm text-destructive">
+                  {errors.accountStatus.message}
+                </p>
               )}
-            />
-            {errors.accountStatus && (
-              <p className="text-sm text-destructive">
-                {errors.accountStatus.message}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Position Field - Optional */}
           <div className="space-y-1">

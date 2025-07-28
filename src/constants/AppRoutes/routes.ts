@@ -76,8 +76,8 @@ export const sidebarItems: SidebarItem[] = [
     ],
   },
   {
-    title: "PlateForm User",
-    section: "PlateForm Owner",
+    title: "User",
+    section: "Users",
     icon: Users,
     subroutes: [
       {
@@ -90,29 +90,29 @@ export const sidebarItems: SidebarItem[] = [
       },
     ],
   },
-  {
-    title: "Business User",
-    section: "Business User",
-    icon: Users,
-    subroutes: [
-      {
-        title: "Manage Users",
-        href: ROUTES.DASHBOARD.BUSINESS_USER,
-      },
-      {
-        title: "Manage Business",
-        href: ROUTES.DASHBOARD.MANAGE_BUSINESS,
-      },
-      {
-        title: "Subscription",
-        href: ROUTES.DASHBOARD.MY_SUBSCRIPTION,
-      },
-      {
-        title: "Setting",
-        href: ROUTES.DASHBOARD.MY_BUSINESS,
-      },
-    ],
-  },
+  // {
+  //   title: "Business User",
+  //   section: "Business User",
+  //   icon: Users,
+  //   subroutes: [
+  //     {
+  //       title: "Manage Users",
+  //       href: ROUTES.DASHBOARD.BUSINESS_USER,
+  //     },
+  //     {
+  //       title: "Manage Business",
+  //       href: ROUTES.DASHBOARD.MANAGE_BUSINESS,
+  //     },
+  //     {
+  //       title: "Subscription",
+  //       href: ROUTES.DASHBOARD.MY_SUBSCRIPTION,
+  //     },
+  //     {
+  //       title: "Setting",
+  //       href: ROUTES.DASHBOARD.MY_BUSINESS,
+  //     },
+  //   ],
+  // },
   {
     title: "Payment",
     section: "Payment",

@@ -40,7 +40,7 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Check, Eye, Pen, Plus, RotateCw, Trash } from "lucide-react";
+import { Check, Eye, Pen, Plus, RotateCw, Trash, User } from "lucide-react";
 import {
   Command,
   CommandInput,
@@ -260,7 +260,8 @@ export default function UserPage() {
           accountStatus: formData.accountStatus,
           profileImageUrl: formData.profileImageUrl,
           address: formData.address,
-          roles: formData.roles,
+          roles: formData.roles || [UserRole.PLATFORM_OWNER],
+          userIdentifier: formData?.userIdentifier || "",
           notes: formData.notes,
           position: formData.position,
         };

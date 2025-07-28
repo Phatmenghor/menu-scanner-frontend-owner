@@ -84,11 +84,11 @@ export default function ResetPasswordModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-full max-w-md md:max-w-lg max-h-[90vh]">
         {showSuccess ? (
           // Success State
           <div className="text-center space-y-6">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <div className="mx-auto bg-green-100 rounded-full flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
             </div>
 
@@ -123,25 +123,25 @@ export default function ResetPasswordModal({
         ) : (
           // Confirmation State
           <>
-            <DialogHeader className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+            <DialogHeader className="text-center">
+              <div className="mx-auto w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
                 <AlertTriangle className="w-8 h-8 text-yellow-600" />
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold text-gray-900">
                   Reset Password?
                 </DialogTitle>
-                <DialogDescription className="text-gray-600 mt-2">
+                <DialogDescription>
                   This will reset the user's password to the default value.
                   They'll need to change it on their next login.
                 </DialogDescription>
               </div>
             </DialogHeader>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* User Info */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                     <User className="w-5 h-5 text-blue-600" />
                   </div>
@@ -159,10 +159,10 @@ export default function ResetPasswordModal({
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                      <Key className="w-5 h-5 text-yellow-600" />
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center">
+                      <Key className="w-5 h-5" />
                     </div>
-                    <Label className="text-sm font-medium text-gray-700">
+                    <Label className="text-sm font-medium text-gray-700 hover:text-gray-500">
                       New Password
                     </Label>
                   </div>
@@ -172,7 +172,7 @@ export default function ResetPasswordModal({
                       type={showPassword ? "text" : "password"}
                       value={defaultPassword}
                       readOnly
-                      className="pr-20 font-mono bg-gray-50"
+                      className="pr-20 font-mono"
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                       <Button
@@ -225,7 +225,7 @@ export default function ResetPasswordModal({
                 variant="outline"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="flex-1 bg-transparent"
+                className="flex-1 hover:bg-none hover:text-black hover:bg-transparent bg-transparent"
               >
                 Cancel
               </Button>

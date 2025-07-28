@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowLeft, Ghost, RotateCw, RefreshCcw } from "lucide-react";
+import { Search, ArrowLeft, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BreadcrumbItemType {
@@ -135,7 +135,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                   <Input
                     type="search"
                     placeholder={searchPlaceholder}
-                    className="pl-10 w-full text-gray-200 placeholder:text-gray-500 focus:border-pink-500 focus:ring-pink-500/20 hover:border-gray-600 transition-all duration-200"
+                    className="pl-10 w-full placeholder:text-gray-500 focus:border-pink-500 focus:ring-pink-500/20 hover:border-gray-600 transition-all duration-200"
                     value={searchValue}
                     onChange={onSearchChange}
                   />
