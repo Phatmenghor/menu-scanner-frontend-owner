@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   // Create form schema with translations
   const formSchema = z.object({
-    username: z.string().email(t("validation.email-required")),
+    userIdentifier: z.string().optional(),
     password: z.string().min(8, {
       message: t("validation.password-min"),
     }),
@@ -41,7 +41,7 @@ export default function LoginPage() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "phatmenghor19@gmail.com",
+      userIdentifier: "phatmenghor19@gmail.com",
       password: "88889999",
     },
   });
@@ -50,7 +50,7 @@ export default function LoginPage() {
     startTransition(async () => {
       try {
         const response = await loginService({
-          email: values.username,
+          userIdentifier: values.userIdentifier || "",
           password: values.password,
         });
 
@@ -120,7 +120,6 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel htmlFor="username">
                         {t("login.username")}
-                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input

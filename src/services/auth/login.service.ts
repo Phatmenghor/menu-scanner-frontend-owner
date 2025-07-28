@@ -14,10 +14,10 @@ export async function loginService(credentials: LoginCredentials) {
     storeToken(userData.accessToken);
     storeUserInfo({
       userId: userData.userId,
-      email: userData.email,
-      fullName: userData.fullName,
-      businessId: userData.businessId,
-      userType: userData.userType,
+      email: userData.email || "",
+      fullName: userData.fullName || "",
+      businessId: userData.businessId || "",
+      userType: userData.userType || "",
     });
     storeRoles(userData.roles);
 
