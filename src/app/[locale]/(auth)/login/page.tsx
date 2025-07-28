@@ -115,7 +115,7 @@ export default function LoginPage() {
               >
                 <FormField
                   control={form.control}
-                  name="username"
+                  name="userIdentifier"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel htmlFor="username">
