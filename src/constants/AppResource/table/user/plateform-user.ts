@@ -12,7 +12,7 @@ export const UserTableHeaders = [
   { label: "Profile", className: "max-w-[20%]", icon: Mail },
   { label: "Email", className: "max-w-[20%]", icon: Mail },
   { label: "FullName", className: "max-w-[20%]", icon: User2 },
-  { label: "UserType", className: "max-w-[20%]", icon: Shield },
+  { label: "Roles", className: "max-w-[20%]", icon: Shield },
   { label: "Status", className: "max-w-[20%]", icon: UserCheck },
   { label: "Created At", className: "max-w-[20%]", icon: Calendar },
   { label: "Actions", className: "max-w-[20%]", icon: Settings },

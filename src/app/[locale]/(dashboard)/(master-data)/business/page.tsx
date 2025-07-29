@@ -463,12 +463,9 @@ export default function BusinessPage() {
           title="Business"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
-          buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="Add new"
           disableReset={!statusFilter}
           handleResetFilters={handleResetFilters}
           onSearchChange={handleSearchChange}
-          openModal={handleCreateBusiness}
           children={
             <div className="flex flex-wrap items-center justify-start gap-4 w-full">
               {/* <div className="relative w-full md:w-[350px]">

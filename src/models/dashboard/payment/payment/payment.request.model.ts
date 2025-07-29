@@ -1,48 +1,32 @@
-export interface SearchPaymentRequest {
-  businessId: string;
-  planId: string;
-  paymentMethod: string;
-  status: string;
-  referenceNumber: string;
-  search: string;
-  createdFrom: string;
-  createdTo: string;
-  pageNo: number;
-  pageSize: number;
-  sortBy: string;
-  sortDirection: string;
-}
-
 export interface CreatePaymentRequest {
-  businessId: string;
-  planId: string;
+  imageUrl?: string;
   subscriptionId: string;
+  status?: string;
   amount: number;
   paymentMethod: string;
-  referenceNumber: string;
-  notes: string;
-  autoComplete: boolean;
+  referenceNumber?: string;
+  notes?: string;
 }
 
 export interface UpdatePaymentRequest {
-  amount: number;
-  paymentMethod: string;
-  status: string;
-  referenceNumber: string;
-  notes: string;
+  imageUrl?: string;
+  amount?: number;
+  paymentMethod?: string;
+  status?: string;
+  referenceNumber?: string;
+  notes?: string;
 }
 
-export interface SearchPaymentBusinessIdRequest {
-  businessId: string;
-  planId: string;
-  paymentMethod: string;
-  status: string;
-  referenceNumber: string;
-  search: string;
-  createdFrom: string;
-  createdTo: string;
-  pageNo: number;
-  pageSize: number;
-  sortBy: string;
-  sortDirection: string;
+export interface AllPaymentRequest {
+  search?: string;
+  pageNo?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: string;
+  paymentMethod?: string;
+  status?: string;
+  businessId?: string;
+  planId?: string;
+  createdFrom?: string;
+  createdTo?: string;
 }

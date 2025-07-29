@@ -12,6 +12,11 @@ export interface AllPayment {
 
 export interface PaymentModel {
   id: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  imageUrl: string;
   businessId: string;
   businessName: string;
   planId: string;
@@ -27,8 +32,4 @@ export interface PaymentModel {
   statusDescription: string;
   referenceNumber: string;
   notes: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  updatedBy: string;
 }

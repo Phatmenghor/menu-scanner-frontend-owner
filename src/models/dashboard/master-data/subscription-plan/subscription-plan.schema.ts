@@ -1,8 +1,8 @@
 import z from "zod";
 
-// Base business schema for shared fields
+// Base schema for shared fields
 const BaseSubscriptionPlanSchema = z.object({
-  name: z.string().min(1, "Business name is required"),
+  name: z.string().min(1, "Plan name is required"),
   description: z.string().optional(),
   price: z.preprocess(
     (val) => Number(val),
@@ -12,27 +12,27 @@ const BaseSubscriptionPlanSchema = z.object({
     (val) => Number(val),
     z.number().min(1, "Duration must be at least 1 day")
   ),
-  status: z.string(),
 });
 
-// Create schema (no id needed)
+// Create schema
 export const createSubscriptionPlanSchema = BaseSubscriptionPlanSchema;
 
-// Update schema (includes id)
-export const updateSubscriptionPlanSchema = BaseSubscriptionPlanSchema.extend({
-  id: z.string().min(1, "ID is required"),
-});
+// Update schema
+export const updateSubscriptionPlanSchema =
+  BaseSubscriptionPlanSchema.partial().extend({
+    id: z.string().min(1, "Subscription Plan ID is required"),
+    status: z.string().optional(),
+  });
 
 // UI form schema — includes optional `id` for editing
-export const SubscriptionPlanFormSchema = BaseSubscriptionPlanSchema.extend({
-  id: z.string().optional(),
+export const SubscriptionPlanFormSchema = updateSubscriptionPlanSchema.extend({
+  id: z.string().min(1, "Subscription Plan ID is required").optional(),
 });
 
 // Types
 export type CreateSubscriptionPlanSchema = z.infer<
   typeof createSubscriptionPlanSchema
 >;
-
 export type UpdateSubscriptionPlanSchema = z.infer<
   typeof updateSubscriptionPlanSchema
 >;
@@ -40,4 +40,6 @@ export type UpdateSubscriptionPlanSchema = z.infer<
 // Form data type used for both create/update UI
 export type SubscriptionPlanFormData = z.infer<
   typeof SubscriptionPlanFormSchema
->;
+> & {
+  id?: string;
+};

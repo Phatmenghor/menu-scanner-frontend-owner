@@ -18,7 +18,7 @@ export const ROUTES = {
   },
   DASHBOARD: {
     INDEX: "/",
-    USERS: "/users",
+    USERS: "/platform-users",
     ANALYTICS: "/analytics",
     MESSAGES: "/messages",
     CALENDAR: "/calendar",
@@ -37,6 +37,7 @@ export const ROUTES = {
     MY_SUBSCRIPTION: "/my-subscription",
     EXCHANGE_RATE: "/exchange-rate",
     PAYMENT: "/payment",
+    USERS_BUSINESS: "/users",
   },
 } as const;
 
@@ -76,8 +77,8 @@ export const sidebarItems: SidebarItem[] = [
     ],
   },
   {
-    title: "User",
-    section: "Users",
+    title: "Platform User",
+    section: "Platform Users",
     icon: Users,
     subroutes: [
       {
@@ -90,29 +91,33 @@ export const sidebarItems: SidebarItem[] = [
       },
     ],
   },
-  // {
-  //   title: "Business User",
-  //   section: "Business User",
-  //   icon: Users,
-  //   subroutes: [
-  //     {
-  //       title: "Manage Users",
-  //       href: ROUTES.DASHBOARD.BUSINESS_USER,
-  //     },
-  //     {
-  //       title: "Manage Business",
-  //       href: ROUTES.DASHBOARD.MANAGE_BUSINESS,
-  //     },
-  //     {
-  //       title: "Subscription",
-  //       href: ROUTES.DASHBOARD.MY_SUBSCRIPTION,
-  //     },
-  //     {
-  //       title: "Setting",
-  //       href: ROUTES.DASHBOARD.MY_BUSINESS,
-  //     },
-  //   ],
-  // },
+  {
+    title: "Business User",
+    section: "Business User",
+    icon: Users,
+    subroutes: [
+      {
+        title: "Manage Owners",
+        href: ROUTES.DASHBOARD.BUSINESS_USER,
+      },
+      {
+        title: "Manage Users",
+        href: ROUTES.DASHBOARD.BUSINESS_USER,
+      },
+      {
+        title: "Manage Business",
+        href: ROUTES.DASHBOARD.USERS_BUSINESS,
+      },
+      {
+        title: "Subscription",
+        href: ROUTES.DASHBOARD.MY_SUBSCRIPTION,
+      },
+      {
+        title: "Setting",
+        href: ROUTES.DASHBOARD.MY_BUSINESS,
+      },
+    ],
+  },
   {
     title: "Payment",
     section: "Payment",

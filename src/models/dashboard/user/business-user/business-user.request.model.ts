@@ -19,3 +19,19 @@ export interface UpdateMyBusinessRequest {
   acceptsBankTransfer?: boolean;
   acceptsMobilePayment?: boolean;
 }
+
+export interface CreateBusinessUserRequest {
+  ownerUserIdentifier: string;
+  businessName: string;
+  businessEmail?: string;
+  businessPhone?: string;
+  businessAddress?: string;
+  businessDescription?: string;
+  preferredSubdomain: string;
+  ownerEmail?: string;
+  ownerPassword: string;
+  ownerFirstName: string;
+  ownerLastName: string;
+  ownerPhone?: string;
+  ownerAddress?: string;
+}

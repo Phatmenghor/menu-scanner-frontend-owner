@@ -1,15 +1,7 @@
 "use client";
 
-import { RoleBadge } from "@/components/shared/badge/role-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -19,15 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  BUSINESS_USER_ROLE_OPTIONS,
-  BUSINESS_USER_TYPE_OPTIONS,
-  BusinessUserRole,
-  BusinessUserType,
-  ModalMode,
-  Status,
-  STATUS_FILTER,
-} from "@/constants/AppResource/status/status";
+import { ModalMode, Status } from "@/constants/AppResource/status/status";
 import {
   getUserTableHeaders,
   UserTableHeaders,
@@ -40,20 +24,7 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Check, Eye, Pen, Plus, RotateCw, Trash } from "lucide-react";
-import {
-  Command,
-  CommandInput,
-  CommandItem,
-  CommandEmpty,
-  CommandList,
-  CommandGroup,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Plus, RotateCw, Trash } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -66,21 +37,12 @@ import {
   UserModel,
 } from "@/models/dashboard/user/plateform-user/user.response";
 import {
-  createUserService,
   deletedUserService,
-  getAllUserService,
   updateUserService,
 } from "@/services/dashboard/user/plateform-user/plateform-user.service";
-import { CreateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
-import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
-import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
-import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
-import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
 import {
@@ -88,36 +50,33 @@ import {
   UpdateBusinessUserFormData,
 } from "@/models/dashboard/user/business-user/business-user.schema";
 import { createBusinessUserService } from "@/services/dashboard/master-data/business/business.service";
+import {
+  AllPayment,
+  PaymentModel,
+} from "@/models/dashboard/payment/payment/payment.response.model";
+import { getAllPaymentService } from "@/services/dashboard/payment/payment/payment.service";
+import { PaymentTableHeader } from "@/constants/AppResource/table/payment/payment";
 
-export default function BusinessUserPage() {
+export default function PaymentPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<AllUserResponse | null>(null);
-  const [initializeUser, setInitializeUser] = useState<UserFormData | null>(
+  const [payments, setPayment] = useState<AllPayment | null>(null);
+  const [initializePayment, setInitializePayment] =
+    useState<UserFormData | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentModel | null>(
     null
   );
-  const [selectedUser, setSelectedUser] = useState<UserModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
-  const [userTypeFilter, setUserTypeFilter] = useState<BusinessUserType>(
-    BusinessUserType.BUSINESS_USER
-  );
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
-
-  const [roleFilter, setRoleFilter] = useState<BusinessUserRole>(
-    BusinessUserRole.BUSINESS_OWNER
-  );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
-    useState(false);
   const [selectedUserToggle, setSelectedUserToggle] =
     useState<UserModel | null>(null);
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
-  const [roleFilterOpen, setRoleFilterOpen] = useState(false);
 
   const t = useTranslations("user");
   const headers = getUserTableHeaders(t);
@@ -133,7 +92,7 @@ export default function BusinessUserPage() {
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
     usePagination({
-      baseRoute: ROUTES.DASHBOARD.BUSINESS_USER,
+      baseRoute: ROUTES.DASHBOARD.PAYMENT,
       defaultPageSize: 10,
     });
 
@@ -146,35 +105,26 @@ export default function BusinessUserPage() {
     }
   }, [searchParams, updateUrlWithPage]);
 
-  const loadUsers = useCallback(async () => {
+  const loadPayment = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getAllUserService({
+      const response = await getAllPaymentService({
         search: debouncedSearchQuery,
         pageNo: currentPage,
-        roles: [BusinessUserRole.BUSINESS_OWNER],
         pageSize: 10,
-        userType: userTypeFilter,
-        accountStatus: statusFilter,
       });
-      console.log("Fetched users:", response);
-      setUsers(response);
+      console.log("Fetched payments:", response);
+      setPayment(response);
     } catch (error: any) {
-      console.log("Failed to fetch users: ", error);
+      console.log("Failed to fetch payments: ", error);
     } finally {
       setIsLoading(false);
     }
-  }, [
-    debouncedSearchQuery,
-    statusFilter,
-    userTypeFilter,
-    roleFilter,
-    currentPage,
-  ]);
+  }, [debouncedSearchQuery, statusFilter, currentPage]);
 
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    loadPayment();
+  }, [loadPayment]);
 
   // Simplified search change handler - just updates the state, debouncing handles the rest
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,7 +225,7 @@ export default function BusinessUserPage() {
         const response = await createBusinessUserService(createPayload);
         if (response) {
           // Update users list
-          setUsers((prev) =>
+          setPayment((prev) =>
             prev
               ? {
                   ...prev,
@@ -329,7 +279,7 @@ export default function BusinessUserPage() {
         const response = await updateUserService(data.id, updatePayload);
         if (response) {
           // Update users list
-          setUsers((prev) =>
+          setPayment((prev) =>
             prev
               ? {
                   ...prev,
@@ -361,24 +311,26 @@ export default function BusinessUserPage() {
   }
 
   async function handleDeleteUser() {
-    if (!selectedUser || !selectedUser.id) return;
+    if (!selectedPayment || !selectedPayment.id) return;
 
     setIsSubmitting(true);
     try {
-      const response = await deletedUserService(selectedUser.id);
+      const response = await deletedUserService(selectedPayment.id);
 
       if (response) {
         AppToast({
           type: "success",
-          message: `User ${selectedUser.fullName ?? ""} deleted successfully`,
+          message: `Payment ${
+            selectedPayment.referenceNumber ?? ""
+          } deleted successfully`,
           duration: 4000,
           position: "top-right",
         });
         // After deletion, check if we need to go back a page
-        if (users && users.content.length === 1 && currentPage > 1) {
+        if (payments && payments.content.length === 1 && currentPage > 1) {
           updateUrlWithPage(currentPage - 1);
         } else {
-          await loadUsers();
+          await loadPayment();
         }
       } else {
         AppToast({
@@ -412,17 +364,16 @@ export default function BusinessUserPage() {
 
       if (response) {
         // Optimistic update
-        setUsers((prev) =>
+        setPayment((prev) =>
           prev
             ? {
                 ...prev,
-                content: prev.content.map((user) =>
-                  user.id === selectedUserToggle?.id ? response : user
+                content: prev.content.map((payment) =>
+                  payment.id === selectedUserToggle?.id ? response : payment
                 ),
               }
             : prev
         );
-
         AppToast({
           type: "success",
           message: `User status updated successfully`,
@@ -438,41 +389,34 @@ export default function BusinessUserPage() {
           duration: 4000,
           position: "top-right",
         });
-        loadUsers(); // reload in case of failure
+        loadPayment(); // reload in case of failure
       }
     } catch (error: any) {
       toast.error(
         error?.message || "An error occurred while updating user status"
       );
-      loadUsers(); // reload in case of failure
+      loadPayment(); // reload in case of failure
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleToggleStatus = (user: UserModel) => {
-    setSelectedUserToggle(user);
-    setIsToggleStatusDialogOpen(true);
-  };
-
-  const handleDelete = (user: UserModel) => {
-    setSelectedUser(user);
+  const handleDelete = (payment: PaymentModel) => {
+    setSelectedPayment(payment);
     setIsDeleteDialogOpen(true);
   };
 
   const handleCloseViewUserDetail = () => {
-    setSelectedUser(null);
+    setSelectedPayment(null);
     setIsUserDetailOpen(false);
   };
 
   const handleResetFilters = () => {
-    setUserTypeFilter(BusinessUserType.BUSINESS_USER);
-    setRoleFilter(BusinessUserRole.BUSINESS_OWNER);
     setStatusFilter(Status.ACTIVE);
     setSearchQuery("");
     updateUrlWithPage(1, true);
-    setUsers(null); // Reset users to trigger reload};
-    loadUsers(); // Reload users with default filters
+    setPayment(null); // Reset users to trigger reload};
+    loadPayment(); // Reload users with default filters
   };
 
   return (
@@ -481,20 +425,20 @@ export default function BusinessUserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Business Users List", href: "" },
+            { label: "Payment List", href: "" },
           ]}
-          title="Business Users"
+          title="Payment"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="Add new"
+          buttonText="new"
           onSearchChange={handleSearchChange}
           openModal={() => {
             setIsModalOpen(!isModalOpen);
             setMode(ModalMode.CREATE_MODE);
           }}
           handleResetFilters={handleResetFilters}
-          disableReset={!roleFilter && !statusFilter && !userTypeFilter}
+          disableReset={!statusFilter}
         />
 
         <div className="w-full">
@@ -506,14 +450,12 @@ export default function BusinessUserPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {UserTableHeaders.map((header, index) => (
+                  {PaymentTableHeader.map((header, index) => (
                     <TableHead
                       key={index}
                       className="font-semibold text-muted-foreground"
                     >
-                      <div
-                        className={`flex items-center gap-1 ${header.className}`}
-                      >
+                      <div className={`flex items-center gap-1`}>
                         <span>{header.label}</span>
                       </div>
                     </TableHead>
@@ -521,7 +463,7 @@ export default function BusinessUserPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {!users || users.content.length === 0 ? (
+                {!payments || payments.content.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={UserTableHeaders.length}
@@ -531,18 +473,21 @@ export default function BusinessUserPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.content.map((user, index) => {
+                  payments.content.map((payment, index) => {
                     const profileImageUrl =
-                      user?.profileImageUrl &&
-                      process.env.NEXT_PUBLIC_API_BASE_URL
-                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${user.profileImageUrl}`
+                      payment?.imageUrl && process.env.NEXT_PUBLIC_API_BASE_URL
+                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${payment.imageUrl}`
                         : undefined;
 
                     return (
-                      <TableRow key={user.id} className="text-sm">
+                      <TableRow key={payment.id} className="text-sm">
                         {/* Index */}
                         <TableCell className="font-medium truncate">
-                          {indexDisplay(users.pageNo, users.pageSize, index)}
+                          {indexDisplay(
+                            payments.pageNo,
+                            payments.pageSize,
+                            index
+                          )}
                         </TableCell>
 
                         {/* Avatar */}
@@ -550,68 +495,52 @@ export default function BusinessUserPage() {
                           <div className="flex items-center gap-3 min-w-[180px]">
                             <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
                               <AvatarImage
-                                src={
-                                  user.profileImageUrl ? profileImageUrl : ""
-                                }
+                                src={payment.imageUrl ? profileImageUrl : ""}
                                 alt="Profile"
                               />
                               <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">
-                                {user?.email?.charAt(0).toUpperCase() || "U"}
+                                {payment?.planName?.charAt(0).toUpperCase() ||
+                                  "U"}
                               </AvatarFallback>
                             </Avatar>
                           </div>
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
-                          {user?.email || "---"}
+                          {payment?.businessName || "---"}
                         </TableCell>
 
-                        {/* FullName */}
                         <TableCell className="text-muted-foreground">
-                          {user?.fullName ||
-                            `${user.firstName} ${user.lastName}`}
+                          {payment?.planName || "---"}
                         </TableCell>
 
-                        {/* Role */}
-                        <TableCell className="text-xs text-muted-foreground space-x-1">
-                          {user.roles?.length > 0
-                            ? user.roles.map((role: string) => (
-                                <RoleBadge key={role} role={role} />
-                              ))
-                            : "---"}
+                        <TableCell className="text-muted-foreground">
+                          {payment?.subscriptionDisplayName || "---"}
                         </TableCell>
 
-                        {/* Status Switch */}
-                        <TableCell>
-                          <Switch
-                            checked={user?.accountStatus === "ACTIVE"}
-                            onCheckedChange={() => handleToggleStatus(user)}
-                            disabled={isSubmitting}
-                            aria-label="Toggle user status"
-                            className={cn(
-                              "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                              // canModify
-                              1
-                                ? "bg-gray-300 dark:bg-gray-600 data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary"
-                                : "bg-gray-300 dark:bg-primary opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                "inline-block h-6 w-6 transform rounded-full bg-white dark:bg-gray-100 shadow-md transition-transform",
-                                "translate-x-1 data-[state=checked]:translate-x-5"
-                              )}
-                            >
-                              {user.accountStatus === "ACTIVE" && (
-                                <Check className="h-6 w-6 m-auto text-orange-600 dark:text-orange-300" />
-                              )}
-                            </div>
-                          </Switch>
+                        <TableCell className="text-muted-foreground">
+                          {payment?.formattedAmount || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {payment?.formattedAmountKhr || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {payment?.paymentMethod || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {payment?.statusDescription || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {payment?.referenceNumber || "---"}
                         </TableCell>
 
                         {/* Created At */}
                         <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(user?.createdAt)}
+                          {DateTimeFormat(payment?.createdAt)}
                         </TableCell>
 
                         {/* Actions */}
@@ -619,14 +548,14 @@ export default function BusinessUserPage() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleDelete(user)}
+                            onClick={() => handleDelete(payment)}
                           >
                             <RotateCw className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleDelete(user)}
+                            onClick={() => handleDelete(payment)}
                           >
                             <Trash className="w-4 h-4" />
                           </Button>
@@ -638,76 +567,25 @@ export default function BusinessUserPage() {
               </TableBody>
             </Table>
 
-            <ModalBusinessUser
-              isOpen={isModalOpen}
-              onClose={() => {
-                setInitializeUser(null);
-                setIsModalOpen(false);
-              }}
-              isSubmitting={isSubmitting}
-              onSave={handleSubmit}
-              Data={initializeUser}
-              mode={mode}
-            />
-
-            <ResetPasswordModal
-              isOpen={isResetPasswordDialogOpen}
-              userName={selectedUser?.fullName || selectedUser?.email}
-              onClose={() => {
-                setIsResetPasswordDialogOpen(false);
-                setSelectedUser(null);
-              }}
-              userId={selectedUser?.id}
-            />
-
-            <UserDetailSheet
-              onClose={handleCloseViewUserDetail}
-              open={isUserDetailOpen}
-              user={selectedUser}
-            />
-
             <DeleteConfirmationDialog
               isOpen={isDeleteDialogOpen}
               onClose={() => {
                 setIsDeleteDialogOpen(false);
-                setSelectedUser(null);
+                setSelectedPayment(null);
               }}
               onDelete={handleDeleteUser}
               title="Delete Admin"
               description={`Are you sure you want to delete the admin`}
-              itemName={selectedUser?.fullName || selectedUser?.email}
+              itemName={
+                selectedPayment?.paymentMethod ||
+                selectedPayment?.referenceNumber
+              }
               isSubmitting={isSubmitting}
-            />
-
-            <ConfirmDialog
-              open={isToggleStatusDialogOpen}
-              onOpenChange={() => {
-                setIsToggleStatusDialogOpen(false);
-                setSelectedUserToggle(null);
-              }}
-              centered={true}
-              title="Change User Status"
-              description={`Are you sure you want to ${
-                selectedUserToggle?.accountStatus === "ACTIVE"
-                  ? "disable"
-                  : "enable"
-              } this user: ${selectedUserToggle?.email}?`}
-              confirmButton={{
-                text: `${
-                  selectedUserToggle?.accountStatus === "ACTIVE"
-                    ? "Disable"
-                    : "Enable"
-                }`,
-                onClick: () => handleStatusToggle(selectedUserToggle),
-                variant: "primary",
-              }}
-              cancelButton={{ text: "Cancel", variant: "secondary" }}
-              onConfirm={() => handleStatusToggle(selectedUserToggle)}
             />
 
             <PaginationPage
               currentPage={currentPage}
-              totalPages={users?.totalPages ?? 10}
+              totalPages={payments?.totalPages ?? 10}
               onPageChange={handlePageChange}
             />
           </div>
