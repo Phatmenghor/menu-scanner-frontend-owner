@@ -1,26 +1,4 @@
-export interface UpdateMyBusinessRequest {
-  logoUrl?: string;
-  name?: string;
-  description?: string;
-  phone?: string;
-  address?: string;
-  website?: string;
-  businessType?: string;
-  cuisineType?: string;
-  operatingHours?: string;
-  facebookUrl?: string;
-  instagramUrl?: string;
-  telegramContact?: string;
-  usdToKhrRate?: number;
-  taxRate?: number;
-  serviceChargeRate?: number;
-  acceptsOnlinePayment?: boolean;
-  acceptsCashPayment?: boolean;
-  acceptsBankTransfer?: boolean;
-  acceptsMobilePayment?: boolean;
-}
-
-export interface CreateBusinessUserRequest {
+export interface CreateBusinessOwnerRequest {
   ownerUserIdentifier: string;
   ownerEmail?: string;
   ownerPassword: string;
@@ -37,7 +15,6 @@ export interface CreateBusinessUserRequest {
   subscriptionPlanId?: string;
   subscriptionStartDate?: string;
   autoRenew?: boolean;
-  subscriptionNotes?: string;
   paymentImageUrl?: string;
   paymentAmount?: number;
   paymentMethod?: string;
