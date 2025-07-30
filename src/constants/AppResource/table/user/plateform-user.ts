@@ -1,6 +1,7 @@
 import {
   Calendar,
   Mail,
+  Paperclip,
   Settings,
   Shield,
   User2,
@@ -10,6 +11,7 @@ import {
 export const UserTableHeaders = [
   { label: "#", className: "max-w-[20%]" },
   { label: "Profile", className: "max-w-[20%]", icon: Mail },
+  { label: "User Identifier", className: "max-w-[20%]", icon: Paperclip },
   { label: "Email", className: "max-w-[20%]", icon: Mail },
   { label: "FullName", className: "max-w-[20%]", icon: User2 },
   { label: "UserType", className: "max-w-[20%]", icon: Shield },

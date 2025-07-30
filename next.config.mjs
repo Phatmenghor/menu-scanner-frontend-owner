@@ -31,6 +31,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/",
+        destination: "/en", // change to your default locale
+        permanent: false,
+      },
+      {
         source: "/:path*/",
         has: [],
         destination: "/:path*",

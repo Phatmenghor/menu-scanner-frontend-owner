@@ -1,9 +1,11 @@
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
 
 interface StoredUserInfo {
+  userIdentifier: string;
   userId: string;
   email: string;
   fullName: string;
+  profileImageUrl?: string;
   businessId: string;
   userType: string;
 }

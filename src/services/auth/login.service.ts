@@ -13,7 +13,9 @@ export async function loginService(credentials: LoginCredentials) {
     // On success, store token and role (simulate your original behavior)
     storeToken(userData.accessToken);
     storeUserInfo({
-      userId: userData.userId,
+      userId: userData.userId || "",
+      userIdentifier: userData.userIdentifier || "",
+      profileImageUrl: userData.profileImageUrl || "",
       email: userData.email || "",
       fullName: userData.fullName || "",
       businessId: userData.businessId || "",

@@ -219,44 +219,34 @@ export default function UserProfilePage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {isEditing ? (
-              <></>
-            ) : (
-              <Button onClick={() => setIsEditing(true)} size="sm">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
-            )}
-          </div>
         </div>
       </div>
 
       <div className="p-6">
         <div className="max-w-full mx-auto">
-          <Tabs defaultValue="profile" className="space-y-6">
+          <Tabs defaultValue="profile" className="space-y-4">
             <TabsList>
               <TabsTrigger
                 value="profile"
-                className="data-[state=active]:bg-primary"
+                className="data-[state=active]:bg-primary data-[state=active]:text-white"
               >
                 Profile
               </TabsTrigger>
               <TabsTrigger
                 value="security"
-                className="data-[state=active]:bg-primary"
+                className="data-[state=active]:bg-primary data-[state=active]:text-white"
               >
                 Security
               </TabsTrigger>
               <TabsTrigger
                 value="notifications"
-                className="data-[state=active]:bg-primary"
+                className="data-[state=active]:bg-primary data-[state=active]:text-white"
               >
                 Notifications
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="profile" className="space-y-6">
+            <TabsContent value="profile" className="space-y-4">
               {/* Profile Header Card */}
               <Card>
                 <CardContent className="p-6">
@@ -306,6 +296,35 @@ export default function UserProfilePage() {
                           {isEditing ? formData.address : userProfile?.address}
                         </div>
                       </div>
+                    </div>
+                    <div className="flex items-end gap-2">
+                      {isEditing ? (
+                        <Card className="flex gap-2">
+                          <Button
+                            onClick={handleCancel}
+                            variant="outline"
+                            size="sm"
+                            disabled={isSubmitting}
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleSave}
+                            className="bg-pink-600 hover:bg-pink-700"
+                            size="sm"
+                            disabled={isSubmitting}
+                          >
+                            <Save className="h-4 w-4 mr-2" />
+                            {isSubmitting ? "Saving..." : "Save Changes"}
+                          </Button>
+                        </Card>
+                      ) : (
+                        <Button onClick={() => setIsEditing(true)} size="sm">
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Profile
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

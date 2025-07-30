@@ -660,6 +660,10 @@ export default function UserPage() {
                         </TableCell>
 
                         <TableCell className="text-xs text-muted-foreground">
+                          {user?.userIdentifier || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-xs text-muted-foreground">
                           {user?.email || "---"}
                         </TableCell>
 
@@ -807,7 +811,7 @@ export default function UserPage() {
                     : "Enable"
                 }`,
                 onClick: () => handleStatusToggle(selectedUserToggle),
-                variant: "primary",
+                variant: "warning",
               }}
               cancelButton={{ text: "Cancel", variant: "secondary" }}
               onConfirm={() => handleStatusToggle(selectedUserToggle)}

@@ -13,6 +13,7 @@ import { ROUTES, sidebarItems } from "@/constants/AppRoutes/routes";
 import { getUserInfo } from "@/utils/local-storage/userInfo";
 import { UserAuthResponse } from "@/models/auth/auth.response";
 import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -38,6 +39,8 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           userId: user?.userId || "",
           businessId: user?.businessId || "",
           userType: user?.userType || "",
+          userIdentifier: user?.userIdentifier || "",
+          profileImageUrl: user?.profileImageUrl || "",
         });
         // const response = await getUsersProfileService();
         // setAuthUser(response || null);
@@ -254,9 +257,17 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="border-t border-border/50 p-4">
             <Link href={ROUTES.DASHBOARD.PROFILE}>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 hover:bg-accent/50 transition-colors duration-300 cursor-pointer group">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                  {authUser.fullName?.charAt(0) || "U"}
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${authUser?.profileImageUrl}`}
+                    />
+                    <AvatarFallback className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                      {authUser?.fullName?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
+
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">
                     {authUser.fullName || "GUEST USER"}

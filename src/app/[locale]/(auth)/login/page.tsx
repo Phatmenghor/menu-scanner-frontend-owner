@@ -124,7 +124,7 @@ export default function LoginPage() {
                       <FormControl>
                         <Input
                           id="username"
-                          type="email"
+                          type="text"
                           placeholder={t("login.username-placeholder")}
                           autoFocus
                           disabled={isLoading}
