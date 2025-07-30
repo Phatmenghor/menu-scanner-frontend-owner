@@ -28,10 +28,7 @@ import {
   UserRole,
   UserType,
 } from "@/constants/AppResource/status/status";
-import {
-  getUserTableHeaders,
-  UserTableHeaders,
-} from "@/constants/AppResource/table/user/plateform-user";
+import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -115,13 +112,6 @@ export default function UserPage() {
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
   const [roleFilterOpen, setRoleFilterOpen] = useState(false);
-
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
-  const locale = useLocale();
-  const pathname = usePathname();
-
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);

@@ -1,62 +1,76 @@
-// app/layout.tsx
-import type { ReactNode } from "react";
+// app/[locale]/layout.tsx
+import localFont from "next/font/local";
+import "../styles/globals.css";
+import { ReactNode } from "react";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { ClientProviders } from "@/context/provider/client-provider";
+import { ClientLayoutWrapper } from "@/components/layout/main/local-layout";
+import PageProgressBar from "@/components/shared/progressbar/Nprogressbar/global-n-progress";
+import { ToastProvider } from "@/components/shared/toast/app-toast";
 
-interface RootLayoutProps {
+// Font Configuration
+const geistSans = localFont({
+  src: "../../public/fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+  display: "swap",
+  preload: true,
+});
+
+const geistMono = localFont({
+  src: "../../public/fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+  display: "swap",
+  preload: true,
+});
+
+interface LocaleLayoutProps {
   children: ReactNode;
 }
 
-// Root layout - minimal since locale layout handles everything
-export default function RootLayout({ children }: RootLayoutProps) {
-  return children;
+export default async function LocaleLayout({ children }: LocaleLayoutProps) {
+  // Load messages for the current locale
+
+  return (
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body
+        className={`
+        min-h-screen 
+        bg-background 
+        font-sans 
+        antialiased 
+        text-foreground
+        selection:bg-primary/20 
+        selection:text-primary-foreground
+      `}
+      >
+        <ClientProviders>
+          <ClientLayoutWrapper>
+            <PageProgressBar />
+            <ToastProvider>
+              <div className="relative flex min-h-screen flex-col">
+                <div className="flex-1">{children}</div>
+              </div>
+            </ToastProvider>
+          </ClientLayoutWrapper>
+        </ClientProviders>
+      </body>
+    </html>
+  );
 }
 
-// Global metadata that applies to all locales
+// Optional: Add metadata
 export const metadata = {
-  metadataBase: new URL("https://your-domain.com"),
   title: {
     template: "%s | Menu Scanner",
-    default: "Menu Scanner - Professional Dashboard",
+    default: "Menu Scanner Dashboard",
   },
-  description:
-    "Advanced menu scanning and management platform with comprehensive analytics and user management.",
-  keywords: [
-    "menu scanner",
-    "restaurant management",
-    "digital menu",
-    "QR code menu",
-    "hospitality tech",
-    "dashboard",
-  ],
-  authors: [{ name: "Menu Scanner Team" }],
-  creator: "Menu Scanner",
-  publisher: "Menu Scanner",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    title: "Menu Scanner - Professional Dashboard",
-    description: "Advanced menu scanning and management platform",
-    siteName: "Menu Scanner",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Menu Scanner - Professional Dashboard",
-    description: "Advanced menu scanning and management platform",
-    creator: "@menuscanner",
-  },
-  verification: {
-    // google: 'your-google-verification-code',
-    // yandex: 'your-yandex-verification-code',
-  },
-  category: "technology",
+  description: "Professional dashboard for menu scanning and management",
+  keywords: ["dashboard", "menu", "scanner", "management"],
 };

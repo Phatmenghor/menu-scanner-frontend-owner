@@ -354,8 +354,8 @@ export default function BusinessRegistrationForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <div className="bg-gradient-to-br h-screen from-blue-50 to-indigo-100">
+      <div className="px-4 w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -697,7 +697,7 @@ export default function BusinessRegistrationForm() {
                       htmlFor="businessPhone"
                       className="text-sm font-medium"
                     >
-                      Email <span className="text-red-500">*</span>
+                      Contact <span className="text-red-500">*</span>
                     </Label>
                     <Controller
                       control={control}
@@ -1008,6 +1008,26 @@ export default function BusinessRegistrationForm() {
                               )}
                             />
                           </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="paymentNotes"
+                              className="text-sm font-medium"
+                            >
+                              Noted
+                            </Label>
+                            <Controller
+                              control={control}
+                              name="paymentNotes"
+                              render={({ field }) => (
+                                <Textarea
+                                  {...field}
+                                  id="paymentNotes"
+                                  placeholder="Noted the payment..."
+                                  rows={4}
+                                />
+                              )}
+                            />
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Controller
@@ -1029,7 +1049,7 @@ export default function BusinessRegistrationForm() {
                             )}
                           />
                         </div>
-                        <Card className="mt-16 w-full max-w-sm mx-auto">
+                        <Card className="mt-16 w-full mx-auto">
                           <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
                             <div className="text-center">
                               <h3 className="text-lg font-semibold">
@@ -1071,7 +1091,7 @@ export default function BusinessRegistrationForm() {
                                   </span>
                                 </div>
                               )}
-                              <input
+                              <Input
                                 type="file"
                                 ref={fileInputRef}
                                 accept="image/*"

@@ -1,5 +1,3 @@
-import { AppLanguage } from "../language/language";
-
 export enum Status {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
@@ -119,25 +117,3 @@ export const BUSINESS_STATUS_OPTIONS = [
   { value: BusinessStatus.SUSPENDED, label: "Suspended" },
   { value: BusinessStatus.PENDING, label: "Pending Approval" },
 ];
-
-// Define locale display names and flags
-export const localeConfig = {
-  en: {
-    name: "English",
-    nativeName: "English",
-    flag: AppLanguage.en,
-    code: "EN",
-  },
-  kh: {
-    name: "Khmer",
-    nativeName: "ខ្មែរ",
-    flag: AppLanguage.kh,
-    code: "KH",
-  },
-  "zh-CN": {
-    name: "Chinese",
-    nativeName: "简体中文",
-    flag: AppLanguage["zh-CN"],
-    code: "ZH",
-  },
-} as const;

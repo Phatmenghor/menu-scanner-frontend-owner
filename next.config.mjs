@@ -1,7 +1,3 @@
-import createNextIntlPlugin from "next-intl/plugin";
-
-const withNextIntl = createNextIntlPlugin("./src/i18n.ts");
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
@@ -31,11 +27,6 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: "/",
-        destination: "/en", // change to your default locale
-        permanent: false,
-      },
-      {
         source: "/:path*/",
         has: [],
         destination: "/:path*",
@@ -57,4 +48,4 @@ const nextConfig = {
   // No headers = No CSP restrictions for full-stack flexibility
 };
 
-export default withNextIntl(nextConfig);
+export default nextConfig;

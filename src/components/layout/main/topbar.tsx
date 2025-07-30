@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import LanguageSwitcher from "@/components/shared/common/language-switcher";
 import { clearToken } from "@/utils/local-storage/token";
 import { clearRoles } from "@/utils/local-storage/roles";
 import { clearUserInfo } from "@/utils/local-storage/userInfo";
@@ -53,9 +52,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         )}
 
         <div className="flex items-center gap-3 justify-end flex-1">
-          {/* <ThemeToggle /> */}
-          <LanguageSwitcher variant="flag-only" />
-
           <Button
             variant="outline"
             size="sm"
