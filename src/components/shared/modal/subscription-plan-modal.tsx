@@ -89,8 +89,8 @@ export default function ModalSubscriptionPlan({
 
     const payload = {
       id: Data?.id?.trim(),
-      name: data?.name.trim(),
-      status: data?.status.trim(),
+      name: data?.name?.trim(),
+      status: data?.status?.trim(),
       price: data?.price ?? 0,
       durationDays: data?.durationDays ?? 0,
       description: data?.description?.trim(),
@@ -133,7 +133,7 @@ export default function ModalSubscriptionPlan({
                   {...field}
                   id="name"
                   type="text"
-                  placeholder="Restaurant name"
+                  placeholder="Plan name"
                   disabled={isSubmitting}
                   autoComplete="username"
                   className={errors.name ? "border-red-500" : ""}

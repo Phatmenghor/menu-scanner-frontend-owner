@@ -82,6 +82,12 @@ import { CardHeaderSection } from "@/components/layout/main/card-header-section"
 import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
 import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
+import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
+import {
+  CreateBusinessUserFormData,
+  UpdateBusinessUserFormData,
+} from "@/models/dashboard/user/business-user/business-user.schema";
+import { createBusinessUserService } from "@/services/dashboard/master-data/business/business.service";
 
 export default function BusinessUserPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -146,7 +152,7 @@ export default function BusinessUserPage() {
       const response = await getAllUserService({
         search: debouncedSearchQuery,
         pageNo: currentPage,
-        roles: [roleFilter.toString()],
+        roles: [BusinessUserRole.BUSINESS_OWNER],
         pageSize: 10,
         userType: userTypeFilter,
         accountStatus: statusFilter,
@@ -238,7 +244,9 @@ export default function BusinessUserPage() {
     }
   };
 
-  async function handleSubmit(formData: UserFormData) {
+  async function handleSubmit(
+    formData: CreateBusinessUserFormData | UpdateBusinessUserFormData
+  ) {
     console.log("Submitting form:", formData, "mode:", mode);
 
     setIsSubmitting(true);
@@ -246,22 +254,25 @@ export default function BusinessUserPage() {
       const isCreate = mode === ModalMode.CREATE_MODE;
 
       if (isCreate) {
-        const createPayload: CreateUserRequest = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email!,
-          userType: formData.userType!,
-          password: formData.password!,
-          phoneNumber: formData.phoneNumber,
-          accountStatus: formData.accountStatus,
-          profileImageUrl: formData.profileImageUrl,
-          address: formData.address,
-          roles: formData.roles,
-          notes: formData.notes,
-          position: formData.position,
+        const data = formData as CreateBusinessUserFormData;
+
+        const createPayload: CreateBusinessUserRequest = {
+          businessAddress: data.businessAddress,
+          businessName: data.businessName,
+          preferredSubdomain: data.preferredSubdomain,
+          businessDescription: data.businessDescription,
+          businessPhone: data.businessPhone,
+          businessEmail: data.businessEmail,
+          ownerFirstName: data.ownerFirstName,
+          ownerLastName: data.ownerLastName,
+          ownerPhone: data.ownerPhone,
+          ownerPassword: data.ownerPassword,
+          ownerUserIdentifier: data.ownerUserIdentifier,
+          ownerAddress: data.ownerAddress,
+          ownerEmail: data.ownerEmail,
         };
 
-        const response = await createUserService(createPayload);
+        const response = await createBusinessUserService(createPayload);
         if (response) {
           // Update users list
           setUsers((prev) =>
@@ -287,7 +298,7 @@ export default function BusinessUserPage() {
           AppToast({
             type: "success",
             message: `User ${
-              response.username || formData.email
+              response.username || data.ownerUserIdentifier
             } added successfully`,
             duration: 4000,
             position: "top-right",
@@ -296,25 +307,26 @@ export default function BusinessUserPage() {
           setIsModalOpen(false);
         }
       } else {
+        const data = formData as UpdateBusinessUserFormData;
+
         // Update mode
-        if (!formData.id) {
+        if (!data.id) {
           throw new Error("User ID is required for update");
         }
 
         const updatePayload = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phoneNumber: formData.phoneNumber,
-
-          accountStatus: formData.accountStatus,
-          profileImageUrl: formData.profileImageUrl,
-          address: formData.address,
-          roles: formData.roles,
-          notes: formData.notes,
-          position: formData.position,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phoneNumber,
+          accountStatus: data.accountStatus,
+          profileImageUrl: data.profileImageUrl,
+          address: data.address,
+          roles: data.roles,
+          notes: data.notes,
+          position: data.position,
         };
 
-        const response = await updateUserService(formData.id, updatePayload);
+        const response = await updateUserService(data.id, updatePayload);
         if (response) {
           // Update users list
           setUsers((prev) =>
@@ -322,7 +334,7 @@ export default function BusinessUserPage() {
               ? {
                   ...prev,
                   content: prev.content.map((user) =>
-                    user.id === formData.id ? response : user
+                    user.id === data.id ? response : user
                   ),
                 }
               : prev
@@ -385,12 +397,6 @@ export default function BusinessUserPage() {
     }
   }
 
-  const handleEditUser = (user: UserFormData) => {
-    setInitializeUser(user);
-    setMode(ModalMode.UPDATE_MODE);
-    setIsModalOpen(!isModalOpen);
-  };
-
   // Status toggle handler
   const handleStatusToggle = async (user: UserModel | null) => {
     if (!user?.id) return;
@@ -449,32 +455,9 @@ export default function BusinessUserPage() {
     setIsToggleStatusDialogOpen(true);
   };
 
-  // Handle status filter change - directly updates the filter value
-  const handleStatusChange = (status: Status) => {
-    setStatusFilter(status);
-  };
-
-  const handleUserTypeChange = (userType: BusinessUserType) => {
-    setUserTypeFilter(userType);
-  };
-
-  const handleRoleFilterChange = (userType: BusinessUserRole) => {
-    setRoleFilter(userType);
-  };
-
-  const handleResetPassword = (user: UserModel) => {
-    setSelectedUser(user);
-    setIsResetPasswordDialogOpen(true);
-  };
-
   const handleDelete = (user: UserModel) => {
     setSelectedUser(user);
     setIsDeleteDialogOpen(true);
-  };
-
-  const handleViewUserDetail = (user: UserModel | null) => {
-    setSelectedUser(user);
-    setIsUserDetailOpen(true);
   };
 
   const handleCloseViewUserDetail = () => {
@@ -512,83 +495,7 @@ export default function BusinessUserPage() {
           }}
           handleResetFilters={handleResetFilters}
           disableReset={!roleFilter && !statusFilter && !userTypeFilter}
-        >
-          <div className="flex items-center gap-3">
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={handleStatusChange}>
-              <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_FILTER.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* User Type Filter */}
-            <Select value={userTypeFilter} onValueChange={handleUserTypeChange}>
-              <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
-                <SelectValue placeholder="Select User Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {BUSINESS_USER_TYPE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Role Filter (Command) */}
-            <Popover open={roleFilterOpen} onOpenChange={setRoleFilterOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="min-w-[150px] h-9 text-black px-3 text-sm justify-between"
-                  role="combobox"
-                >
-                  {BUSINESS_USER_ROLE_OPTIONS.find(
-                    (role) => role.value === roleFilter
-                  )?.label || "Select User Role"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-[200px]">
-                <Command>
-                  <CommandInput placeholder="Search role..." className="h-9" />
-                  <CommandList>
-                    <CommandEmpty>No role found.</CommandEmpty>
-                    <CommandGroup>
-                      {BUSINESS_USER_ROLE_OPTIONS.map((option) => (
-                        <CommandItem
-                          key={option.value}
-                          value={option.value}
-                          className="text-black"
-                          onSelect={() => {
-                            handleRoleFilterChange(option.value);
-                            setRoleFilterOpen(false);
-                          }}
-                        >
-                          {option.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </CardHeaderSection>
+        />
 
         <div className="w-full">
           <Separator className="bg-gray-300" />
@@ -666,8 +573,12 @@ export default function BusinessUserPage() {
                         </TableCell>
 
                         {/* Role */}
-                        <TableCell className="text-muted-foreground">
-                          <RoleBadge role={user?.userType || "---"} />
+                        <TableCell className="text-xs text-muted-foreground space-x-1">
+                          {user.roles?.length > 0
+                            ? user.roles.map((role: string) => (
+                                <RoleBadge key={role} role={role} />
+                              ))
+                            : "---"}
                         </TableCell>
 
                         {/* Status Switch */}
@@ -706,25 +617,10 @@ export default function BusinessUserPage() {
                         {/* Actions */}
                         <TableCell className="text-center space-x-2">
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
-                            onClick={() => handleViewUserDetail(user)}
+                            onClick={() => handleDelete(user)}
                           >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <Pen className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleResetPassword(user)}
-                          >
-                            {" "}
                             <RotateCw className="w-4 h-4" />
                           </Button>
                           <Button

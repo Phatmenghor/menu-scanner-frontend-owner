@@ -1,11 +1,8 @@
 import {
-  BarChart3,
   Bell,
-  Calendar,
   Home,
   Inbox,
   Settings,
-  Shield,
   Users,
   LucideIcon,
   Database,
@@ -17,26 +14,27 @@ export const ROUTES = {
     LOGIN: "/login",
   },
   DASHBOARD: {
-    INDEX: "/",
-    USERS: "/users",
-    ANALYTICS: "/analytics",
-    MESSAGES: "/messages",
-    CALENDAR: "/calendar",
-    SETTINGS: "/settings",
-    SECURITY: "/security",
-    NOTIFICATIONS: "/notifications",
-    USER_MANAGEMENT: "/users/manage",
-    USER_ROLES: "/users/roles",
-    PROFILE: "/profile",
-    BUSINESS: "/business",
-    MANAGE_BUSINESS: "/manage-business",
-    SUBSCRIPTION_PLAN: "/subscription-plan",
-    BUSINESS_USER: "/business-user",
-    MY_BUSINESS: "/my-business",
-    SUBSCRIPTION: "/subscription",
-    MY_SUBSCRIPTION: "/my-subscription",
-    EXCHANGE_RATE: "/exchange-rate",
-    PAYMENT: "/payment",
+    INDEX: "/admin",
+    USERS: "/admin/platform-users",
+    MESSAGES: "/admin/messages",
+    CALENDAR: "/admin/calendar",
+    SETTINGS: "/admin/settings",
+    SECURITY: "/admin/security",
+    NOTIFICATIONS: "/admin/notifications",
+    USER_MANAGEMENT: "/admin/users/manage",
+    USER_ROLES: "/admin/users/roles",
+    PROFILE: "/admin/profile",
+    BUSINESS: "/admin/business",
+    NEW_OWNER: "/admin/new-owner",
+    MANAGE_BUSINESS: "/admin/manage-business",
+    SUBSCRIPTION_PLAN: "/admin/subscription-plan",
+    BUSINESS_USER: "/admin/business-user",
+    MY_BUSINESS: "/admin/my-business",
+    SUBSCRIPTION: "/admin/subscription",
+    MY_SUBSCRIPTION: "/admin/my-subscription",
+    EXCHANGE_RATE: "/admin/exchange-rate",
+    PAYMENT: "/admin/payment",
+    USERS_BUSINESS: "/admin/users",
   },
 } as const;
 
@@ -76,8 +74,8 @@ export const sidebarItems: SidebarItem[] = [
     ],
   },
   {
-    title: "User",
-    section: "Users",
+    title: "Platform User",
+    section: "Platform Users",
     icon: Users,
     subroutes: [
       {
@@ -90,29 +88,37 @@ export const sidebarItems: SidebarItem[] = [
       },
     ],
   },
-  // {
-  //   title: "Business User",
-  //   section: "Business User",
-  //   icon: Users,
-  //   subroutes: [
-  //     {
-  //       title: "Manage Users",
-  //       href: ROUTES.DASHBOARD.BUSINESS_USER,
-  //     },
-  //     {
-  //       title: "Manage Business",
-  //       href: ROUTES.DASHBOARD.MANAGE_BUSINESS,
-  //     },
-  //     {
-  //       title: "Subscription",
-  //       href: ROUTES.DASHBOARD.MY_SUBSCRIPTION,
-  //     },
-  //     {
-  //       title: "Setting",
-  //       href: ROUTES.DASHBOARD.MY_BUSINESS,
-  //     },
-  //   ],
-  // },
+  {
+    title: "Business User",
+    section: "Business User",
+    icon: Users,
+    subroutes: [
+      {
+        title: "Manage Owners",
+        href: ROUTES.DASHBOARD.BUSINESS_USER,
+      },
+      {
+        title: "New Owners",
+        href: ROUTES.DASHBOARD.NEW_OWNER,
+      },
+      {
+        title: "Manage Users",
+        href: ROUTES.DASHBOARD.BUSINESS_USER,
+      },
+      {
+        title: "Manage Business",
+        href: ROUTES.DASHBOARD.USERS_BUSINESS,
+      },
+      {
+        title: "Subscription",
+        href: ROUTES.DASHBOARD.MY_SUBSCRIPTION,
+      },
+      {
+        title: "Setting",
+        href: ROUTES.DASHBOARD.MY_BUSINESS,
+      },
+    ],
+  },
   {
     title: "Payment",
     section: "Payment",

@@ -1,7 +1,6 @@
 "use client";
 
 import { RoleBadge } from "@/components/shared/badge/role-badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -40,7 +39,7 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Check, Eye, Pen, Plus, RotateCw, Trash, User } from "lucide-react";
+import { Pen, Plus, Trash } from "lucide-react";
 import {
   Command,
   CommandInput,
@@ -68,7 +67,6 @@ import {
 import {
   createUserService,
   deletedUserService,
-  getAllUserService,
   updateUserService,
 } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import {
@@ -76,23 +74,34 @@ import {
   UpdateUserRequest,
 } from "@/models/dashboard/user/plateform-user/user.request";
 import ModalUser from "@/components/shared/modal/user-modal";
-import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
-import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
+import {
+  createExchangeRateService,
+  getAllExchangeRateService,
+  updateExchangeRateService,
+} from "@/services/dashboard/payment/exchange-rate/exchange-rate.service";
+import {
+  AllExchangeRate,
+  ExchangeRateModel,
+} from "@/models/dashboard/payment/exchange-rate/exchange-rate.response.model";
+import { ExchangeRateTableHeaders } from "@/constants/AppResource/table/payment/exchange-rate";
+import ModalExchangeRate from "@/components/shared/modal/exchange-rate-modal";
+import { ExchangeRateFormData } from "@/models/dashboard/payment/exchange-rate/exchange-rate.schema";
+import { SaveExchangeRateRequest } from "@/models/dashboard/payment/exchange-rate/exchange-rate.request.model";
 
-export default function UserPage() {
+export default function ExchangeRatePage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<AllUserResponse | null>(null);
-  const [initializeUser, setInitializeUser] = useState<UserFormData | null>(
+  const [exchangeRate, setExchangeRate] = useState<AllExchangeRate | null>(
     null
   );
-  const [selectedUser, setSelectedUser] = useState<UserModel | null>(null);
+  const [initializeExchangeRate, setInitializeExchangeRate] =
+    useState<ExchangeRateModel | null>(null);
+  const [selectedExchangeRate, setSelectedExchangeRate] =
+    useState<ExchangeRateModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -110,7 +119,7 @@ export default function UserPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
     useState(false);
-  const [selectedUserToggle, setSelectedUserToggle] =
+  const [selectedExchangeRateToggle, setselectedExchangeRateToggle] =
     useState<UserModel | null>(null);
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
@@ -130,7 +139,7 @@ export default function UserPage() {
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
     usePagination({
-      baseRoute: ROUTES.DASHBOARD.USERS,
+      baseRoute: ROUTES.DASHBOARD.EXCHANGE_RATE,
       defaultPageSize: 10,
     });
 
@@ -146,18 +155,15 @@ export default function UserPage() {
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getAllUserService({
+      const response = await getAllExchangeRateService({
         search: debouncedSearchQuery,
         pageNo: currentPage,
-        roles: [roleFilter.toString()],
         pageSize: 10,
-        userType: userTypeFilter,
-        accountStatus: statusFilter,
       });
-      console.log("Fetched users:", response);
-      setUsers(response);
+      console.log("Fetched exchange rate:", response);
+      setExchangeRate(response);
     } catch (error: any) {
-      console.log("Failed to fetch users: ", error);
+      console.log("Failed to fetch exchange rate: ", error);
     } finally {
       setIsLoading(false);
     }
@@ -241,35 +247,22 @@ export default function UserPage() {
     }
   };
 
-  async function handleSubmit(formData: UserFormData) {
+  async function handleSubmit(formData: ExchangeRateFormData) {
     console.log("Submitting form:", formData, "mode:", mode);
 
     setIsSubmitting(true);
     try {
       const isCreate = mode === ModalMode.CREATE_MODE;
 
+      const payload: SaveExchangeRateRequest = {
+        usdToKhrRate: formData.usdToKhrRate,
+        notes: formData.notes,
+      };
       if (isCreate) {
-        const createPayload: CreateUserRequest = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email!,
-          userType: formData.userType!,
-          businessId: formData.businessId,
-          password: formData.password!,
-          phoneNumber: formData.phoneNumber,
-          accountStatus: formData.accountStatus,
-          profileImageUrl: formData.profileImageUrl,
-          address: formData.address,
-          roles: formData.roles || [UserRole.PLATFORM_OWNER],
-          userIdentifier: formData?.userIdentifier || "",
-          notes: formData.notes,
-          position: formData.position,
-        };
-
-        const response = await createUserService(createPayload);
+        const response = await createExchangeRateService(payload);
         if (response) {
           // Update users list
-          setUsers((prev) =>
+          setExchangeRate((prev) =>
             prev
               ? {
                   ...prev,
@@ -291,9 +284,7 @@ export default function UserPage() {
 
           AppToast({
             type: "success",
-            message: `User ${
-              response.username || formData.email
-            } added successfully`,
+            message: `Exchange Rate save added successfully`,
             duration: 4000,
             position: "top-right",
           });
@@ -306,23 +297,10 @@ export default function UserPage() {
           throw new Error("User ID is required for update");
         }
 
-        const updatePayload: UpdateUserRequest = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phoneNumber: formData.phoneNumber,
-          accountStatus: formData.accountStatus,
-          profileImageUrl: formData.profileImageUrl,
-          address: formData.address,
-          businessId: formData.businessId,
-          roles: formData.roles,
-          notes: formData.notes,
-          position: formData.position,
-        };
-
-        const response = await updateUserService(formData.id, updatePayload);
+        const response = await updateExchangeRateService(formData.id, payload);
         if (response) {
           // Update users list
-          setUsers((prev) =>
+          setExchangeRate((prev) =>
             prev
               ? {
                   ...prev,
@@ -346,7 +324,7 @@ export default function UserPage() {
         }
       }
     } catch (error: any) {
-      console.error("Error submitting user form:", error);
+      console.error("Error saving exchange rate form:", error);
       toast.error(error.message || "An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
@@ -354,21 +332,25 @@ export default function UserPage() {
   }
 
   async function handleDeleteUser() {
-    if (!selectedUser || !selectedUser.id) return;
+    if (!selectedExchangeRate || !selectedExchangeRate.id) return;
 
     setIsSubmitting(true);
     try {
-      const response = await deletedUserService(selectedUser.id);
+      const response = await deletedUserService(selectedExchangeRate.id);
 
       if (response) {
         AppToast({
           type: "success",
-          message: `User ${selectedUser.fullName ?? ""} deleted successfully`,
+          message: `Exchange Rate deleted successfully`,
           duration: 4000,
           position: "top-right",
         });
         // After deletion, check if we need to go back a page
-        if (users && users.content.length === 1 && currentPage > 1) {
+        if (
+          exchangeRate &&
+          exchangeRate.content.length === 1 &&
+          currentPage > 1
+        ) {
           updateUrlWithPage(currentPage - 1);
         } else {
           await loadUsers();
@@ -390,8 +372,8 @@ export default function UserPage() {
     }
   }
 
-  const handleEditUser = (user: UserFormData) => {
-    setInitializeUser(user);
+  const handleEditUser = (ex: ExchangeRateModel | null) => {
+    setInitializeExchangeRate(ex);
     setMode(ModalMode.UPDATE_MODE);
     setIsModalOpen(!isModalOpen);
   };
@@ -411,12 +393,12 @@ export default function UserPage() {
 
       if (response) {
         // Optimistic update
-        setUsers((prev) =>
+        setExchangeRate((prev) =>
           prev
             ? {
                 ...prev,
                 content: prev.content.map((user) =>
-                  user.id === selectedUserToggle?.id ? response : user
+                  user.id === selectedExchangeRateToggle?.id ? response : user
                 ),
               }
             : prev
@@ -428,7 +410,7 @@ export default function UserPage() {
           duration: 4000,
           position: "top-right",
         });
-        setSelectedUserToggle(null);
+        setselectedExchangeRateToggle(null);
         setIsToggleStatusDialogOpen(false);
       } else {
         AppToast({
@@ -449,42 +431,9 @@ export default function UserPage() {
     }
   };
 
-  const handleToggleStatus = (user: UserModel) => {
-    setSelectedUserToggle(user);
-    setIsToggleStatusDialogOpen(true);
-  };
-
-  // Handle status filter change - directly updates the filter value
-  const handleStatusChange = (status: Status) => {
-    setStatusFilter(status);
-  };
-
-  const handleUserTypeChange = (userType: UserType) => {
-    setUserTypeFilter(userType);
-  };
-
-  const handleRoleFilterChange = (userType: UserRole) => {
-    setRoleFilter(userType);
-  };
-
-  const handleResetPassword = (user: UserModel) => {
-    setSelectedUser(user);
-    setIsResetPasswordDialogOpen(true);
-  };
-
-  const handleDelete = (user: UserModel) => {
-    setSelectedUser(user);
+  const handleDelete = (user: ExchangeRateModel) => {
+    setSelectedExchangeRate(user);
     setIsDeleteDialogOpen(true);
-  };
-
-  const handleViewUserDetail = (user: UserModel | null) => {
-    setSelectedUser(user);
-    setIsUserDetailOpen(true);
-  };
-
-  const handleCloseViewUserDetail = () => {
-    setSelectedUser(null);
-    setIsUserDetailOpen(false);
   };
 
   const handleResetFilters = () => {
@@ -493,7 +442,7 @@ export default function UserPage() {
     setStatusFilter(Status.ACTIVE);
     setSearchQuery("");
     updateUrlWithPage(1, true);
-    setUsers(null); // Reset users to trigger reload};
+    setExchangeRate(null); // Reset users to trigger reload};
     loadUsers(); // Reload users with default filters
   };
 
@@ -503,13 +452,13 @@ export default function UserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "PlateForm Users List", href: "" },
+            { label: "Exchange Rates List", href: "" },
           ]}
-          title="PlateForm Users"
+          title="Exchange Rates"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="Add new"
+          buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={() => {
             setIsModalOpen(!isModalOpen);
@@ -517,82 +466,7 @@ export default function UserPage() {
           }}
           handleResetFilters={handleResetFilters}
           disableReset={!roleFilter && !statusFilter && !userTypeFilter}
-        >
-          <div className="flex items-center gap-3">
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={handleStatusChange}>
-              <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_FILTER.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* User Type Filter */}
-            <Select value={userTypeFilter} onValueChange={handleUserTypeChange}>
-              <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
-                <SelectValue placeholder="Select User Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {USER_TYPE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Role Filter (Command) */}
-            <Popover open={roleFilterOpen} onOpenChange={setRoleFilterOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="min-w-[150px] h-9 text-black px-3 text-sm justify-between"
-                  role="combobox"
-                >
-                  {USER_ROLE_OPTIONS.find((role) => role.value === roleFilter)
-                    ?.label || "Select User Role"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-[200px]">
-                <Command>
-                  <CommandInput placeholder="Search role..." className="h-9" />
-                  <CommandList>
-                    <CommandEmpty>No role found.</CommandEmpty>
-                    <CommandGroup>
-                      {USER_ROLE_OPTIONS.map((option) => (
-                        <CommandItem
-                          key={option.value}
-                          value={option.value}
-                          className="text-black"
-                          onSelect={() => {
-                            handleRoleFilterChange(option.value);
-                            setRoleFilterOpen(false);
-                          }}
-                        >
-                          {option.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </CardHeaderSection>
+        ></CardHeaderSection>
 
         <div className="w-full">
           <Separator className="bg-gray-300" />
@@ -603,7 +477,7 @@ export default function UserPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {UserTableHeaders.map((header, index) => (
+                  {ExchangeRateTableHeaders.map((header, index) => (
                     <TableHead
                       key={index}
                       className="text-xs font-semibold text-muted-foreground"
@@ -618,7 +492,7 @@ export default function UserPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {!users || users.content.length === 0 ? (
+                {!exchangeRate || exchangeRate.content.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={UserTableHeaders.length}
@@ -628,87 +502,58 @@ export default function UserPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.content.map((user, index) => {
-                    const profileImageUrl =
-                      user?.profileImageUrl &&
-                      process.env.NEXT_PUBLIC_API_BASE_URL
-                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${user.profileImageUrl}`
-                        : undefined;
-
+                  exchangeRate.content.map((e, index) => {
                     return (
-                      <TableRow key={user.id} className="text-sm">
+                      <TableRow key={e.id} className="text-sm">
                         {/* Index */}
                         <TableCell className="font-medium truncate">
-                          {indexDisplay(users.pageNo, users.pageSize, index)}
-                        </TableCell>
-
-                        {/* Avatar */}
-                        <TableCell>
-                          <div className="flex items-center gap-3 min-w-[180px]">
-                            <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
-                              <AvatarImage
-                                src={
-                                  user.profileImageUrl ? profileImageUrl : ""
-                                }
-                                alt="Profile"
-                              />
-                              <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">
-                                {user?.email?.charAt(0).toUpperCase() || "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
+                          {indexDisplay(
+                            exchangeRate.pageNo,
+                            exchangeRate.pageSize,
+                            index
+                          )}
                         </TableCell>
 
                         <TableCell className="text-xs text-muted-foreground">
-                          {user?.userIdentifier || "---"}
+                          {e?.usdToKhrRate || "---"}
                         </TableCell>
 
-                        <TableCell className="text-xs text-muted-foreground">
-                          {user?.email || "---"}
-                        </TableCell>
-
-                        {/* FullName */}
-                        <TableCell className="text-xs text-muted-foreground">
-                          {user?.fullName ||
-                            `${user.firstName} ${user.lastName}`}
+                        <TableCell className="text-xs">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                              e.isActive
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {e.isActive ? "Active" : "Inactive"}
+                          </span>
                         </TableCell>
 
                         {/* Role */}
-                        <TableCell className="text-xs text-muted-foreground">
-                          <RoleBadge role={user?.userType || "---"} />
+                        <TableCell
+                          className="text-xs text-muted-foreground max-w-[200px] truncate"
+                          title={e.notes || "---"}
+                        >
+                          {e.notes || "---"}
                         </TableCell>
 
-                        {/* Status Switch */}
-                        <TableCell>
-                          <Switch
-                            checked={user?.accountStatus === "ACTIVE"}
-                            onCheckedChange={() => handleToggleStatus(user)}
-                            disabled={isSubmitting}
-                            aria-label="Toggle user status"
-                            className={cn(
-                              "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                              // canModify
-                              1
-                                ? "bg-gray-300 dark:bg-gray-600 data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary"
-                                : "bg-gray-300 dark:bg-primary opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                "inline-block h-6 w-6 transform rounded-full bg-white dark:bg-gray-100 shadow-md transition-transform",
-                                "translate-x-1 data-[state=checked]:translate-x-5"
-                              )}
-                            >
-                              {user.accountStatus === "ACTIVE" && (
-                                <Check className="h-6 w-6 m-auto text-orange-600 dark:text-orange-300" />
-                              )}
-                            </div>
-                          </Switch>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {e.createdBy}
+                        </TableCell>
+
+                        <TableCell className="text-xs text-muted-foreground">
+                          {e.updatedBy}
                         </TableCell>
 
                         {/* Created At */}
                         <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(user?.createdAt)}
+                          {DateTimeFormat(e?.createdAt)}
+                        </TableCell>
+
+                        {/* Updated At */}
+                        <TableCell className="text-sm text-muted-foreground">
+                          {DateTimeFormat(e?.updatedAt)}
                         </TableCell>
 
                         {/* Actions */}
@@ -716,29 +561,14 @@ export default function UserPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleViewUserDetail(user)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
+                            onClick={() => handleEditUser(e)}
                           >
                             <Pen className="w-4 h-4" />
                           </Button>
                           <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleResetPassword(user)}
-                          >
-                            {" "}
-                            <RotateCw className="w-4 h-4" />
-                          </Button>
-                          <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleDelete(user)}
+                            onClick={() => handleDelete(e)}
                           >
                             <Trash className="w-4 h-4" />
                           </Button>
@@ -750,44 +580,27 @@ export default function UserPage() {
               </TableBody>
             </Table>
 
-            <ModalUser
+            <ModalExchangeRate
               isOpen={isModalOpen}
               onClose={() => {
-                setInitializeUser(null);
+                setInitializeExchangeRate(null);
                 setIsModalOpen(false);
               }}
               isSubmitting={isSubmitting}
               onSave={handleSubmit}
-              Data={initializeUser}
+              Data={initializeExchangeRate}
               mode={mode}
-            />
-
-            <ResetPasswordModal
-              isOpen={isResetPasswordDialogOpen}
-              userName={selectedUser?.fullName || selectedUser?.email}
-              onClose={() => {
-                setIsResetPasswordDialogOpen(false);
-                setSelectedUser(null);
-              }}
-              userId={selectedUser?.id}
-            />
-
-            <UserDetailSheet
-              onClose={handleCloseViewUserDetail}
-              open={isUserDetailOpen}
-              user={selectedUser}
             />
 
             <DeleteConfirmationDialog
               isOpen={isDeleteDialogOpen}
               onClose={() => {
                 setIsDeleteDialogOpen(false);
-                setSelectedUser(null);
+                setSelectedExchangeRate(null);
               }}
               onDelete={handleDeleteUser}
-              title="Delete Admin"
-              description={`Are you sure you want to delete the admin`}
-              itemName={selectedUser?.fullName || selectedUser?.email}
+              title="Delete Exchange Rate"
+              description={`Are you sure you want to delete the exchange rate`}
               isSubmitting={isSubmitting}
             />
 
@@ -795,31 +608,31 @@ export default function UserPage() {
               open={isToggleStatusDialogOpen}
               onOpenChange={() => {
                 setIsToggleStatusDialogOpen(false);
-                setSelectedUserToggle(null);
+                setselectedExchangeRateToggle(null);
               }}
               centered={true}
               title="Change User Status"
               description={`Are you sure you want to ${
-                selectedUserToggle?.accountStatus === "ACTIVE"
+                selectedExchangeRateToggle?.accountStatus === "ACTIVE"
                   ? "disable"
                   : "enable"
-              } this user: ${selectedUserToggle?.email}?`}
+              } this user: ${selectedExchangeRateToggle?.email}?`}
               confirmButton={{
                 text: `${
-                  selectedUserToggle?.accountStatus === "ACTIVE"
+                  selectedExchangeRateToggle?.accountStatus === "ACTIVE"
                     ? "Disable"
                     : "Enable"
                 }`,
-                onClick: () => handleStatusToggle(selectedUserToggle),
-                variant: "warning",
+                onClick: () => handleStatusToggle(selectedExchangeRateToggle),
+                variant: "primary",
               }}
               cancelButton={{ text: "Cancel", variant: "secondary" }}
-              onConfirm={() => handleStatusToggle(selectedUserToggle)}
+              onConfirm={() => handleStatusToggle(selectedExchangeRateToggle)}
             />
 
             <PaginationPage
               currentPage={currentPage}
-              totalPages={users?.totalPages ?? 10}
+              totalPages={exchangeRate?.totalPages ?? 10}
               onPageChange={handlePageChange}
             />
           </div>

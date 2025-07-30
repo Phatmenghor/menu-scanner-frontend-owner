@@ -3,7 +3,7 @@ export interface CreateSubscriptionPlanRequest {
   description?: string;
   price: number;
   durationDays: number;
-  status: string;
+  status?: string;
 }
 
 export interface UpdateSubscriptionPlanRequest {

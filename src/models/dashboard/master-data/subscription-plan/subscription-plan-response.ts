@@ -12,6 +12,10 @@ export interface AllSubscriptionPlan {
 
 export interface SubscriptionPlanModel {
   id: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
   name: string;
   description: string;
   price: number;
@@ -22,8 +26,4 @@ export interface SubscriptionPlanModel {
   isPublic: boolean;
   isPrivate: boolean;
   activeSubscriptionsCount: number;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  updatedBy: string;
 }

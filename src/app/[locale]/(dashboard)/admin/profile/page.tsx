@@ -56,6 +56,12 @@ interface FormData {
   notes: string;
 }
 
+const tapList = [
+  { label: "Profile", value: "profile" },
+  { label: "Security", value: "security" },
+  { label: "Notifications", value: "notifications" },
+];
+
 export default function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -197,7 +203,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="border-b border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -206,7 +212,7 @@ export default function UserProfilePage() {
               onClick={() => router.back()}
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-white"
+              className="text-gray-400"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
             </Button>
@@ -226,24 +232,16 @@ export default function UserProfilePage() {
         <div className="max-w-full mx-auto">
           <Tabs defaultValue="profile" className="space-y-4">
             <TabsList>
-              <TabsTrigger
-                value="profile"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white"
-              >
-                Profile
-              </TabsTrigger>
-              <TabsTrigger
-                value="security"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white"
-              >
-                Security
-              </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white"
-              >
-                Notifications
-              </TabsTrigger>
+              {tapList.map((t, index) => {
+                return (
+                  <TabsTrigger
+                    value={t.value}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    {t.label}
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
 
             <TabsContent value="profile" className="space-y-4">
@@ -488,7 +486,7 @@ export default function UserProfilePage() {
                         <Label htmlFor="position">Position</Label>
                         <Input
                           id="position"
-                          value={formData.address}
+                          value={formData.position}
                           onChange={(e) =>
                             handleInputChange("position", e.target.value)
                           }
