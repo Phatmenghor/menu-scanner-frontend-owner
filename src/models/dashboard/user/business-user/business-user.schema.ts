@@ -81,7 +81,7 @@ export const updateBusinessUserSchema = z.object({
   profileImageUrl: z.string().url().optional(),
   accountStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
   businessId: z.string().uuid().optional(),
-  roles: z.array(z.enum(["PLATFORM_OWNER", "ADMIN", "USER"])).optional(),
+  roles: z.array(z.string()).optional(),
   position: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),

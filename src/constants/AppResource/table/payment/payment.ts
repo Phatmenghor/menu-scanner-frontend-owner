@@ -1,11 +1,19 @@
 export const PaymentTableHeader = [
-  { key: "businessName", label: "Business" },
-  { key: "planName", label: "Plan" },
-  { key: "subscriptionDisplayName", label: "Subscription" },
-  { key: "formattedAmount", label: "Amount (USD)" },
-  { key: "formattedAmountKhr", label: "Amount (KHR)" },
+  { key: "businessName", label: "Business", className: "max-w-[20%]" },
+  { key: "planName", label: "Plan", className: "max-w-[20%]" },
+  {
+    key: "subscriptionDisplayName",
+    label: "Subscription",
+    className: "max-w-[20%]",
+  },
+  { key: "formattedAmount", label: "Amount (USD)", className: "max-w-[20%]" },
+  {
+    key: "formattedAmountKhr",
+    label: "Amount (KHR)",
+    className: "max-w-[20%]",
+  },
   { key: "paymentMethod", label: "Method" },
-  { key: "statusDescription", label: "Status" },
-  { key: "referenceNumber", label: "Ref. No." },
-  { key: "createdAt", label: "Created At" },
+  { key: "statusDescription", label: "Status", className: "max-w-[20%]" },
+  { key: "referenceNumber", label: "Ref. No.", className: "max-w-[20%]" },
+  { key: "createdAt", label: "Created At", className: "max-w-[20%]" },
 ];

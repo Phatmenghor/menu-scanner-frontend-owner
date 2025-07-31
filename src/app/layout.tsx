@@ -2,8 +2,6 @@
 import localFont from "next/font/local";
 import "../styles/globals.css";
 import { ReactNode } from "react";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
 import { ClientProviders } from "@/context/provider/client-provider";
 import { ClientLayoutWrapper } from "@/components/layout/main/local-layout";
 import PageProgressBar from "@/components/shared/progressbar/Nprogressbar/global-n-progress";

@@ -28,13 +28,15 @@ export const ROUTES = {
     NEW_OWNER: "/admin/new-owner",
     MANAGE_BUSINESS: "/admin/manage-business",
     SUBSCRIPTION_PLAN: "/admin/subscription-plan",
-    BUSINESS_USER: "/admin/business-user",
+    BUSINESS_USER: "/admin/business-users",
+    BUSINESS_OWNER: "/admin/business-owner",
     MY_BUSINESS: "/admin/my-business",
     SUBSCRIPTION: "/admin/subscription",
     MY_SUBSCRIPTION: "/admin/my-subscription",
     EXCHANGE_RATE: "/admin/exchange-rate",
     PAYMENT: "/admin/payment",
     USERS_BUSINESS: "/admin/users",
+    SUB_DOMAIN: "/admin/sub-domain",
   },
 } as const;
 
@@ -94,16 +96,20 @@ export const sidebarItems: SidebarItem[] = [
     icon: Users,
     subroutes: [
       {
-        title: "Manage Owners",
-        href: ROUTES.DASHBOARD.BUSINESS_USER,
-      },
-      {
         title: "New Owners",
         href: ROUTES.DASHBOARD.NEW_OWNER,
       },
       {
+        title: "Manage Owners",
+        href: ROUTES.DASHBOARD.BUSINESS_OWNER,
+      },
+      {
         title: "Manage Users",
         href: ROUTES.DASHBOARD.BUSINESS_USER,
+      },
+      {
+        title: "Manage SubDomain",
+        href: ROUTES.DASHBOARD.SUB_DOMAIN,
       },
       {
         title: "Manage Business",

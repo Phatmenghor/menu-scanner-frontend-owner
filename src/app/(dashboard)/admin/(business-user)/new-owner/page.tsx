@@ -295,7 +295,7 @@ export default function BusinessRegistrationForm() {
         ownerAddress: trimString(e.ownerAddress),
         ownerEmail: trimString(e.ownerEmail) || undefined,
         ownerPhone: trimString(e.ownerPhone) || undefined,
-        paymentAmount: e.paymentAmount || 0,
+        paymentAmount: selectedPlan?.price === 0 ? undefined : e.paymentAmount,
         paymentImageUrl: trimString(e.paymentImageUrl),
         paymentInfoComplete: true,
         paymentMethod: trimString(e.paymentMethod),
@@ -354,11 +354,11 @@ export default function BusinessRegistrationForm() {
   };
 
   return (
-    <div className="bg-gradient-to-br h-screen from-blue-50 to-indigo-100">
-      <div className="px-4 w-full">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
             Start Your Business Journey
           </h1>
           <p className="text-lg text-gray-600">
@@ -368,9 +368,12 @@ export default function BusinessRegistrationForm() {
 
         {/* Progress Bar */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            {steps.map((step) => (
-              <div key={step.id} className="flex items-center">
+          <div className="flex justify-between items-center mb-4 overflow-x-auto">
+            {steps.map((step, index) => (
+              <div
+                key={step.id}
+                className="flex items-center min-w-0 flex-shrink-0"
+              >
                 <div
                   className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                     currentStep >= step.id
@@ -384,23 +387,33 @@ export default function BusinessRegistrationForm() {
                     <step.icon className="w-5 h-5" />
                   )}
                 </div>
-                <div className="ml-3 hidden sm:block">
+                <div className="ml-3 hidden sm:block flex-1 min-w-0">
                   <p
-                    className={`text-sm font-medium ${
+                    className={`text-sm font-medium truncate ${
                       currentStep >= step.id ? "text-blue-600" : "text-gray-400"
                     }`}
                   >
                     {step.title}
                   </p>
-                  <p className="text-xs text-gray-500">{step.description}</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {step.description}
+                  </p>
                 </div>
+                {/* Connection line between steps */}
+                {index < steps.length - 1 && (
+                  <div
+                    className={`hidden sm:block w-8 h-0.5 mx-4 ${
+                      currentStep > step.id ? "bg-primary" : "bg-gray-300"
+                    }`}
+                  />
+                )}
               </div>
             ))}
           </div>
           <Progress value={progress} className="h-2" />
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Step 1: Owner Information */}
           {currentStep === 1 && (
             <Card className="shadow-lg border-0">
@@ -413,8 +426,8 @@ export default function BusinessRegistrationForm() {
                   We need some basic information to get started
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CardContent className="p-6 sm:p-8 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="firstName" className="text-sm font-medium">
                       First Name <span className="text-red-500">*</span>
@@ -428,12 +441,13 @@ export default function BusinessRegistrationForm() {
                           id="firstName"
                           placeholder="john"
                           type="text"
+                          className="w-full"
                         />
                       )}
                     />
                     {errors.ownerFirstName && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {errors.ownerFirstName.message}
                       </p>
                     )}
@@ -451,19 +465,20 @@ export default function BusinessRegistrationForm() {
                           id="lastName"
                           placeholder="doe"
                           type="text"
+                          className="w-full"
                         />
                       )}
                     />
                     {errors.ownerLastName && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {errors.ownerLastName.message}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="ownerEmail" className="text-sm font-medium">
                       Email <span className="text-red-500">*</span>
@@ -477,12 +492,13 @@ export default function BusinessRegistrationForm() {
                           id="ownerEmail"
                           type="email"
                           placeholder="your@email.com"
+                          className="w-full"
                         />
                       )}
                     />
                     {errors.ownerEmail && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {errors.ownerEmail.message}
                       </p>
                     )}
@@ -500,19 +516,20 @@ export default function BusinessRegistrationForm() {
                           id="password"
                           placeholder="Create a secure password"
                           type="password"
+                          className="w-full"
                         />
                       )}
                     />
                     {errors.ownerPassword && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {errors.ownerPassword.message}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="ownerPhone" className="text-sm font-medium">
                       Phone Number <span className="text-red-500">*</span>
@@ -526,12 +543,13 @@ export default function BusinessRegistrationForm() {
                           id="ownerPhone"
                           placeholder="+1 (555) 123-4567"
                           type="tel"
+                          className="w-full"
                         />
                       )}
                     />
                     {errors.ownerPhone && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {errors.ownerPhone.message}
                       </p>
                     )}
@@ -552,12 +570,13 @@ export default function BusinessRegistrationForm() {
                           id="ownerUserIdentifier"
                           placeholder="Choose a username"
                           type="text"
+                          className="w-full"
                         />
                       )}
                     />
                     {errors.ownerUserIdentifier && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {errors.ownerUserIdentifier.message}
                       </p>
                     )}
@@ -577,6 +596,7 @@ export default function BusinessRegistrationForm() {
                         id="ownerAddress"
                         placeholder="Your full address"
                         rows={3}
+                        className="w-full resize-none"
                       />
                     )}
                   />
@@ -597,7 +617,7 @@ export default function BusinessRegistrationForm() {
                   Tell us about your business
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-8 space-y-6">
+              <CardContent className="p-6 sm:p-8 space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="businessName" className="text-sm font-medium">
                     Business Name <span className="text-red-500">*</span>
@@ -611,12 +631,13 @@ export default function BusinessRegistrationForm() {
                         id="businessName"
                         placeholder="Your amazing business name"
                         type="text"
+                        className="w-full"
                       />
                     )}
                   />
                   {errors.businessName && (
                     <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4" />
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
                       {errors.businessName.message}
                     </p>
                   )}
@@ -629,8 +650,8 @@ export default function BusinessRegistrationForm() {
                   >
                     Your Website URL <span className="text-red-500">*</span>
                   </Label>
-                  <div className="flex items-center">
-                    <span className="bg-gray-100 border border-r-0 rounded-l-md px-3 py-2 text-sm text-gray-600">
+                  <div className="flex items-center w-full">
+                    <span className="bg-gray-100 border border-r-0 rounded-l-md px-3 py-2 text-sm text-gray-600 whitespace-nowrap">
                       https://
                     </span>
                     <Controller
@@ -641,19 +662,19 @@ export default function BusinessRegistrationForm() {
                           {...field}
                           id="preferredSubdomain"
                           placeholder="yoursite"
-                          className={`rounded-none ${
+                          className={`rounded-none flex-1 min-w-0 ${
                             errors.preferredSubdomain ? "border-red-500" : ""
                           }`}
                         />
                       )}
                     />
-                    <span className="bg-gray-100 border border-l-0 rounded-r-md px-3 py-2 text-sm text-gray-600">
+                    <span className="bg-gray-100 border border-l-0 rounded-r-md px-3 py-2 text-sm text-gray-600 whitespace-nowrap">
                       .cms.com
                     </span>
                   </div>
                   {errors.preferredSubdomain && (
                     <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4" />
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
                       {errors.preferredSubdomain.message}
                     </p>
                   )}
@@ -665,7 +686,7 @@ export default function BusinessRegistrationForm() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label
                       htmlFor="businessEmail"
@@ -682,12 +703,13 @@ export default function BusinessRegistrationForm() {
                           id="businessEmail"
                           placeholder="contact@yourbusiness.com"
                           type="email"
+                          className="w-full"
                         />
                       )}
                     />
                     {errors.businessEmail && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {errors.businessEmail.message}
                       </p>
                     )}
@@ -708,15 +730,15 @@ export default function BusinessRegistrationForm() {
                           id="businessPhone"
                           placeholder="+1 (555) 987-6543"
                           type="tel"
-                          className={
+                          className={`w-full ${
                             errors.businessPhone ? "border-red-500" : ""
-                          }
+                          }`}
                         />
                       )}
                     />
                     {errors.businessPhone && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {errors.businessPhone.message}
                       </p>
                     )}
@@ -739,6 +761,7 @@ export default function BusinessRegistrationForm() {
                         id="businessAddress"
                         placeholder="Your business address"
                         rows={3}
+                        className="w-full resize-none"
                       />
                     )}
                   />
@@ -760,6 +783,7 @@ export default function BusinessRegistrationForm() {
                         id="businessDescription"
                         placeholder="Describe your business, products, or services..."
                         rows={4}
+                        className="w-full resize-none"
                       />
                     )}
                   />
@@ -786,9 +810,9 @@ export default function BusinessRegistrationForm() {
                     Select the plan that best fits your needs
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-8">
+                <CardContent className="p-6 sm:p-8">
                   {isPlanLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-6">
                       {[1, 2, 3].map((i) => (
                         <Card key={i} className="p-6">
                           <Skeleton className="h-6 w-32 mb-4" />
@@ -802,13 +826,13 @@ export default function BusinessRegistrationForm() {
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-6">
                       {plans?.content.map((plan) => {
                         const popularity = getPlanPopularity(plan);
                         return (
                           <div
                             key={plan.id}
-                            className={`relative border-2 rounded-lg p-6 cursor-pointer transition-all ${
+                            className={`relative border-2 rounded-lg p-4 sm:p-6 cursor-pointer transition-all ${
                               getValues("subscriptionPlanId") === plan.id
                                 ? "border-blue-500 bg-blue-50"
                                 : "border-gray-200 hover:border-gray-300"
@@ -835,7 +859,7 @@ export default function BusinessRegistrationForm() {
                               <h3 className="text-lg font-semibold">
                                 {plan.name}
                               </h3>
-                              <div className="text-3xl font-bold text-blue-600 mt-2">
+                              <div className="text-2xl sm:text-3xl font-bold text-blue-600 mt-2">
                                 {plan.isFree ? (
                                   "Free"
                                 ) : (
@@ -878,15 +902,6 @@ export default function BusinessRegistrationForm() {
                       })}
                     </div>
                   )}
-
-                  {errors.subscriptionPlanId && (
-                    <Alert className="border-red-200 bg-red-50">
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="text-red-600">
-                        {errors.subscriptionPlanId.message}
-                      </AlertDescription>
-                    </Alert>
-                  )}
                 </CardContent>
               </Card>
 
@@ -902,7 +917,7 @@ export default function BusinessRegistrationForm() {
                       Complete your registration with payment information
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="p-6 sm:p-8 space-y-6">
                     <Alert className="border-blue-200 bg-blue-50">
                       <Package className="h-4 w-4 text-blue-600" />
                       <AlertDescription className="text-blue-800">
@@ -915,200 +930,196 @@ export default function BusinessRegistrationForm() {
                       </AlertDescription>
                     </Alert>
 
-                    {!selectedPlan.isFree && (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Controller
-                              name="paymentMethod"
-                              control={control}
-                              defaultValue=""
-                              render={({ field: { value, onChange } }) => (
-                                <div className="space-y-2">
-                                  <Label
-                                    htmlFor="paymentMethod"
-                                    className="text-sm font-medium"
-                                  >
-                                    Payment Method{" "}
-                                    <span className="text-red-500">*</span>
-                                  </Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="space-y-2">
+                        <Controller
+                          name="paymentMethod"
+                          control={control}
+                          defaultValue=""
+                          render={({ field: { value, onChange } }) => (
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor="paymentMethod"
+                                className="text-sm font-medium"
+                              >
+                                Payment Method{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
 
-                                  <Select
-                                    value={value}
-                                    onValueChange={onChange}
-                                  >
-                                    <SelectTrigger
-                                      className={
-                                        errors.paymentMethod
-                                          ? "border-red-500"
-                                          : ""
-                                      }
+                              <Select value={value} onValueChange={onChange}>
+                                <SelectTrigger
+                                  className={`w-full ${
+                                    errors.paymentMethod ? "border-red-500" : ""
+                                  }`}
+                                >
+                                  <SelectValue placeholder="Choose payment method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {paymentMethodOptions.map((item) => (
+                                    <SelectItem
+                                      key={item.value}
+                                      value={item.value}
                                     >
-                                      <SelectValue placeholder="Choose payment method" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {paymentMethodOptions.map((item) => (
-                                        <SelectItem
-                                          key={item.value}
-                                          value={item.value}
-                                        >
-                                          💳 {item.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                      💳 {item.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
 
-                                  {errors.paymentMethod && (
-                                    <p className="text-sm text-red-500 flex items-center gap-1">
-                                      <AlertCircle className="w-4 h-4" />
-                                      {errors.paymentMethod.message ||
-                                        "This field is required"}
-                                    </p>
-                                  )}
-                                </div>
+                              {errors.paymentMethod && (
+                                <p className="text-sm text-red-500 flex items-center gap-1">
+                                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                  {errors.paymentMethod.message ||
+                                    "This field is required"}
+                                </p>
                               )}
+                            </div>
+                          )}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="subscriptionStartDate"
+                          className="text-sm font-medium"
+                        >
+                          Start Date <span className="text-red-500">*</span>
+                        </Label>
+                        <Controller
+                          control={control}
+                          name="subscriptionStartDate"
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              id="subscriptionStartDate"
+                              type="date"
+                              className="w-full"
                             />
-                          </div>
-                          <div className="space-y-2">
-                            <Label
-                              htmlFor="subscriptionStartDate"
-                              className="text-sm font-medium"
-                            >
-                              Start Date <span className="text-red-500">*</span>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="paymentReferenceNumber"
+                          className="text-sm font-medium"
+                        >
+                          Reference Number
+                        </Label>
+                        <Controller
+                          control={control}
+                          name="paymentReferenceNumber"
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              id="paymentReferenceNumber"
+                              placeholder="i.e, kj9475"
+                              type="text"
+                              className="w-full"
+                            />
+                          )}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="paymentNotes"
+                          className="text-sm font-medium"
+                        >
+                          Notes
+                        </Label>
+                        <Controller
+                          control={control}
+                          name="paymentNotes"
+                          render={({ field }) => (
+                            <Textarea
+                              {...field}
+                              id="paymentNotes"
+                              placeholder="Note about the payment..."
+                              rows={3}
+                              className="w-full resize-none"
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Controller
+                        name="autoRenew"
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="autoRenew"
+                              checked={!!value}
+                              onCheckedChange={(checked) => onChange(!!checked)}
+                            />
+                            <Label htmlFor="autoRenew" className="text-sm">
+                              Enable auto-renewal (recommended)
                             </Label>
-                            <Controller
-                              control={control}
-                              name="subscriptionStartDate"
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  id="subscriptionStartDate"
-                                  type="date"
-                                />
-                              )}
-                            />
                           </div>
-                          <div className="space-y-2">
-                            <Label
-                              htmlFor="paymentReferenceNumber"
-                              className="text-sm font-medium"
-                            >
-                              Reference Number
-                            </Label>
-                            <Controller
-                              control={control}
-                              name="paymentReferenceNumber"
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  id="paymentReferenceNumber"
-                                  placeholder="i.e, kj9475"
-                                  type="text"
-                                />
-                              )}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label
-                              htmlFor="paymentNotes"
-                              className="text-sm font-medium"
-                            >
-                              Noted
-                            </Label>
-                            <Controller
-                              control={control}
-                              name="paymentNotes"
-                              render={({ field }) => (
-                                <Textarea
-                                  {...field}
-                                  id="paymentNotes"
-                                  placeholder="Noted the payment..."
-                                  rows={4}
-                                />
-                              )}
-                            />
-                          </div>
+                        )}
+                      />
+                    </div>
+
+                    <Card className="w-full max-w-sm mx-auto">
+                      <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
+                        <div className="text-center">
+                          <h3 className="text-lg font-semibold">
+                            Upload Payment Receipt
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Upload a photo or screenshot of your payment receipt
+                          </p>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Controller
-                            name="autoRenew"
-                            control={control}
-                            render={({ field: { value, onChange } }) => (
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id="autoRenew"
-                                  checked={!!value}
-                                  onCheckedChange={(checked) =>
-                                    onChange(!!checked)
-                                  }
-                                />
-                                <Label htmlFor="autoRenew" className="text-sm">
-                                  Enable auto-renewal (recommended)
-                                </Label>
-                              </div>
-                            )}
+
+                        <div className="relative group w-28 h-28">
+                          {imagePreview ? (
+                            <>
+                              <img
+                                src={getImageSource()}
+                                alt="Payment Receipt"
+                                className="w-full h-full object-cover rounded-xl border border-gray-300 shadow-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleRemoveLogo}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-red-600 shadow-md"
+                                title="Remove image"
+                              >
+                                ×
+                              </button>
+                            </>
+                          ) : (
+                            <div
+                              onClick={() => fileInputRef.current?.click()}
+                              className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-400 rounded-xl cursor-pointer transition-colors hover:border-blue-500 bg-gray-50"
+                            >
+                              <span className="text-gray-500 text-3xl leading-none">
+                                +
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                Upload
+                              </span>
+                            </div>
+                          )}
+                          <Input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFileChange}
                           />
                         </div>
-                        <Card className="mt-16 w-full mx-auto">
-                          <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
-                            <div className="text-center">
-                              <h3 className="text-lg font-semibold">
-                                Upload Payment Receipt
-                              </h3>
-                              <p className="text-sm text-muted-foreground">
-                                Upload a photo or screenshot of your payment
-                                receipt
-                              </p>
-                            </div>
 
-                            <div className="relative group w-28 h-28">
-                              {imagePreview ? (
-                                <>
-                                  <img
-                                    src={getImageSource()}
-                                    alt="Payment Receipt"
-                                    className="w-full h-full object-cover rounded-xl border border-gray-300 shadow-sm"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={handleRemoveLogo}
-                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-red-600 shadow-md"
-                                    title="Remove image"
-                                  >
-                                    ×
-                                  </button>
-                                </>
-                              ) : (
-                                <div
-                                  onClick={() => fileInputRef.current?.click()}
-                                  className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-400 rounded-xl cursor-pointer transition-colors hover:border-blue-500 bg-gray-50"
-                                >
-                                  <span className="text-gray-500 text-3xl leading-none">
-                                    +
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    Upload
-                                  </span>
-                                </div>
-                              )}
-                              <Input
-                                type="file"
-                                ref={fileInputRef}
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleFileChange}
-                              />
-                            </div>
-
-                            {imagePreview && (
-                              <p className="text-xs text-muted-foreground">
-                                Click ❌ to remove
-                              </p>
-                            )}
-                          </CardContent>
-                        </Card>
-                      </>
-                    )}
+                        {imagePreview && (
+                          <p className="text-xs text-muted-foreground">
+                            Click ❌ to remove
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
                   </CardContent>
                 </Card>
               )}
@@ -1116,19 +1127,19 @@ export default function BusinessRegistrationForm() {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between items-center pt-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 border-t border-gray-200">
             <Button
               type="button"
               variant="outline"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="flex items-center gap-2 bg-transparent"
+              className="flex items-center gap-2 bg-transparent w-full sm:w-auto order-2 sm:order-1"
             >
               <ArrowLeft className="w-4 h-4" />
               Previous
             </Button>
 
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500 order-1 sm:order-2">
               Step {currentStep} of {steps.length}
             </div>
 
@@ -1136,7 +1147,7 @@ export default function BusinessRegistrationForm() {
               <Button
                 type="button"
                 onClick={nextStep}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 w-full sm:w-auto order-3"
               >
                 Next
                 <ArrowRight className="w-4 h-4" />
@@ -1145,7 +1156,7 @@ export default function BusinessRegistrationForm() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 min-w-[140px]"
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 min-w-[140px] w-full sm:w-auto order-3"
               >
                 {isLoading ? (
                   <>

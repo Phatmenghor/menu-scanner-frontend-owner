@@ -3,13 +3,6 @@
 import { RoleBadge } from "@/components/shared/badge/role-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -20,13 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BUSINESS_USER_ROLE_OPTIONS,
-  BUSINESS_USER_TYPE_OPTIONS,
   BusinessUserRole,
   BusinessUserType,
   ModalMode,
   Status,
-  STATUS_FILTER,
 } from "@/constants/AppResource/status/status";
 import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
@@ -37,22 +27,8 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Check, Eye, Pen, Plus, RotateCw, Trash } from "lucide-react";
-import {
-  Command,
-  CommandInput,
-  CommandItem,
-  CommandEmpty,
-  CommandList,
-  CommandGroup,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Check, Plus, RotateCw, Trash } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
@@ -63,12 +39,10 @@ import {
   UserModel,
 } from "@/models/dashboard/user/plateform-user/user.response";
 import {
-  createUserService,
   deletedUserService,
   getAllUserService,
   updateUserService,
 } from "@/services/dashboard/user/plateform-user/plateform-user.service";
-import { CreateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
 import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
@@ -84,7 +58,8 @@ import {
   CreateBusinessUserFormData,
   UpdateBusinessUserFormData,
 } from "@/models/dashboard/user/business-user/business-user.schema";
-import { createBusinessUserService } from "@/services/dashboard/master-data/business/business.service";
+import { createBusinessOwnerService } from "@/services/dashboard/master-data/business/business.service";
+import { CreateBusinessOwnerRequest } from "@/models/dashboard/user/business-owner/business-owner.request.model";
 
 export default function BusinessUserPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -123,7 +98,7 @@ export default function BusinessUserPage() {
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
     usePagination({
-      baseRoute: ROUTES.DASHBOARD.BUSINESS_USER,
+      baseRoute: ROUTES.DASHBOARD.BUSINESS_OWNER,
       defaultPageSize: 10,
     });
 
@@ -246,7 +221,7 @@ export default function BusinessUserPage() {
       if (isCreate) {
         const data = formData as CreateBusinessUserFormData;
 
-        const createPayload: CreateBusinessUserRequest = {
+        const createPayload: CreateBusinessOwnerRequest = {
           businessAddress: data.businessAddress,
           businessName: data.businessName,
           preferredSubdomain: data.preferredSubdomain,
@@ -262,7 +237,7 @@ export default function BusinessUserPage() {
           ownerEmail: data.ownerEmail,
         };
 
-        const response = await createBusinessUserService(createPayload);
+        const response = await createBusinessOwnerService(createPayload);
         if (response) {
           // Update users list
           setUsers((prev) =>
@@ -479,10 +454,7 @@ export default function BusinessUserPage() {
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="Add new"
           onSearchChange={handleSearchChange}
-          openModal={() => {
-            setIsModalOpen(!isModalOpen);
-            setMode(ModalMode.CREATE_MODE);
-          }}
+          buttonHref={ROUTES.DASHBOARD.NEW_OWNER}
           handleResetFilters={handleResetFilters}
           disableReset={!roleFilter && !statusFilter && !userTypeFilter}
         />
@@ -550,6 +522,10 @@ export default function BusinessUserPage() {
                               </AvatarFallback>
                             </Avatar>
                           </div>
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {user?.userIdentifier || "---"}
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">

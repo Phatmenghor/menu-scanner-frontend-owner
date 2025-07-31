@@ -12,10 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ModalMode, Status } from "@/constants/AppResource/status/status";
-import {
-  getUserTableHeaders,
-  UserTableHeaders,
-} from "@/constants/AppResource/table/user/plateform-user";
+import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -44,12 +41,6 @@ import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-dele
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
-import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
-import {
-  CreateBusinessUserFormData,
-  UpdateBusinessUserFormData,
-} from "@/models/dashboard/user/business-user/business-user.schema";
-import { createBusinessUserService } from "@/services/dashboard/master-data/business/business.service";
 import {
   AllPayment,
   PaymentModel,
@@ -77,13 +68,6 @@ export default function PaymentPage() {
     useState<UserModel | null>(null);
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
-
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
-  const locale = useLocale();
-  const pathname = usePathname();
-
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -193,122 +177,6 @@ export default function PaymentPage() {
       setIsExportingToExcel(false);
     }
   };
-
-  async function handleSubmit(
-    formData: CreateBusinessUserFormData | UpdateBusinessUserFormData
-  ) {
-    console.log("Submitting form:", formData, "mode:", mode);
-
-    setIsSubmitting(true);
-    try {
-      const isCreate = mode === ModalMode.CREATE_MODE;
-
-      if (isCreate) {
-        const data = formData as CreateBusinessUserFormData;
-
-        const createPayload: CreateBusinessUserRequest = {
-          businessAddress: data.businessAddress,
-          businessName: data.businessName,
-          preferredSubdomain: data.preferredSubdomain,
-          businessDescription: data.businessDescription,
-          businessPhone: data.businessPhone,
-          businessEmail: data.businessEmail,
-          ownerFirstName: data.ownerFirstName,
-          ownerLastName: data.ownerLastName,
-          ownerPhone: data.ownerPhone,
-          ownerPassword: data.ownerPassword,
-          ownerUserIdentifier: data.ownerUserIdentifier,
-          ownerAddress: data.ownerAddress,
-          ownerEmail: data.ownerEmail,
-        };
-
-        const response = await createBusinessUserService(createPayload);
-        if (response) {
-          // Update users list
-          setPayment((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  content: [response, ...prev.content],
-                  totalElements: prev.totalElements + 1,
-                }
-              : {
-                  content: [response],
-                  pageNo: 1,
-                  pageSize: 10,
-                  totalElements: 1,
-                  totalPages: 1,
-                  hasNext: false,
-                  hasPrevious: false,
-                  first: true,
-                  last: true,
-                }
-          );
-
-          AppToast({
-            type: "success",
-            message: `User ${
-              response.username || data.ownerUserIdentifier
-            } added successfully`,
-            duration: 4000,
-            position: "top-right",
-          });
-
-          setIsModalOpen(false);
-        }
-      } else {
-        const data = formData as UpdateBusinessUserFormData;
-
-        // Update mode
-        if (!data.id) {
-          throw new Error("User ID is required for update");
-        }
-
-        const updatePayload = {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phoneNumber: data.phoneNumber,
-          accountStatus: data.accountStatus,
-          profileImageUrl: data.profileImageUrl,
-          address: data.address,
-          roles: data.roles,
-          notes: data.notes,
-          position: data.position,
-        };
-
-        const response = await updateUserService(data.id, updatePayload);
-        if (response) {
-          // Update users list
-          setPayment((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  content: prev.content.map((user) =>
-                    user.id === data.id ? response : user
-                  ),
-                }
-              : prev
-          );
-
-          AppToast({
-            type: "success",
-            message: `User ${
-              response.username || response.email
-            } updated successfully`,
-            duration: 4000,
-            position: "top-right",
-          });
-
-          setIsModalOpen(false);
-        }
-      }
-    } catch (error: any) {
-      console.error("Error submitting user form:", error);
-      toast.error(error.message || "An unexpected error occurred");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
   async function handleDeleteUser() {
     if (!selectedPayment || !selectedPayment.id) return;

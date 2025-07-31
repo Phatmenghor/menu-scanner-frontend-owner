@@ -3,7 +3,7 @@ import {
   CreateBusinessRequest,
   UpdateBusinessRequest,
 } from "@/models/dashboard/master-data/business/business.request.model";
-import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
+import { CreateBusinessOwnerRequest } from "@/models/dashboard/user/business-owner/business-owner.request.model";
 import { axiosClientWithAuth } from "@/utils/axios";
 
 export async function getAllBusinessService(data: AllBusinessRequest) {
@@ -73,8 +73,8 @@ export async function deletedBusinessService(id: string) {
   }
 }
 
-export async function createBusinessUserService(
-  data: CreateBusinessUserRequest
+export async function createBusinessOwnerService(
+  data: CreateBusinessOwnerRequest
 ) {
   try {
     // POST request to fetch all staff matching the filters

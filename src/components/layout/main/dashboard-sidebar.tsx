@@ -192,7 +192,7 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border/50 bg-background/95 backdrop-blur-xl transition-all duration-300 ease-out shadow-xl",
-          collapsed ? "w-16" : "w-56",
+          collapsed ? "w-16" : "w-60",
           isMobile && !isOpen && "hidden"
         )}
       >

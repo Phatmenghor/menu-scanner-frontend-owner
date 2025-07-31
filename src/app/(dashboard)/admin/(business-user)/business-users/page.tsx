@@ -20,18 +20,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BUSINESS_USER_ROLE_OPTIONS,
-  BUSINESS_USER_TYPE_OPTIONS,
   BusinessUserRole,
   BusinessUserType,
   ModalMode,
   Status,
   STATUS_FILTER,
 } from "@/constants/AppResource/status/status";
-import {
-  getUserTableHeaders,
-  UserTableHeaders,
-} from "@/constants/AppResource/table/user/plateform-user";
+import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -41,21 +36,7 @@ import {
   ExcelSheet,
 } from "@/utils/export-file/excel";
 import { Check, Eye, Pen, Plus, RotateCw, Trash } from "lucide-react";
-import {
-  Command,
-  CommandInput,
-  CommandItem,
-  CommandEmpty,
-  CommandList,
-  CommandGroup,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
@@ -66,6 +47,7 @@ import {
   UserModel,
 } from "@/models/dashboard/user/plateform-user/user.response";
 import {
+  createUserService,
   deletedUserService,
   getAllUserService,
   updateUserService,
@@ -80,12 +62,11 @@ import { CardHeaderSection } from "@/components/layout/main/card-header-section"
 import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
 import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
-import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
 import {
   CreateBusinessUserFormData,
   UpdateBusinessUserFormData,
 } from "@/models/dashboard/user/business-user/business-user.schema";
-import { createBusinessUserService } from "@/services/dashboard/master-data/business/business.service";
+import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
 
 export default function BusinessUserPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,14 +92,6 @@ export default function BusinessUserPage() {
     useState<UserModel | null>(null);
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
-  const [roleFilterOpen, setRoleFilterOpen] = useState(false);
-
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
-  const locale = useLocale();
-  const pathname = usePathname();
-
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -248,23 +221,9 @@ export default function BusinessUserPage() {
       if (isCreate) {
         const data = formData as CreateBusinessUserFormData;
 
-        const createPayload: CreateBusinessUserRequest = {
-          businessAddress: data.businessAddress,
-          businessName: data.businessName,
-          preferredSubdomain: data.preferredSubdomain,
-          businessDescription: data.businessDescription,
-          businessPhone: data.businessPhone,
-          businessEmail: data.businessEmail,
-          ownerFirstName: data.ownerFirstName,
-          ownerLastName: data.ownerLastName,
-          ownerPhone: data.ownerPhone,
-          ownerPassword: data.ownerPassword,
-          ownerUserIdentifier: data.ownerUserIdentifier,
-          ownerAddress: data.ownerAddress,
-          ownerEmail: data.ownerEmail,
-        };
+        const createPayload: CreateBusinessUserRequest = {};
 
-        const response = await createBusinessUserService(createPayload);
+        const response = await createUserService(createPayload);
         if (response) {
           // Update users list
           setUsers((prev) =>
@@ -534,62 +493,6 @@ export default function BusinessUserPage() {
                 ))}
               </SelectContent>
             </Select>
-
-            {/* User Type Filter */}
-            <Select value={userTypeFilter} onValueChange={handleUserTypeChange}>
-              <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
-                <SelectValue placeholder="Select User Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {BUSINESS_USER_TYPE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Role Filter (Command) */}
-            {/* <Popover open={roleFilterOpen} onOpenChange={setRoleFilterOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="min-w-[150px] h-9 text-black px-3 text-sm justify-between"
-                  role="combobox"
-                >
-                  {BUSINESS_USER_ROLE_OPTIONS.find(
-                    (role) => role.value === roleFilter
-                  )?.label || "Select User Role"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-[200px]">
-                <Command>
-                  <CommandInput placeholder="Search role..." className="h-9" />
-                  <CommandList>
-                    <CommandEmpty>No role found.</CommandEmpty>
-                    <CommandGroup>
-                      {BUSINESS_USER_ROLE_OPTIONS.map((option) => (
-                        <CommandItem
-                          key={option.value}
-                          value={option.value}
-                          className="text-black"
-                          onSelect={() => {
-                            handleRoleFilterChange(option.value);
-                            setRoleFilterOpen(false);
-                          }}
-                        >
-                          {option.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover> */}
           </div>
         </CardHeaderSection>
 
@@ -656,6 +559,10 @@ export default function BusinessUserPage() {
                               </AvatarFallback>
                             </Avatar>
                           </div>
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {user?.userIdentifier || "---"}
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">

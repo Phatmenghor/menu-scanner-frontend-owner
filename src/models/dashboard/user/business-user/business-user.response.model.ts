@@ -1,9 +1,3 @@
-import { BusinessModel } from "../../master-data/business/business.response.model";
-import { PaymentModel } from "../../payment/payment/payment.response.model";
-import { SubscriptionModel } from "../../subscription/subscription.response.model";
-import { SubDomainModel } from "../plateform-user/sub-domain/sub-domain.response.model";
-import { UserModel } from "../plateform-user/user.response";
-
 export interface MyBusinessModel {
   businessId: string;
   name: string;
@@ -32,4 +26,27 @@ export interface MyBusinessModel {
   currency: string;
   timezone: string;
   updatedAt: string;
+}
+
+export interface MyBusinessUserModel {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  userIdentifier: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  phoneNumber: string;
+  profileImageUrl: string;
+  userType: string;
+  accountStatus: string;
+  businessId: string;
+  businessName: string;
+  roles: string[];
+  position: string;
+  address: string;
+  notes: string;
 }

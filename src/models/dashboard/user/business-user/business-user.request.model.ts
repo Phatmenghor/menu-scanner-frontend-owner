@@ -21,6 +21,23 @@ export interface UpdateMyBusinessRequest {
 }
 
 export interface CreateBusinessUserRequest {
+  userIdentifier: string;
+  email?: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  profileImageUrl?: string;
+  position?: string;
+  address?: string;
+  notes?: string;
+  userType: string;
+  accountStatus?: string;
+  businessId?: string;
+  roles: string[];
+}
+
+export interface CreateBusinessOwnerRequest {
   ownerUserIdentifier: string;
   ownerEmail?: string;
   ownerPassword: string;

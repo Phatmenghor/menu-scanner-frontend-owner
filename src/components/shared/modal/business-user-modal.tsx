@@ -30,16 +30,13 @@ import { UploadImageRequest } from "@/models/dashboard/image/image.request.model
 import { uploadImageService } from "@/services/dashboard/image/image.service";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  CreateUsers,
   createUserSchema,
-  UpdateUsers,
   updateUserSchema,
   UserFormData,
 } from "@/models/dashboard/user/plateform-user/user.schema";
 import {
   BusinessUserFormData,
   CreateBusinessUserFormData,
-  getDefaultFormData,
   UpdateBusinessUserFormData,
 } from "@/models/dashboard/user/business-user/business-user.schema";
 import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
@@ -147,16 +144,13 @@ export default function ModalBusinessUser({
           position: Data.position?.trim() ?? "",
           address: Data.address?.trim() ?? "",
           notes: Data.notes?.trim() ?? "",
-          password: "", // always blank on edit
         };
 
         reset(formData);
         setLogoPreview(Data.profileImageUrl?.trim() ?? null);
       } else {
         // It's CreateBusinessUserFormData — use default values
-        const formData: UserFormData = {
-          id: "",
-          email: Data.ownerEmail?.trim() ?? "",
+        const formData: CreateBusinessUserFormData = {
           userIdentifier: Data.ownerUserIdentifier?.trim() ?? "",
           firstName: Data.ownerFirstName?.trim() ?? "",
           lastName: Data.ownerLastName?.trim() ?? "",
@@ -575,6 +569,47 @@ export default function ModalBusinessUser({
                     </SelectTrigger>
                     <SelectContent>
                       {STATUS_USER_OPTIONS.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.root && (
+                <p className="text-sm text-destructive">
+                  {errors.root.message}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Role Field */}
+          {!isCreate && (
+            <div className="space-y-1">
+              <Label htmlFor="status-select">
+                Role <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={control}
+                name="roles"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger
+                      id="status-select"
+                      className={`bg-white dark:bg-inherit ${
+                        errors.root ? "border-red-500" : ""
+                      }`}
+                    >
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BUSINESS_USER_ROLE_OPTIONS.map((status) => (
                         <SelectItem key={status.value} value={status.value}>
                           {status.label}
                         </SelectItem>

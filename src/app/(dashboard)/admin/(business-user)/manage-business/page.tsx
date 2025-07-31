@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -27,7 +26,6 @@ import {
   UserRole,
   UserType,
 } from "@/constants/AppResource/status/status";
-import { getUserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -36,17 +34,7 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import {
-  Check,
-  Download,
-  Edit,
-  Eye,
-  Plus,
-  RotateCw,
-  Search,
-  Trash,
-  UserPlus,
-} from "lucide-react";
+import { Download, Edit, Eye, Plus } from "lucide-react";
 import { useLocale } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -68,7 +56,6 @@ import {
   updateBusinessService,
 } from "@/services/dashboard/master-data/business/business.service";
 import { BusinessStatusBadge } from "@/components/shared/badge/business-status-badge";
-import ModalBusiness from "@/components/shared/modal/business-modal";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
 import { BusinessDetailSheet } from "@/components/index/dashboard/master-data/business/business-detail-sheet";
