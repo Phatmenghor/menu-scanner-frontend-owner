@@ -25,6 +25,7 @@ import {
   ModalMode,
   Status,
   STATUS_FILTER,
+  UserRole,
 } from "@/constants/AppResource/status/status";
 import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
@@ -62,11 +63,11 @@ import { CardHeaderSection } from "@/components/layout/main/card-header-section"
 import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
 import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
-import {
-  CreateBusinessUserFormData,
-  UpdateBusinessUserFormData,
-} from "@/models/dashboard/user/business-user/business-user.schema";
 import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "@/models/dashboard/user/plateform-user/user.request";
 
 export default function BusinessUserPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -209,9 +210,7 @@ export default function BusinessUserPage() {
     }
   };
 
-  async function handleSubmit(
-    formData: CreateBusinessUserFormData | UpdateBusinessUserFormData
-  ) {
+  async function handleSubmit(formData: UserFormData) {
     console.log("Submitting form:", formData, "mode:", mode);
 
     setIsSubmitting(true);
@@ -219,9 +218,22 @@ export default function BusinessUserPage() {
       const isCreate = mode === ModalMode.CREATE_MODE;
 
       if (isCreate) {
-        const data = formData as CreateBusinessUserFormData;
-
-        const createPayload: CreateBusinessUserRequest = {};
+        const createPayload: CreateUserRequest = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email!,
+          userType: formData.userType!,
+          businessId: formData.businessId,
+          password: formData.password!,
+          phoneNumber: formData.phoneNumber,
+          accountStatus: formData.accountStatus,
+          profileImageUrl: formData.profileImageUrl,
+          address: formData.address,
+          roles: formData.roles || [UserRole.BUSINESS_STAFF],
+          userIdentifier: formData?.userIdentifier || "",
+          notes: formData.notes,
+          position: formData.position,
+        };
 
         const response = await createUserService(createPayload);
         if (response) {
@@ -249,7 +261,8 @@ export default function BusinessUserPage() {
           AppToast({
             type: "success",
             message: `User ${
-              response.username || data.ownerUserIdentifier
+              formData.userIdentifier ||
+              `${formData.firstName} ${formData.lastName}`
             } added successfully`,
             duration: 4000,
             position: "top-right",
@@ -258,26 +271,25 @@ export default function BusinessUserPage() {
           setIsModalOpen(false);
         }
       } else {
-        const data = formData as UpdateBusinessUserFormData;
-
         // Update mode
-        if (!data.id) {
+        if (!formData.id) {
           throw new Error("User ID is required for update");
         }
 
-        const updatePayload = {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phoneNumber: data.phoneNumber,
-          accountStatus: data.accountStatus,
-          profileImageUrl: data.profileImageUrl,
-          address: data.address,
-          roles: data.roles,
-          notes: data.notes,
-          position: data.position,
+        const updatePayload: UpdateUserRequest = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phoneNumber: formData.phoneNumber,
+          accountStatus: formData.accountStatus,
+          profileImageUrl: formData.profileImageUrl,
+          address: formData.address,
+          businessId: formData.businessId,
+          roles: formData.roles,
+          notes: formData.notes,
+          position: formData.position,
         };
 
-        const response = await updateUserService(data.id, updatePayload);
+        const response = await updateUserService(formData.id, updatePayload);
         if (response) {
           // Update users list
           setUsers((prev) =>
@@ -285,7 +297,7 @@ export default function BusinessUserPage() {
               ? {
                   ...prev,
                   content: prev.content.map((user) =>
-                    user.id === data.id ? response : user
+                    user.id === formData.id ? response : user
                   ),
                 }
               : prev

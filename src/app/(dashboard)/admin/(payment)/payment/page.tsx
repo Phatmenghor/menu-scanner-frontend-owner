@@ -22,8 +22,7 @@ import {
   ExcelSheet,
 } from "@/utils/export-file/excel";
 import { Plus, RotateCw, Trash } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
@@ -342,11 +341,6 @@ export default function PaymentPage() {
                   </TableRow>
                 ) : (
                   payments.content.map((payment, index) => {
-                    const profileImageUrl =
-                      payment?.imageUrl && process.env.NEXT_PUBLIC_API_BASE_URL
-                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${payment.imageUrl}`
-                        : undefined;
-
                     return (
                       <TableRow key={payment.id} className="text-sm">
                         {/* Index */}
@@ -356,22 +350,6 @@ export default function PaymentPage() {
                             payments.pageSize,
                             index
                           )}
-                        </TableCell>
-
-                        {/* Avatar */}
-                        <TableCell>
-                          <div className="flex items-center gap-3 min-w-[180px]">
-                            <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
-                              <AvatarImage
-                                src={payment.imageUrl ? profileImageUrl : ""}
-                                alt="Profile"
-                              />
-                              <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">
-                                {payment?.planName?.charAt(0).toUpperCase() ||
-                                  "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">

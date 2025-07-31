@@ -21,10 +21,7 @@ import {
 import {
   BUSINESS_STATUS_OPTIONS,
   BusinessStatus,
-  ModalMode,
   Status,
-  UserRole,
-  UserType,
 } from "@/constants/AppResource/status/status";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
@@ -35,8 +32,7 @@ import {
   ExcelSheet,
 } from "@/utils/export-file/excel";
 import { Download, Edit, Eye, Plus } from "lucide-react";
-import { useLocale } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
@@ -92,11 +88,7 @@ export default function ManageBusinessPage() {
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
 
-  const locale = useLocale();
-  const pathname = usePathname();
-
   const user = getUserInfo();
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -313,7 +305,7 @@ export default function ManageBusinessPage() {
     }
   }
 
-  const handleEditBusiness = (business: MyBusinessFormData) => {
+  const handleEditBusiness = (business: MyBusinessFormData | null) => {
     setInitializeBusiness(business);
     setIsModalOpen(!isModalOpen);
   };
@@ -417,20 +409,6 @@ export default function ManageBusinessPage() {
           onSearchChange={handleSearchChange}
           children={
             <div className="flex flex-wrap items-center justify-start gap-4 w-full">
-              {/* <div className="relative w-full md:w-[350px]">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              aria-label="search-business"
-              autoComplete="search-business"
-              type="search"
-              placeholder={t("search")}
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="pl-8 w-full min-w-[200px] text-xs md:min-w-[300px] h-9"
-              disabled={isSubmitting}
-            />
-          </div> */}
-
               <div className="flex items-center gap-3">
                 <Select value={statusFilter} onValueChange={handleStatusChange}>
                   <SelectTrigger className="min-w-[150px] h-9 text-sm">
@@ -564,7 +542,7 @@ export default function ManageBusinessPage() {
                         <TableCell className="text-xs">
                           <div className="flex flex-col">
                             <span className="font-medium">
-                              {business?.name}
+                              {business?.name || "---"}
                             </span>
                           </div>
                         </TableCell>
@@ -573,7 +551,7 @@ export default function ManageBusinessPage() {
                         <TableCell className="text-xs">
                           <div className="flex flex-col">
                             <span className="font-medium">
-                              {business?.businessType}
+                              {business?.businessType || "---"}
                             </span>
                           </div>
                         </TableCell>
@@ -583,7 +561,7 @@ export default function ManageBusinessPage() {
                           <div className="flex flex-col">
                             {business?.cuisineType && (
                               <span className="text-muted-foreground">
-                                {business?.cuisineType}
+                                {business?.cuisineType || "---"}
                               </span>
                             )}
                           </div>
@@ -593,14 +571,14 @@ export default function ManageBusinessPage() {
                         <TableCell className="text-xs">
                           <div className="flex flex-col gap-1">
                             <span className="font-medium">
-                              {business?.email}
+                              {business?.email || "---"}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-xs">
                           <div className="flex flex-col gap-1">
                             <span className="text-muted-foreground">
-                              {business?.phone}
+                              {business?.phone || "---"}
                             </span>
                           </div>
                         </TableCell>

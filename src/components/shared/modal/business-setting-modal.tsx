@@ -19,6 +19,7 @@ import { uploadImageService } from "@/services/dashboard/image/image.service";
 import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
+import z from "zod";
 
 type Props = {
   Data?: MyBusinessFormData | null;
@@ -49,8 +50,8 @@ export default function ModalBusinessSetting({
   } = useForm<MyBusinessFormData>({
     resolver: zodResolver(updateMyBusinessSchema), // Use dynamic schema instead of hardcoded UserFormSchema
     defaultValues: {
-      id: "",
       logoUrl: "",
+      id: "",
       name: "",
       description: "",
       phone: "",
@@ -83,7 +84,7 @@ export default function ModalBusinessSetting({
 
   useEffect(() => {
     reset({
-      id: Data?.id || "",
+      id: Data?.id,
       logoUrl: Data?.logoUrl || "",
       name: Data?.name || "",
       description: Data?.description || "",
@@ -92,7 +93,7 @@ export default function ModalBusinessSetting({
       website: Data?.website || "",
       businessType: Data?.businessType || "",
       cuisineType: Data?.cuisineType || "",
-      operatingHours: Data?.operatingHours || "",
+      operatingHours: Data?.operatingHours || undefined,
       facebookUrl: Data?.facebookUrl || "",
       instagramUrl: Data?.instagramUrl || "",
       telegramContact: Data?.telegramContact || "",
@@ -134,9 +135,13 @@ export default function ModalBusinessSetting({
 
         const response = await uploadImageService(payload);
         if (response?.imageUrl) {
-          setValue("logoUrl", response?.imageUrl, {
-            shouldValidate: true,
-          });
+          setValue(
+            "logoUrl",
+            process.env.NEXT_PUBLIC_API_BASE_URL + response?.imageUrl,
+            {
+              shouldValidate: true,
+            }
+          );
           console.log(
             "Image Preview URL:",
             process.env.NEXT_PUBLIC_API_BASE_URL + response.imageUrl
@@ -190,7 +195,7 @@ export default function ModalBusinessSetting({
 
       businessType: cleanValue(formData.businessType),
       cuisineType: cleanValue(formData.cuisineType),
-      operatingHours: cleanValue(formData.operatingHours),
+      operatingHours: formData.operatingHours?.trim() ?? undefined,
 
       facebookUrl: cleanValue(formData.facebookUrl),
       instagramUrl: cleanValue(formData.instagramUrl),

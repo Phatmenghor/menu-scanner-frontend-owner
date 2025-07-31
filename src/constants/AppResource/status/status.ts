@@ -73,13 +73,8 @@ export const USER_ROLE_OPTIONS = [
 ];
 
 export const BUSINESS_USER_ROLE_OPTIONS = [
-  // Business Roles
-  { value: BusinessUserRole.BUSINESS_OWNER, label: "Business Owner" },
-  { value: BusinessUserRole.BUSINESS_MANAGER, label: "Business Manager" },
-  { value: BusinessUserRole.BUSINESS_STAFF, label: "Business Staff" },
-
-  // Customer Role
-  { value: BusinessUserRole.CUSTOMER, label: "Customer" },
+  { value: BusinessUserRole.BUSINESS_MANAGER, label: "Manager" },
+  { value: BusinessUserRole.BUSINESS_STAFF, label: "Staff" },
 ];
 
 export enum UserType {

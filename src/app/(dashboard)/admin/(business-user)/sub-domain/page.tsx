@@ -257,12 +257,36 @@ export default function SubdomainPage() {
                           {d?.subscriptionDaysRemaining || "---"}
                         </TableCell>
 
-                        <TableCell className="text-muted-foreground">
-                          {d?.isAccessible || "---"}
+                        <TableCell>
+                          {d?.isAccessible === true ? (
+                            <span className="px-2 py-1 rounded-full text-green-700 bg-green-100 text-xs font-medium">
+                              Accessible
+                            </span>
+                          ) : d?.isAccessible === false ? (
+                            <span className="px-2 py-1 rounded-full text-red-700 bg-red-100 text-xs font-medium">
+                              Restricted
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">
+                              ---
+                            </span>
+                          )}
                         </TableCell>
 
-                        <TableCell className="text-muted-foreground">
-                          {d?.hasActiveSubscription || "---"}
+                        <TableCell>
+                          {d?.hasActiveSubscription === true ? (
+                            <span className="px-2 py-1 rounded-full text-green-700 bg-green-100 text-xs font-medium">
+                              Subscribed
+                            </span>
+                          ) : d?.hasActiveSubscription === false ? (
+                            <span className="px-2 py-1 rounded-full text-red-700 bg-red-100 text-xs font-medium">
+                              Not Subscribed
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">
+                              ---
+                            </span>
+                          )}
                         </TableCell>
 
                         {/* Created At */}

@@ -27,7 +27,6 @@ import {
   UserRole,
   UserType,
 } from "@/constants/AppResource/status/status";
-import { getUserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -54,12 +53,9 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
-import { updateUserService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { BusinessFormData } from "@/models/dashboard/master-data/business/business.schema";
 import {
@@ -105,13 +101,6 @@ export default function BusinessPage() {
     useState<BusinessModel | null>(null);
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
-
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
-  const locale = useLocale();
-  const pathname = usePathname();
-
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -615,7 +604,7 @@ export default function BusinessPage() {
                         <TableCell className="">
                           <div className="flex flex-col">
                             <span className="font-medium">
-                              {business?.name}
+                              {business?.name || "---"}
                             </span>
                           </div>
                         </TableCell>
@@ -624,7 +613,7 @@ export default function BusinessPage() {
                         <TableCell className="">
                           <div className="flex flex-col">
                             <span className="font-medium">
-                              {business?.businessType}
+                              {business?.businessType || "---"}
                             </span>
                           </div>
                         </TableCell>
@@ -632,11 +621,9 @@ export default function BusinessPage() {
                         {/* Cuisine Type  */}
                         <TableCell className="">
                           <div className="flex flex-col">
-                            {business?.cuisineType && (
-                              <span className="text-muted-foreground">
-                                {business?.cuisineType}
-                              </span>
-                            )}
+                            <span className="text-muted-foreground">
+                              {business?.cuisineType || "---"}
+                            </span>
                           </div>
                         </TableCell>
 
@@ -644,14 +631,14 @@ export default function BusinessPage() {
                         <TableCell className="">
                           <div className="flex flex-col gap-1">
                             <span className="font-medium">
-                              {business?.email}
+                              {business?.email || "---"}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell className="">
                           <div className="flex flex-col gap-1">
                             <span className="text-muted-foreground">
-                              {business?.phone}
+                              {business?.phone || "---"}
                             </span>
                           </div>
                         </TableCell>

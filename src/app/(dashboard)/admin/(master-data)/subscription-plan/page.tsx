@@ -11,12 +11,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BusinessStatus,
   ModalMode,
-  Status,
   SubscriptionPlanStatus,
 } from "@/constants/AppResource/status/status";
-import { getUserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -34,8 +31,7 @@ import {
   Trash,
   UserPlus,
 } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
@@ -91,13 +87,6 @@ export default function SubscriptionPlanPage() {
   const [maxDuration, setMaxDuration] = useState<number | undefined>(undefined);
   const [publicOnly, setPublicOnly] = useState(false);
   const [freeOnly, setFreeOnly] = useState(false);
-
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
-  const locale = useLocale();
-  const pathname = usePathname();
-
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -232,6 +221,18 @@ export default function SubscriptionPlanPage() {
     setIsSubmitting(true);
     try {
       const isCreate = mode === ModalMode.CREATE_MODE;
+
+      if (
+        !formData.name ||
+        formData.durationDays === undefined ||
+        formData.price === undefined ||
+        !formData.description ||
+        !formData.status
+      ) {
+        throw new Error(
+          "All fields are required to create a subscription plan"
+        );
+      }
 
       const payload = {
         name: formData.name,

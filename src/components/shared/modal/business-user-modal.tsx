@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useForm, Controller, Resolver } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import {
   BUSINESS_USER_ROLE_OPTIONS,
-  BUSINESS_USER_TYPE_OPTIONS,
+  BusinessUserType,
   ModalMode,
   Status,
   STATUS_USER_OPTIONS,
@@ -30,34 +30,26 @@ import { UploadImageRequest } from "@/models/dashboard/image/image.request.model
 import { uploadImageService } from "@/services/dashboard/image/image.service";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  CreateUsers,
   createUserSchema,
+  UpdateUsers,
   updateUserSchema,
   UserFormData,
 } from "@/models/dashboard/user/plateform-user/user.schema";
-import {
-  BusinessUserFormData,
-  CreateBusinessUserFormData,
-  UpdateBusinessUserFormData,
-} from "@/models/dashboard/user/business-user/business-user.schema";
-import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
+import { ComboboxSelectBusiness } from "../combo-box/combobox-business";
+import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
 
 type Props = {
   mode: ModalMode;
-  Data?: CreateBusinessUserFormData | UpdateBusinessUserFormData;
+  Data?: UserFormData | null;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
-  onSave: (
-    data: CreateBusinessUserFormData | UpdateBusinessUserFormData
-  ) => void;
+  onSave: (data: UserFormData) => void;
 };
 
 const getDefaultBusinessRoleValue = () => {
   return [BUSINESS_USER_ROLE_OPTIONS[0]?.value];
-};
-
-const getDefaultBusinessUserTypeValue = () => {
-  return BUSINESS_USER_TYPE_OPTIONS[0]?.value;
 };
 
 export default function ModalBusinessUser({
@@ -73,6 +65,8 @@ export default function ModalBusinessUser({
   const [showPassword, setShowPassword] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] =
+    useState<BusinessModel | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -80,40 +74,33 @@ export default function ModalBusinessUser({
     handleSubmit,
     reset,
     setValue,
+    trigger,
     watch,
     formState: { errors },
-  } = useForm<BusinessUserFormData>({
-    resolver: zodResolver(schema) as Resolver<BusinessUserFormData>,
+  } = useForm<UserFormData>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      accountStatus: Status.ACTIVE,
-      address: "",
-      businessAddress: "",
-      businessDescription: "",
-      businessEmail: "",
-      businessId: "",
-      businessName: "",
-      businessPhone: "",
+      id: Data?.id ?? "",
+      email: "",
+      userIdentifier: "",
       firstName: "",
-      id: "",
       lastName: "",
-      notes: "",
-      ownerAddress: "",
-      ownerEmail: "",
-      ownerFirstName: "",
-      ownerLastName: "",
-      ownerPassword: "",
-      ownerPhone: "",
-      ownerUserIdentifier: "",
       phoneNumber: "",
-      position: "",
-      preferredSubdomain: "",
       profileImageUrl: "",
-      roles: "",
+      userType: BusinessUserType.BUSINESS_USER,
+      businessId: "",
+      roles: getDefaultBusinessRoleValue(),
+      accountStatus: Status.ACTIVE,
+      position: "",
+      address: "",
+      notes: "",
+      password: "",
     },
     mode: "onChange",
   });
 
   const profileUrl = watch("profileImageUrl");
+  watch("businessId");
 
   useEffect(() => {
     if (profileUrl) {
@@ -122,53 +109,27 @@ export default function ModalBusinessUser({
   }, [profileUrl]);
 
   useEffect(() => {
-    if (isOpen && Data) {
-      const isUpdate = (
-        data: CreateBusinessUserFormData | UpdateBusinessUserFormData
-      ): data is UpdateBusinessUserFormData => {
-        return "id" in data;
+    if (isOpen) {
+      const formData = {
+        id: Data?.id || "",
+        email: Data?.email || "",
+        userIdentifier: Data?.userIdentifier || "",
+        firstName: Data?.firstName || "",
+        lastName: Data?.lastName || "",
+        phoneNumber: Data?.phoneNumber || "",
+        profileImageUrl: Data?.profileImageUrl || "",
+        userType: BusinessUserType.BUSINESS_USER,
+        businessId: Data?.businessId || "",
+        roles: Data?.roles || getDefaultBusinessRoleValue(),
+        accountStatus: Data?.accountStatus || Status.ACTIVE,
+        position: Data?.position || "",
+        address: Data?.address || "",
+        notes: Data?.notes || "",
+        password: "", // Always empty for security
       };
 
-      if (isUpdate(Data)) {
-        const data = Data as UpdateBusinessUserFormData;
-        // It's UpdateBusinessUserFormData
-        const formData: UpdateBusinessUserFormData = {
-          id: Data.id?.trim() ?? "",
-          firstName: Data.firstName?.trim() ?? "",
-          lastName: Data.lastName?.trim() ?? "",
-          phoneNumber: Data.phoneNumber?.trim() ?? "",
-          profileImageUrl: Data.profileImageUrl?.trim() ?? "",
-          businessId: Data.businessId?.trim() ?? "",
-          roles: Data.roles ?? getDefaultBusinessRoleValue(),
-          accountStatus: Data.accountStatus ?? Status.ACTIVE,
-          position: Data.position?.trim() ?? "",
-          address: Data.address?.trim() ?? "",
-          notes: Data.notes?.trim() ?? "",
-        };
-
-        reset(formData);
-        setLogoPreview(Data.profileImageUrl?.trim() ?? null);
-      } else {
-        // It's CreateBusinessUserFormData — use default values
-        const formData: CreateBusinessUserFormData = {
-          userIdentifier: Data.ownerUserIdentifier?.trim() ?? "",
-          firstName: Data.ownerFirstName?.trim() ?? "",
-          lastName: Data.ownerLastName?.trim() ?? "",
-          phoneNumber: Data.ownerPhone?.trim() ?? "",
-          profileImageUrl: "",
-          userType: getDefaultBusinessUserTypeValue(),
-          businessId: "",
-          roles: getDefaultBusinessRoleValue(),
-          accountStatus: Status.ACTIVE,
-          position: "",
-          address: Data.ownerAddress?.trim() ?? "",
-          notes: "",
-          password: "", // fill this if needed from Data.ownerPassword
-        };
-
-        reset(formData);
-        setLogoPreview(null);
-      }
+      reset(formData);
+      setLogoPreview(Data?.profileImageUrl || null);
     }
   }, [isOpen, Data, reset]);
 
@@ -229,46 +190,41 @@ export default function ModalBusinessUser({
       : (process.env.NEXT_PUBLIC_API_BASE_URL ?? "") + logoPreview;
   };
 
-  const onSubmit = (
-    formData: CreateBusinessUserFormData | UpdateBusinessUserFormData
-  ) => {
-    console.log("Form submitted with mode:", mode, "Data:", formData); // Debug log
+  const onSubmit = (data: UserFormData) => {
+    console.log("Form submitted with mode:", mode, "Data:", data); // Debug log
 
     if (isCreate) {
-      const data = formData as CreateBusinessUserFormData;
-      const payload: CreateBusinessUserRequest = {
-        ownerUserIdentifier: data.ownerUserIdentifier!.trim(),
-        businessName: data.businessName!.trim(),
-        preferredSubdomain: data.preferredSubdomain!.trim(),
-        ownerPassword: data.ownerPassword!.trim(),
-        ownerFirstName: data.ownerFirstName!.trim(),
-        ownerLastName: data.ownerLastName!.trim(),
-
-        // Optional fields with safe trim
-        businessEmail: data.businessEmail?.trim(),
-        businessPhone: data.businessPhone?.trim(),
-        businessAddress: data.businessAddress?.trim(),
-        businessDescription: data.businessDescription?.trim(),
-        ownerEmail: data.ownerEmail?.trim(),
-        ownerPhone: data.ownerPhone?.trim(),
-        ownerAddress: data.ownerAddress?.trim(),
+      const payload: CreateUsers = {
+        email: data?.email?.trim() || "",
+        userIdentifier: data?.userIdentifier?.trim() || "",
+        firstName: data?.firstName?.trim(),
+        lastName: data?.lastName?.trim(),
+        phoneNumber: data?.phoneNumber?.trim(),
+        userType: data?.userType || "",
+        businessId: data?.businessId,
+        roles: data.roles,
+        accountStatus: Status.ACTIVE,
+        profileImageUrl: data.profileImageUrl,
+        position: data.position,
+        address: data.address,
+        notes: data.notes,
+        password: data?.password?.trim() || "",
       };
       console.log("Create Payload:", payload); // Debug log
       onSave(payload);
     } else {
-      const data = formData as UpdateBusinessUserFormData;
-      const payload: UpdateBusinessUserFormData = {
-        address: data.address,
-        id: data.id.trim(),
-        accountStatus: data?.accountStatus,
-        businessId: data.businessId?.trim(),
+      const payload: UpdateUsers = {
+        id: data.id ?? "",
         firstName: data?.firstName?.trim(),
-        lastName: data.lastName?.trim(),
-        notes: data.notes?.trim(),
-        phoneNumber: data?.phoneNumber?.trim(),
-        position: data?.position?.trim(),
-        profileImageUrl: data?.profileImageUrl?.trim(),
-        roles: data?.roles,
+        lastName: data?.lastName?.trim(),
+        phoneNumber: data.phoneNumber?.trim(),
+        profileImageUrl: data.profileImageUrl,
+        businessId: data?.businessId,
+        roles: data.roles,
+        accountStatus: data.accountStatus, // Use form data instead of hardcoded Status.ACTIVE
+        position: data.position,
+        address: data.address,
+        notes: data.notes,
       };
       console.log("Update Payload:", payload);
       onSave(payload);
@@ -281,6 +237,19 @@ export default function ModalBusinessUser({
     setLogoPreview(null);
     onClose();
   };
+
+  const handleBusinessChange = useCallback(
+    (business: BusinessModel | null) => {
+      console.log("business changed:", business);
+      setSelectedBusiness(business);
+      setValue("businessId", business?.id, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      trigger("businessId");
+    },
+    [selectedBusiness]
+  );
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -299,123 +268,35 @@ export default function ModalBusinessUser({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-          {/* Username Field */}
-
+          {/* userIdentifier Field */}
           {isCreate && (
             <div className="space-y-1">
-              <Label htmlFor="businessName">
-                Business Name <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="businessName"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="businessName"
-                    type="text"
-                    placeholder="johndoe"
-                    disabled={isSubmitting}
-                    autoComplete="businessName"
-                    className={errors.root ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="ownerUserIdentifier">
+              <Label htmlFor="userIdentifier">
                 User Identifier <span className="text-red-500">*</span>
               </Label>
               <Controller
                 control={control}
-                name="ownerUserIdentifier"
+                name="userIdentifier"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    id="ownerUserIdentifier"
+                    id="userIdentifier"
                     type="text"
                     placeholder="johndoe"
                     disabled={isSubmitting}
-                    autoComplete="ownerUserIdentifier"
-                    className={errors.root ? "border-red-500" : ""}
+                    autoComplete="userIdentifier"
+                    className={errors.userIdentifier ? "border-red-500" : ""}
                   />
                 )}
               />
-              {errors.root && (
+              {errors.userIdentifier && (
                 <p className="text-sm text-destructive">
-                  {errors.root.message}
+                  {errors.userIdentifier.message}
                 </p>
               )}
             </div>
           )}
 
-          {/* First Name Field */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="first_name">
-                First Name <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="firstName"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="first_name"
-                    type="text"
-                    placeholder="John"
-                    disabled={isSubmitting}
-                    autoComplete="given-name"
-                    className={errors.root ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Last Name Field */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="last_name">
-                Last Name <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="lastName"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="last_name"
-                    type="text"
-                    placeholder="Doe"
-                    disabled={isSubmitting}
-                    autoComplete="family-name"
-                    className={errors.root ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Email Field */}
           {isCreate && (
             <div className="space-y-1">
               <Label htmlFor="email">
@@ -423,7 +304,7 @@ export default function ModalBusinessUser({
               </Label>
               <Controller
                 control={control}
-                name="ownerEmail"
+                name="email"
                 render={({ field }) => (
                   <Input
                     {...field}
@@ -432,70 +313,124 @@ export default function ModalBusinessUser({
                     placeholder="email@example.com"
                     disabled={isSubmitting}
                     autoComplete="email"
-                    className={errors.root ? "border-red-500" : ""}
+                    className={errors.email ? "border-red-500" : ""}
                   />
                 )}
               />
-              {errors.root && (
+              {errors.email && (
                 <p className="text-sm text-destructive">
-                  {errors.root.message}
+                  {errors.email.message}
                 </p>
               )}
             </div>
           )}
 
-          {/* Owner Phone Number Field */}
+          {/* First Name Field */}
           <div className="space-y-1">
-            <Label htmlFor="ownerPhone">
-              Owner Phone <span className="text-red-500">*</span>
+            <Label htmlFor="first_name">
+              First Name <span className="text-red-500">*</span>
             </Label>
             <Controller
               control={control}
-              name="ownerPhone"
+              name="firstName"
               render={({ field }) => (
                 <Input
                   {...field}
-                  id="ownerPhone"
-                  type="tel"
-                  placeholder="+1234567890"
+                  id="first_name"
+                  type="text"
+                  placeholder="John"
                   disabled={isSubmitting}
-                  autoComplete="ownerPhone"
-                  className={errors.root ? "border-red-500" : ""}
+                  autoComplete="given-name"
+                  className={errors.firstName ? "border-red-500" : ""}
                 />
               )}
             />
-            {errors.root && (
-              <p className="text-sm text-destructive">{errors.root.message}</p>
+            {errors.firstName && (
+              <p className="text-sm text-destructive">
+                {errors.firstName.message}
+              </p>
+            )}
+          </div>
+
+          {/* Last Name Field */}
+          <div className="space-y-1">
+            <Label htmlFor="last_name">
+              Last Name <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              control={control}
+              name="lastName"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="last_name"
+                  type="text"
+                  placeholder="Doe"
+                  disabled={isSubmitting}
+                  autoComplete="family-name"
+                  className={errors.lastName ? "border-red-500" : ""}
+                />
+              )}
+            />
+            {errors.lastName && (
+              <p className="text-sm text-destructive">
+                {errors.lastName.message}
+              </p>
+            )}
+          </div>
+
+          {/* Phone Number Field */}
+          <div className="space-y-1">
+            <Label htmlFor="phoneNumber">
+              Phone Number <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              control={control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="+1234567890"
+                  disabled={isSubmitting}
+                  autoComplete="tel"
+                  className={errors.phoneNumber ? "border-red-500" : ""}
+                />
+              )}
+            />
+            {errors.phoneNumber && (
+              <p className="text-sm text-destructive">
+                {errors.phoneNumber.message}
+              </p>
             )}
           </div>
 
           {/* Business ID Field - Create Mode Only */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="businessId">
-                Business ID <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="businessId"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="businessId"
-                    type="text"
-                    placeholder="Business UUID"
+          <div className="space-y-1">
+            <Label htmlFor="businessId">
+              Business ID <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              control={control}
+              name="businessId"
+              render={({ field }) => {
+                return (
+                  <ComboboxSelectBusiness
+                    dataSelect={selectedBusiness}
+                    onChangeSelected={handleBusinessChange}
                     disabled={isSubmitting}
-                    className={errors.root ? "border-red-500" : ""}
                   />
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
-              )}
-            </div>
-          )}
+                );
+              }}
+            />
+
+            {errors.businessId && (
+              <p className="text-sm text-destructive">
+                {errors.businessId.message}
+              </p>
+            )}
+          </div>
 
           {/* Password Field - Create Mode Only or Update Mode with optional password */}
           {isCreate && (
@@ -507,7 +442,7 @@ export default function ModalBusinessUser({
                 <div className="relative">
                   <Controller
                     control={control}
-                    name="ownerPassword"
+                    name="password"
                     render={({ field }) => (
                       <Input
                         {...field}
@@ -517,7 +452,7 @@ export default function ModalBusinessUser({
                         disabled={isSubmitting}
                         autoComplete="new-password"
                         className={
-                          errors.root ? "border-red-500 pr-10" : "pr-10"
+                          errors.password ? "border-red-500 pr-10" : "pr-10"
                         }
                       />
                     )}
@@ -535,14 +470,51 @@ export default function ModalBusinessUser({
                     )}
                   </button>
                 </div>
-                {errors.root && (
+                {errors.password && (
                   <p className="text-sm text-destructive">
-                    {errors.root.message}
+                    {errors.password.message}
                   </p>
                 )}
               </div>
             </>
           )}
+
+          {/* Roles Field - Note: This is simplified to single select for UI, but stores as array */}
+          <div className="space-y-1">
+            <Label htmlFor="roles-select">
+              Roles <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              control={control}
+              name="roles"
+              render={({ field }) => (
+                <Select
+                  value={field.value?.[0] || ""}
+                  onValueChange={(value) => field.onChange([value])}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger
+                    id="roles-select"
+                    className={`bg-white dark:bg-inherit ${
+                      errors.roles ? "border-red-500" : ""
+                    }`}
+                  >
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BUSINESS_USER_ROLE_OPTIONS.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.roles && (
+              <p className="text-sm text-destructive">{errors.roles.message}</p>
+            )}
+          </div>
 
           {/* Status Field */}
           {!isCreate && (
@@ -562,7 +534,7 @@ export default function ModalBusinessUser({
                     <SelectTrigger
                       id="status-select"
                       className={`bg-white dark:bg-inherit ${
-                        errors.root ? "border-red-500" : ""
+                        errors.accountStatus ? "border-red-500" : ""
                       }`}
                     >
                       <SelectValue placeholder="Select status" />
@@ -577,159 +549,86 @@ export default function ModalBusinessUser({
                   </Select>
                 )}
               />
-              {errors.root && (
+              {errors.accountStatus && (
                 <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Role Field */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="status-select">
-                Role <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="roles"
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isSubmitting}
-                  >
-                    <SelectTrigger
-                      id="status-select"
-                      className={`bg-white dark:bg-inherit ${
-                        errors.root ? "border-red-500" : ""
-                      }`}
-                    >
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BUSINESS_USER_ROLE_OPTIONS.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
+                  {errors.accountStatus.message}
                 </p>
               )}
             </div>
           )}
 
           {/* Position Field - Optional */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="position">Position</Label>
-              <Controller
-                control={control}
-                name="position"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="position"
-                    type="text"
-                    placeholder="Job title or position"
-                    disabled={isSubmitting}
-                    className={errors.root ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
+          <div className="space-y-1">
+            <Label htmlFor="position">Position</Label>
+            <Controller
+              control={control}
+              name="position"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="position"
+                  type="text"
+                  placeholder="Job title or position"
+                  disabled={isSubmitting}
+                  className={errors.position ? "border-red-500" : ""}
+                />
               )}
-            </div>
-          )}
+            />
+            {errors.position && (
+              <p className="text-sm text-destructive">
+                {errors.position.message}
+              </p>
+            )}
+          </div>
 
           {/* Address Field - Optional */}
-          {isCreate ? (
-            <div className="space-y-1">
-              <Label htmlFor="ownerAddress">Owner Address</Label>
-              <Controller
-                control={control}
-                name="ownerAddress"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id=""
-                    type="text"
-                    placeholder="Street address"
-                    disabled={isSubmitting}
-                    autoComplete="street-address"
-                    className={errors.root ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
+          <div className="space-y-1">
+            <Label htmlFor="address">Address</Label>
+            <Controller
+              control={control}
+              name="address"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="address"
+                  type="text"
+                  placeholder="Street address"
+                  disabled={isSubmitting}
+                  autoComplete="street-address"
+                  className={errors.address ? "border-red-500" : ""}
+                />
               )}
-            </div>
-          ) : (
-            <div className="space-y-1">
-              <Label htmlFor="address">Address</Label>
-              <Controller
-                control={control}
-                name="address"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="address"
-                    type="text"
-                    placeholder="Street address"
-                    disabled={isSubmitting}
-                    autoComplete="street-address"
-                    className={errors.root ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
-              )}
-            </div>
-          )}
+            />
+            {errors.address && (
+              <p className="text-sm text-destructive">
+                {errors.address.message}
+              </p>
+            )}
+          </div>
 
           {/* Notes Field - Optional */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="notes">Notes</Label>
-              <Controller
-                control={control}
-                name="notes"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="notes"
-                    type="text"
-                    placeholder="Additional notes"
-                    disabled={isSubmitting}
-                    className={errors.root ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.root && (
-                <p className="text-sm text-destructive">
-                  {errors.root.message}
-                </p>
+          <div className="space-y-1">
+            <Label htmlFor="notes">Notes</Label>
+            <Controller
+              control={control}
+              name="notes"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="notes"
+                  type="text"
+                  placeholder="Additional notes"
+                  disabled={isSubmitting}
+                  className={errors.notes ? "border-red-500" : ""}
+                />
               )}
-            </div>
-          )}
+            />
+            {errors.notes && (
+              <p className="text-sm text-destructive">{errors.notes.message}</p>
+            )}
+          </div>
 
-          <Card className="mt-6 ">
+          <Card className="mt-16">
             <CardContent className="p-4">
               {/* Profile URL Field */}
               <div className="flex flex-col items-center gap-2">

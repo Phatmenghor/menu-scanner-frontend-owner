@@ -108,12 +108,12 @@ export const sidebarItems: SidebarItem[] = [
         href: ROUTES.DASHBOARD.BUSINESS_USER,
       },
       {
-        title: "Manage SubDomain",
+        title: "Manage Subdomain",
         href: ROUTES.DASHBOARD.SUB_DOMAIN,
       },
       {
         title: "Manage Business",
-        href: ROUTES.DASHBOARD.USERS_BUSINESS,
+        href: ROUTES.DASHBOARD.MANAGE_BUSINESS,
       },
       {
         title: "Subscription",

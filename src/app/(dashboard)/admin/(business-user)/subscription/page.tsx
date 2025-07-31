@@ -22,7 +22,6 @@ import {
   Status,
   STATUS_FILTER,
 } from "@/constants/AppResource/status/status";
-import { getUserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat, formatDate } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -31,9 +30,8 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Check, Eye, Pen, Plus, RotateCw, Trash } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Eye, Pen, Plus, Trash } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
@@ -77,13 +75,6 @@ export default function SubscriptionPage() {
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
-  const locale = useLocale();
-  const pathname = usePathname();
-
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -409,61 +400,6 @@ export default function SubscriptionPage() {
                 ))}
               </SelectContent>
             </Select>
-
-            {/* User Type Filter
-            <Select value={userTypeFilter} onValueChange={handleUserTypeChange}>
-              <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
-                <SelectValue placeholder="Select User Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {USER_TYPE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select> */}
-
-            {/* Role Filter (Command) */}
-            {/* <Popover open={roleFilterOpen} onOpenChange={setRoleFilterOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="min-w-[150px] h-9 text-black px-3 text-sm justify-between"
-                  role="combobox"
-                >
-                  {USER_ROLE_OPTIONS.find((role) => role.value === roleFilter)
-                    ?.label || "Select User Role"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-[200px]">
-                <Command>
-                  <CommandInput placeholder="Search role..." className="h-9" />
-                  <CommandList>
-                    <CommandEmpty>No role found.</CommandEmpty>
-                    <CommandGroup>
-                      {USER_ROLE_OPTIONS.map((option) => (
-                        <CommandItem
-                          key={option.value}
-                          value={option.value}
-                          className="text-black"
-                          onSelect={() => {
-                            handleRoleFilterChange(option.value);
-                            setRoleFilterOpen(false);
-                          }}
-                        >
-                          {option.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover> */}
           </div>
         </CardHeaderSection>
 
@@ -543,22 +479,32 @@ export default function SubscriptionPage() {
 
                         <TableCell className="text-xs">
                           {sub?.isExpired ? (
-                            <span className="text-red-500 font-medium">
+                            <span className="px-2 py-1 rounded-full text-red-700 bg-red-100 font-medium">
                               Expired
                             </span>
                           ) : sub?.isActive ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="px-2 py-1 rounded-full text-green-700 bg-green-100 font-medium">
                               Active
                             </span>
                           ) : (
-                            <span className="text-yellow-500 font-medium">
+                            <span className="px-2 py-1 rounded-full text-yellow-800 bg-yellow-100 font-medium">
                               Upcoming
                             </span>
                           )}
                         </TableCell>
 
-                        <TableCell className="text-muted-foreground">
-                          {sub?.autoRenew || "---"}
+                        <TableCell>
+                          {sub?.autoRenew === true ? (
+                            <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                              Yes
+                            </span>
+                          ) : sub?.autoRenew === false ? (
+                            <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
+                              No
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">---</span>
+                          )}
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">

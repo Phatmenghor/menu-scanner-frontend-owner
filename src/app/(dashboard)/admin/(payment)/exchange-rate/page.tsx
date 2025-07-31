@@ -21,16 +21,10 @@ import {
 import {
   ModalMode,
   Status,
-  STATUS_FILTER,
-  USER_ROLE_OPTIONS,
-  USER_TYPE_OPTIONS,
   UserRole,
   UserType,
 } from "@/constants/AppResource/status/status";
-import {
-  getUserTableHeaders,
-  UserTableHeaders,
-} from "@/constants/AppResource/table/user/plateform-user";
+import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -40,21 +34,7 @@ import {
   ExcelSheet,
 } from "@/utils/export-file/excel";
 import { Pen, Plus, Trash } from "lucide-react";
-import {
-  Command,
-  CommandInput,
-  CommandItem,
-  CommandEmpty,
-  CommandList,
-  CommandGroup,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
@@ -124,13 +104,6 @@ export default function ExchangeRatePage() {
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
   const [roleFilterOpen, setRoleFilterOpen] = useState(false);
-
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
-  const locale = useLocale();
-  const pathname = usePathname();
-
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);

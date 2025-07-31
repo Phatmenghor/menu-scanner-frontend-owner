@@ -1,4 +1,5 @@
 export const PaymentTableHeader = [
+  { key: "Index", label: "#", className: "max-w-[20%]" },
   { key: "businessName", label: "Business", className: "max-w-[20%]" },
   { key: "planName", label: "Plan", className: "max-w-[20%]" },
   {
@@ -16,4 +17,5 @@ export const PaymentTableHeader = [
   { key: "statusDescription", label: "Status", className: "max-w-[20%]" },
   { key: "referenceNumber", label: "Ref. No.", className: "max-w-[20%]" },
   { key: "createdAt", label: "Created At", className: "max-w-[20%]" },
+  { key: "action", label: "Action", className: "max-w-[20%]" },
 ];

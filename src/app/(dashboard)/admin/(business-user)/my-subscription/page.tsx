@@ -22,10 +22,6 @@ import {
   Status,
   STATUS_FILTER,
 } from "@/constants/AppResource/status/status";
-import {
-  getUserTableHeaders,
-  UserTableHeaders,
-} from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat, formatDate } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -35,8 +31,7 @@ import {
   ExcelSheet,
 } from "@/utils/export-file/excel";
 import { Check, Eye, Pen, Plus, RotateCw, Trash } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
@@ -45,12 +40,7 @@ import PaginationPage from "@/components/shared/common/app-pagination";
 import { AllUserResponse } from "@/models/dashboard/user/plateform-user/user.response";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
-import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
-import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
-import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 import {
   createSubscriptionService,
   deletedSubscriptionService,
@@ -85,13 +75,6 @@ export default function SubscriptionPage() {
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  const t = useTranslations("user");
-  const headers = getUserTableHeaders(t);
-  const locale = useLocale();
-  const pathname = usePathname();
-
-  console.log("Page Debug:", { locale, pathname });
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
