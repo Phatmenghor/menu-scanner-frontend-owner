@@ -37,6 +37,7 @@ export const ROUTES = {
     PAYMENT: "/admin/payment",
     USERS_BUSINESS: "/admin/users",
     SUB_DOMAIN: "/admin/sub-domain",
+    CUSTOMER_USER: "/admin/customer-user",
   },
 } as const;
 
@@ -87,6 +88,17 @@ export const sidebarItems: SidebarItem[] = [
       {
         title: "Subscriptions",
         href: ROUTES.DASHBOARD.SUBSCRIPTION,
+      },
+    ],
+  },
+  {
+    title: "Customer User",
+    section: "Customer Users",
+    icon: Users,
+    subroutes: [
+      {
+        title: "Manage customers",
+        href: ROUTES.DASHBOARD.CUSTOMER_USER,
       },
     ],
   },

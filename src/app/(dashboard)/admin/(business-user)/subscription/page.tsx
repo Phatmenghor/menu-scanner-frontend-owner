@@ -30,7 +30,7 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Eye, Pen, Plus, Trash } from "lucide-react";
+import { Eye, Pen, Plus, RotateCcw, Trash, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -42,9 +42,11 @@ import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-dele
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import {
+  cancelSubscriptionService,
   createSubscriptionService,
   deletedSubscriptionService,
   getAllSubscriptionService,
+  renewSubscriptionService,
   updateSubscriptionService,
 } from "@/services/dashboard/subscription/subscription.service";
 import { SubscriptionTableHeaders } from "@/constants/AppResource/table/user/subscription";
@@ -54,10 +56,21 @@ import {
 } from "@/models/dashboard/subscription/subscription.response.model";
 import { SubscriptionFormData } from "@/models/dashboard/subscription/subscription.schema";
 import {
+  CancelSubscriptionRequest,
   CreateSubscriptionRequest,
+  RenewSubscriptionRequest,
   UpdateSubscriptionRequest,
 } from "@/models/dashboard/subscription/subscription.request.model";
 import ModalSubscription from "@/components/shared/modal/subscription-modal";
+import { setLoading } from "@/store/features/userSlice";
+import { RenewSubscriptionModal } from "@/components/shared/modal/subscription-renew-modal";
+import { CancelSubscriptionModal } from "@/components/shared/modal/subscription-cancel-modal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function SubscriptionPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,6 +88,8 @@ export default function SubscriptionPage() {
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -185,6 +200,63 @@ export default function SubscriptionPage() {
     }
   };
 
+  const handleSubmitRenewSubscription = async (
+    data: RenewSubscriptionRequest
+  ) => {
+    if (selectedSubscription?.id === undefined) return;
+
+    setLoading(true);
+    try {
+      const response = await renewSubscriptionService(
+        selectedSubscription?.id,
+        {
+          customDurationDays: data.customDurationDays,
+          newPlanId: data.newPlanId,
+          createPayment: data.createPayment,
+          paymentAmount: data.paymentAmount,
+          paymentImageUrl: data.paymentImageUrl,
+          paymentMethod: data.paymentMethod,
+          paymentNotes: data.paymentNotes,
+          paymentReferenceNumber: data.paymentReferenceNumber,
+          paymentStatus: data.paymentStatus,
+        }
+      );
+
+      if (response) {
+        setSubscriptions((prev) =>
+          prev
+            ? {
+                ...prev,
+                content: prev.content.map((sub) =>
+                  sub.id === selectedSubscription.id
+                    ? response.subscription
+                    : sub
+                ),
+              }
+            : prev
+        );
+
+        AppToast({
+          type: "success",
+          message: `Subscription renew successfully`,
+          duration: 4000,
+          position: "top-right",
+        });
+      } else {
+        AppToast({
+          type: "error",
+          message: `Subscription renew successfully`,
+          duration: 4000,
+          position: "top-right",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error to renew subscription: ", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   async function handleSubmit(formData: SubscriptionFormData) {
     console.log("Submitting form:", formData, "mode:", mode);
 
@@ -225,7 +297,7 @@ export default function SubscriptionPage() {
           );
 
           AppToast({
-            type: "success",
+            type: "celebration",
             message: `Subscription added successfully`,
             duration: 4000,
             position: "top-right",
@@ -328,10 +400,64 @@ export default function SubscriptionPage() {
     }
   }
 
-  const handleEditSubscription = (user: SubscriptionFormData) => {
-    setInitializeSubscription(user);
-    setMode(ModalMode.UPDATE_MODE);
-    setIsModalOpen(!isModalOpen);
+  const handleSubmitCancelSubscription = async (
+    data: CancelSubscriptionRequest
+  ) => {
+    if (!selectedSubscription) return;
+
+    setLoading(true);
+
+    try {
+      const response = await cancelSubscriptionService(
+        selectedSubscription.id,
+        {
+          reason: data?.reason ?? undefined,
+          notes: data?.notes ?? undefined,
+          refundAmount: data?.refundAmount ?? null,
+          refundNotes: data?.refundNotes ?? null,
+        }
+      );
+
+      if (response) {
+        setSubscriptions((prev) =>
+          prev
+            ? {
+                ...prev,
+                content: prev.content.map((sub) =>
+                  sub.id === selectedSubscription.id
+                    ? response.subscription
+                    : sub
+                ),
+              }
+            : prev
+        );
+
+        AppToast({
+          type: "success",
+          message: `Subscription cancelled successfully`,
+          duration: 4000,
+          position: "top-right",
+        });
+      } else {
+        AppToast({
+          type: "error",
+          message: `Failed to cancel subscription`,
+          duration: 4000,
+          position: "top-right",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error cancelling subscription: ", error.message);
+
+      AppToast({
+        type: "error",
+        message: error?.response?.data?.message || "Unexpected error occurred",
+        duration: 4000,
+        position: "top-right",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle status filter change - directly updates the filter value
@@ -342,6 +468,16 @@ export default function SubscriptionPage() {
   const handleDelete = (sub: SubscriptionModel) => {
     setSelectedSubscription(sub);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleRenewSubscription = (sub: SubscriptionModel) => {
+    setSelectedSubscription(sub);
+    setIsRenewModalOpen(true);
+  };
+
+  const handleCancelSubscription = (sub: SubscriptionModel) => {
+    setSelectedSubscription(sub);
+    setIsCancelModalOpen(true);
   };
 
   const handleViewSubscriptionDetail = (sub: SubscriptionModel | null) => {
@@ -520,29 +656,57 @@ export default function SubscriptionPage() {
                           {DateTimeFormat(sub?.createdAt) || "---"}
                         </TableCell>
 
-                        {/* Actions */}
-                        <TableCell className="text-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewSubscriptionDetail(sub)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditSubscription(sub)}
-                          >
-                            <Pen className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(sub)}
-                          >
-                            <Trash className="w-4 h-4" />
-                          </Button>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center items-center gap-2">
+                            <TooltipProvider>
+                              {/* Renew */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-full transition-all hover:scale-105"
+                                    onClick={() => handleRenewSubscription(sub)}
+                                  >
+                                    <RotateCcw className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Renew</TooltipContent>
+                              </Tooltip>
+
+                              {/* Cancel */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-full transition-all hover:scale-105"
+                                    onClick={() =>
+                                      handleCancelSubscription(sub)
+                                    }
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Cancel</TooltipContent>
+                              </Tooltip>
+
+                              {/* Delete */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-full transition-all hover:scale-105"
+                                    onClick={() => handleDelete(sub)}
+                                  >
+                                    <Trash className="w-4 h-4 text-muted-foreground" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Delete</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -569,11 +733,31 @@ export default function SubscriptionPage() {
               user={selectedSubscription}
             /> */}
 
+            <RenewSubscriptionModal
+              onOpenChange={() => {
+                setSelectedSubscription(null);
+                setIsRenewModalOpen(false);
+              }}
+              onSubmit={handleSubmitRenewSubscription}
+              open={isRenewModalOpen}
+              subscription={selectedSubscription}
+            />
+
+            <CancelSubscriptionModal
+              onOpenChange={() => {
+                setSelectedSubscription(null);
+                setIsCancelModalOpen(false);
+              }}
+              onSubmit={handleSubmitCancelSubscription}
+              open={isCancelModalOpen}
+              subscription={selectedSubscription}
+            />
+
             <DeleteConfirmationDialog
               isOpen={isDeleteDialogOpen}
               onClose={() => {
-                setIsDeleteDialogOpen(false);
                 setSelectedSubscription(null);
+                setIsDeleteDialogOpen(false);
               }}
               onDelete={handleDeleteSubscription}
               title="Delete Admin"

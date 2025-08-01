@@ -16,14 +16,22 @@ export interface UpdateSubscriptionRequest {
 }
 
 export interface RenewSubscriptionRequest {
-  newPlanId: string;
-  customDurationDays: number;
-  notes: string;
+  newPlanId?: string;
+  customDurationDays?: number;
+  createPayment?: boolean;
+  paymentImageUrl?: string;
+  paymentAmount?: number;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  paymentReferenceNumber?: string;
+  paymentNotes?: string;
 }
 
 export interface CancelSubscriptionRequest {
-  reason: string;
-  notes?: string;
+  reason?: string | null;
+  notes?: string | null;
+  refundAmount?: number | null;
+  refundNotes?: string | null;
 }
 
 export interface AllSubscriptionRequest {

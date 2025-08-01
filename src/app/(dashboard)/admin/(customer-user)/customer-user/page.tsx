@@ -81,8 +81,9 @@ import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
+import ModalCustomerUser from "@/components/shared/modal/cusomer-user-modal";
 
-export default function UserPage() {
+export default function CustomerUserPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<AllUserResponse | null>(null);
   const [initializeUser, setInitializeUser] = useState<UserFormData | null>(
@@ -95,14 +96,7 @@ export default function UserPage() {
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
-  const [userTypeFilter, setUserTypeFilter] = useState<UserType>(
-    UserType.PLATFORM_USER
-  );
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
-
-  const [roleFilter, setRoleFilter] = useState<UserRole>(
-    UserRole.PLATFORM_OWNER
-  );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
     useState(false);
@@ -110,7 +104,6 @@ export default function UserPage() {
     useState<UserModel | null>(null);
   const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
     useState(false);
-  const [roleFilterOpen, setRoleFilterOpen] = useState(false);
 
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -119,7 +112,7 @@ export default function UserPage() {
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
     usePagination({
-      baseRoute: ROUTES.DASHBOARD.USERS,
+      baseRoute: ROUTES.DASHBOARD.CUSTOMER_USER,
       defaultPageSize: 10,
     });
 
@@ -138,9 +131,8 @@ export default function UserPage() {
       const response = await getAllUserService({
         search: debouncedSearchQuery,
         pageNo: currentPage,
-        roles: [roleFilter.toString()],
         pageSize: 10,
-        userType: userTypeFilter,
+        userType: UserType.CUSTOMER,
         accountStatus: statusFilter,
       });
       console.log("Fetched users:", response);
@@ -150,13 +142,7 @@ export default function UserPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    debouncedSearchQuery,
-    statusFilter,
-    userTypeFilter,
-    roleFilter,
-    currentPage,
-  ]);
+  }, [debouncedSearchQuery, statusFilter, currentPage]);
 
   useEffect(() => {
     loadUsers();
@@ -448,14 +434,6 @@ export default function UserPage() {
     setStatusFilter(status);
   };
 
-  const handleUserTypeChange = (userType: UserType) => {
-    setUserTypeFilter(userType);
-  };
-
-  const handleRoleFilterChange = (userType: UserRole) => {
-    setRoleFilter(userType);
-  };
-
   const handleResetPassword = (user: UserModel) => {
     setSelectedUser(user);
     setIsResetPasswordDialogOpen(true);
@@ -477,8 +455,6 @@ export default function UserPage() {
   };
 
   const handleResetFilters = () => {
-    setUserTypeFilter(UserType.PLATFORM_USER);
-    setRoleFilter(UserRole.PLATFORM_OWNER);
     setStatusFilter(Status.ACTIVE);
     setSearchQuery("");
     updateUrlWithPage(1, true);
@@ -492,20 +468,20 @@ export default function UserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Customer Users List", href: "" },
+            { label: "PlateForm Users List", href: "" },
           ]}
-          title="Customer Users"
+          title="PlateForm Users"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="new"
+          buttonText="Add new"
           onSearchChange={handleSearchChange}
           openModal={() => {
             setIsModalOpen(!isModalOpen);
             setMode(ModalMode.CREATE_MODE);
           }}
           handleResetFilters={handleResetFilters}
-          disableReset={!roleFilter && !statusFilter && !userTypeFilter}
+          disableReset={!statusFilter}
         >
           <div className="flex items-center gap-3">
             {/* Status Filter */}
@@ -525,61 +501,6 @@ export default function UserPage() {
                 ))}
               </SelectContent>
             </Select>
-
-            {/* User Type Filter */}
-            <Select value={userTypeFilter} onValueChange={handleUserTypeChange}>
-              <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
-                <SelectValue placeholder="Select User Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {USER_TYPE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Role Filter (Command) */}
-            <Popover open={roleFilterOpen} onOpenChange={setRoleFilterOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="min-w-[150px] h-9 text-black px-3 text-sm justify-between"
-                  role="combobox"
-                >
-                  {USER_ROLE_OPTIONS.find((role) => role.value === roleFilter)
-                    ?.label || "Select User Role"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-[200px]">
-                <Command>
-                  <CommandInput placeholder="Search role..." className="h-9" />
-                  <CommandList>
-                    <CommandEmpty>No role found.</CommandEmpty>
-                    <CommandGroup>
-                      {USER_ROLE_OPTIONS.map((option) => (
-                        <CommandItem
-                          key={option.value}
-                          value={option.value}
-                          className="text-black"
-                          onSelect={() => {
-                            handleRoleFilterChange(option.value);
-                            setRoleFilterOpen(false);
-                          }}
-                        >
-                          {option.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
           </div>
         </CardHeaderSection>
 
@@ -662,15 +583,6 @@ export default function UserPage() {
                             `${user.firstName} ${user.lastName}`}
                         </TableCell>
 
-                        {/* Role */}
-                        <TableCell className="text-xs text-muted-foreground space-x-1">
-                          {user.roles?.length > 0
-                            ? user.roles.map((role: string) => (
-                                <RoleBadge key={role} role={role} />
-                              ))
-                            : "---"}
-                        </TableCell>
-
                         {/* Status Switch */}
                         <TableCell>
                           <Switch
@@ -743,7 +655,7 @@ export default function UserPage() {
               </TableBody>
             </Table>
 
-            <ModalUser
+            <ModalCustomerUser
               isOpen={isModalOpen}
               onClose={() => {
                 setInitializeUser(null);
