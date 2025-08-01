@@ -458,7 +458,7 @@ export default function SubscriptionPage() {
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
-                          {sub?.planPrice || "---"}
+                          {sub?.planPrice || "---"}$
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
@@ -508,7 +508,7 @@ export default function SubscriptionPage() {
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
-                          {sub?.totalPaidAmount || "---"}
+                          {`${sub?.totalPaidAmount}$` || "---"}
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">

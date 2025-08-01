@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -21,7 +20,7 @@ import {
   ExcelExporter,
   ExcelSheet,
 } from "@/utils/export-file/excel";
-import { Plus, RotateCw, Trash } from "lucide-react";
+import { Pen, Plus, RotateCw, Trash } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -39,19 +38,32 @@ import {
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
-import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 import {
   AllPayment,
   PaymentModel,
 } from "@/models/dashboard/payment/payment/payment.response.model";
-import { getAllPaymentService } from "@/services/dashboard/payment/payment/payment.service";
+import {
+  createPaymentService,
+  getAllPaymentService,
+  updatePaymentService,
+} from "@/services/dashboard/payment/payment/payment.service";
 import { PaymentTableHeader } from "@/constants/AppResource/table/payment/payment";
+import {
+  CreatePaymentRequest,
+  UpdatePaymentRequest,
+} from "@/models/dashboard/payment/payment/payment.request.model";
+import {
+  CreatePaymentFormData,
+  UpdatePaymentFormData,
+} from "@/models/dashboard/payment/payment/payment.schema";
+import ModalPayment from "@/components/shared/modal/payment-modal";
+import { PaymentStatusBadge } from "@/components/shared/badge/payment-status-badge";
 
 export default function PaymentPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [payments, setPayment] = useState<AllPayment | null>(null);
   const [initializePayment, setInitializePayment] =
-    useState<UserFormData | null>(null);
+    useState<UpdatePaymentFormData | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentModel | null>(
     null
   );
@@ -113,6 +125,111 @@ export default function PaymentPage() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
+
+  async function handleSubmit(
+    formData: CreatePaymentFormData | UpdatePaymentFormData
+  ) {
+    console.log("Submitting form:", formData, "mode:", mode);
+
+    setIsSubmitting(true);
+    try {
+      const isCreate = mode === ModalMode.CREATE_MODE;
+
+      if (isCreate) {
+        const data = formData as CreatePaymentFormData;
+        const createPayload: CreatePaymentRequest = {
+          amount: data.amount,
+          paymentMethod: data.paymentMethod,
+          subscriptionId: data.subscriptionId,
+          imageUrl: data.imageUrl,
+          notes: data.notes,
+          referenceNumber: data.referenceNumber,
+          status: data.status,
+        };
+
+        const response = await createPaymentService(createPayload);
+        if (response) {
+          // Update users list
+          setPayment((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  content: [response, ...prev.content],
+                  totalElements: prev.totalElements + 1,
+                }
+              : {
+                  content: [response],
+                  pageNo: 1,
+                  pageSize: 10,
+                  totalElements: 1,
+                  totalPages: 1,
+                  hasNext: false,
+                  hasPrevious: false,
+                  first: true,
+                  last: true,
+                }
+          );
+
+          AppToast({
+            type: "success",
+            message: `Payment ${
+              formData.referenceNumber || ""
+            } added successfully`,
+            duration: 4000,
+            position: "top-right",
+          });
+
+          setIsModalOpen(false);
+        }
+      } else {
+        const data = formData as UpdatePaymentFormData;
+        // Update mode
+        if (!data?.id) {
+          throw new Error("Payment ID is required for update");
+        }
+
+        const updatePayload: UpdatePaymentRequest = {
+          amount: data.amount,
+          paymentMethod: data.paymentMethod,
+          imageUrl: data.imageUrl,
+          notes: data.notes,
+          referenceNumber: data.referenceNumber,
+          status: data.status,
+        };
+
+        const response = await updatePaymentService(data?.id, updatePayload);
+        if (response) {
+          // Update users list
+          setPayment((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  content: prev.content.map((user) =>
+                    user.id === data.id ? response : user
+                  ),
+                }
+              : prev
+          );
+
+          AppToast({
+            type: "success",
+            message: `User ${
+              response.username || response.email
+            } updated successfully`,
+            duration: 4000,
+            position: "top-right",
+          });
+
+          setIsModalOpen(false);
+        }
+      }
+    } catch (error: any) {
+      console.error("Error submitting user form:", error);
+      toast.error(error.message || "An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   const handleExportToPdf = async (data: AllUserResponse | null) => {
     setIsExportingToExcel(true);
@@ -268,6 +385,12 @@ export default function PaymentPage() {
     }
   };
 
+  const handleEdit = (payment: PaymentModel) => {
+    setInitializePayment(payment);
+    setMode(ModalMode.UPDATE_MODE);
+    setIsModalOpen(true);
+  };
+
   const handleDelete = (payment: PaymentModel) => {
     setSelectedPayment(payment);
     setIsDeleteDialogOpen(true);
@@ -336,7 +459,7 @@ export default function PaymentPage() {
                       colSpan={UserTableHeaders.length}
                       className="text-center py-8 text-muted-foreground"
                     >
-                      No users found
+                      No payment record found
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -354,6 +477,10 @@ export default function PaymentPage() {
 
                         <TableCell className="text-muted-foreground">
                           {payment?.businessName || "---"}
+                        </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          <PaymentStatusBadge status={payment.status} />
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
@@ -392,11 +519,11 @@ export default function PaymentPage() {
                         {/* Actions */}
                         <TableCell className="text-center space-x-2">
                           <Button
-                            variant="destructive"
+                            variant="secondary"
                             size="sm"
-                            onClick={() => handleDelete(payment)}
+                            onClick={() => handleEdit(payment)}
                           >
-                            <RotateCw className="w-4 h-4" />
+                            <Pen className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="destructive"
@@ -413,6 +540,18 @@ export default function PaymentPage() {
               </TableBody>
             </Table>
 
+            <ModalPayment
+              isOpen={isModalOpen}
+              onClose={() => {
+                setInitializePayment(null);
+                setIsModalOpen(false);
+              }}
+              isSubmitting={isSubmitting}
+              onSave={handleSubmit}
+              Data={initializePayment}
+              mode={mode}
+            />
+
             <DeleteConfirmationDialog
               isOpen={isDeleteDialogOpen}
               onClose={() => {
@@ -420,8 +559,8 @@ export default function PaymentPage() {
                 setSelectedPayment(null);
               }}
               onDelete={handleDeleteUser}
-              title="Delete Admin"
-              description={`Are you sure you want to delete the admin`}
+              title="Delete payment"
+              description={`Are you sure you want to delete the payment`}
               itemName={
                 selectedPayment?.paymentMethod ||
                 selectedPayment?.referenceNumber

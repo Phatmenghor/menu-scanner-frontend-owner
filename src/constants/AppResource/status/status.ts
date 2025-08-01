@@ -112,3 +112,16 @@ export const BUSINESS_STATUS_OPTIONS = [
   { value: BusinessStatus.SUSPENDED, label: "Suspended" },
   { value: BusinessStatus.PENDING, label: "Pending Approval" },
 ];
+
+export const PAYMENT_STATUS_OPTIONS = [
+  { value: "PENDING", label: "Pending" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "FAILED", label: "Failed" },
+  { value: "CANCELLED", label: "Cancelled" },
+];
+
+export const SUBDOMAIN_STATUS_OPTIONS = {
+  ACTIVE: "Active - Domain is live and accessible",
+  SUSPENDED: "Suspended - Domain is temporarily disabled",
+  EXPIRED: "Expired - Subscription has expired",
+} as const;

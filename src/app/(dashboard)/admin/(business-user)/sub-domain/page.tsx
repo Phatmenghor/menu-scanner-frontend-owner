@@ -34,6 +34,8 @@ import {
 } from "@/models/dashboard/sub-domain/sub-domain.response.model";
 import { getAllSubdomainService } from "@/services/dashboard/sub-domain/sub-domain.service";
 import { subdomainTableHeaders } from "@/constants/AppResource/table/user/sub-domain";
+import { getSubdomainStatusBadge } from "@/components/shared/badge/payment-status-badge";
+import { SubdomainStatusBadge } from "@/components/shared/badge/subdomain-status-badge";
 
 export default function SubdomainPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -238,7 +240,7 @@ export default function SubdomainPage() {
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
-                          {d?.status || "---"}
+                          <SubdomainStatusBadge status={d.status} />
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">

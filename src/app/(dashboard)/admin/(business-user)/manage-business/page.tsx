@@ -559,11 +559,9 @@ export default function ManageBusinessPage() {
                         {/* Cuisine Type  */}
                         <TableCell className="text-xs">
                           <div className="flex flex-col">
-                            {business?.cuisineType && (
-                              <span className="text-muted-foreground">
-                                {business?.cuisineType || "---"}
-                              </span>
-                            )}
+                            <span className="text-muted-foreground">
+                              {business?.cuisineType || "---"}
+                            </span>
                           </div>
                         </TableCell>
 

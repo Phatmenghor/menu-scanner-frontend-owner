@@ -4,7 +4,6 @@ import {
   CreatePaymentRequest,
   UpdatePaymentRequest,
 } from "@/models/dashboard/payment/payment/payment.request.model";
-import { AllSubscriptionRequest } from "@/models/dashboard/subscription/subscription.request.model";
 import { axiosClientWithAuth } from "@/utils/axios";
 
 export async function getAllPaymentService(data: AllPaymentRequest) {

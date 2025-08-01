@@ -59,7 +59,7 @@ export default function ModalBusinessSetting({
       website: "",
       businessType: "",
       cuisineType: "",
-      operatingHours: "",
+      operatingHours: undefined,
       facebookUrl: "",
       instagramUrl: "",
       telegramContact: "",
