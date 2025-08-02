@@ -177,10 +177,6 @@ export default function SubdomainPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="space-y-6">
         <CardHeaderSection
-          breadcrumbs={[
-            { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Subdomain List", href: "" },
-          ]}
           title="Subdomain"
           searchValue={searchQuery}
           searchPlaceholder="Search..."

@@ -82,7 +82,7 @@ export const sidebarItems: SidebarItem[] = [
     icon: Users,
     subroutes: [
       {
-        title: "Manage Users",
+        title: "Users",
         href: ROUTES.DASHBOARD.USERS,
       },
       {
@@ -97,7 +97,7 @@ export const sidebarItems: SidebarItem[] = [
     icon: Users,
     subroutes: [
       {
-        title: "Manage customers",
+        title: "customers",
         href: ROUTES.DASHBOARD.CUSTOMER_USER,
       },
     ],
@@ -112,19 +112,19 @@ export const sidebarItems: SidebarItem[] = [
         href: ROUTES.DASHBOARD.NEW_OWNER,
       },
       {
-        title: "Manage Owners",
+        title: "Owners",
         href: ROUTES.DASHBOARD.BUSINESS_OWNER,
       },
       {
-        title: "Manage Users",
+        title: "Users",
         href: ROUTES.DASHBOARD.BUSINESS_USER,
       },
       {
-        title: "Manage Subdomain",
+        title: "Subdomain",
         href: ROUTES.DASHBOARD.SUB_DOMAIN,
       },
       {
-        title: "Manage Business",
+        title: "Business",
         href: ROUTES.DASHBOARD.MANAGE_BUSINESS,
       },
       {

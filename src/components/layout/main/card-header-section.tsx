@@ -23,7 +23,7 @@ interface BreadcrumbItemType {
 }
 
 interface CardHeaderSectionProps {
-  breadcrumbs: BreadcrumbItemType[];
+  breadcrumbs?: BreadcrumbItemType[];
   title?: string;
   searchPlaceholder?: string;
   backHref?: string;
@@ -71,37 +71,39 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
       <Card>
         <CardContent className="py-6 space-y-4">
           {/* Breadcrumb Section */}
-          <Breadcrumb>
-            <BreadcrumbList>
-              {breadcrumbs.map((item, index) => (
-                <React.Fragment key={index}>
-                  <BreadcrumbItem>
-                    {item.href ? (
-                      <BreadcrumbLink
-                        href={item.href}
-                        className="text-gray-600 hover:text-gray-500 transition-colors duration-200"
-                      >
-                        {item.label}
-                      </BreadcrumbLink>
-                    ) : (
-                      <BreadcrumbPage className="text-gray-400 font-medium">
-                        {item.label}
-                      </BreadcrumbPage>
+          {breadcrumbs && breadcrumbs.length > 0 && (
+            <Breadcrumb>
+              <BreadcrumbList>
+                {breadcrumbs.map((item, index) => (
+                  <React.Fragment key={index}>
+                    <BreadcrumbItem>
+                      {item.href ? (
+                        <BreadcrumbLink
+                          href={item.href}
+                          className="text-gray-600 hover:text-gray-500 transition-colors duration-200"
+                        >
+                          {item.label}
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbPage className="text-gray-400 font-medium">
+                          {item.label}
+                        </BreadcrumbPage>
+                      )}
+                    </BreadcrumbItem>
+                    {index < breadcrumbs.length - 1 && (
+                      <BreadcrumbSeparator
+                        className="text-gray-600"
+                        style={{
+                          animationDelay: `${250 + index * 100}ms`,
+                          animationFillMode: "backwards",
+                        }}
+                      />
                     )}
-                  </BreadcrumbItem>
-                  {index < breadcrumbs.length - 1 && (
-                    <BreadcrumbSeparator
-                      className="text-gray-600"
-                      style={{
-                        animationDelay: `${250 + index * 100}ms`,
-                        animationFillMode: "backwards",
-                      }}
-                    />
-                  )}
-                </React.Fragment>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
+                  </React.Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
 
           {/* Title Section with Back Button */}
           <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-start">
@@ -120,7 +122,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
 
             {title && (
               <div className="flex flex-col">
-                <h5 className="lg:text-2xl text-xl font-bold mb-1">{title}</h5>
+                <h1 className="font-bold mb-1">{title}</h1>
               </div>
             )}
           </div>

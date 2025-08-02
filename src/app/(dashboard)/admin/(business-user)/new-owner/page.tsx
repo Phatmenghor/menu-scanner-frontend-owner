@@ -354,7 +354,7 @@ export default function BusinessRegistrationForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -413,6 +413,7 @@ export default function BusinessRegistrationForm() {
           <Progress value={progress} className="h-2" />
         </div>
 
+        {/* FIXED: Removed overflow constraints from form container */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Step 1: Owner Information */}
           {currentStep === 1 && (
@@ -796,7 +797,7 @@ export default function BusinessRegistrationForm() {
             </Card>
           )}
 
-          {/* Step 3: Subscription & Payment */}
+          {/* Step 3: Subscription & Payment - COMPLETELY FIXED */}
           {currentStep === 3 && (
             <div className="space-y-6">
               {/* Plan Selection */}
@@ -905,7 +906,7 @@ export default function BusinessRegistrationForm() {
                 </CardContent>
               </Card>
 
-              {/* Payment Information */}
+              {/* Payment Information - COMPLETELY FIXED */}
               {selectedPlan && (
                 <Card className="shadow-lg border-0">
                   <CardHeader>
@@ -1063,63 +1064,69 @@ export default function BusinessRegistrationForm() {
                       />
                     </div>
 
-                    <Card className="w-full max-w-sm mx-auto">
-                      <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
-                        <div className="text-center">
-                          <h3 className="text-lg font-semibold">
-                            Upload Payment Receipt
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            Upload a photo or screenshot of your payment receipt
-                          </p>
-                        </div>
+                    {/* COMPLETELY FIXED: Upload section */}
+                    <div className="w-full max-w-sm mx-auto">
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="text-center mb-4">
+                            <h3 className="text-lg font-semibold">
+                              Upload Payment Receipt
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Upload a photo or screenshot of your payment
+                              receipt
+                            </p>
+                          </div>
 
-                        <div className="relative group w-28 h-28">
-                          {imagePreview ? (
-                            <>
-                              <img
-                                src={getImageSource()}
-                                alt="Payment Receipt"
-                                className="w-full h-full object-cover rounded-xl border border-gray-300 shadow-sm"
+                          <div className="flex justify-center">
+                            <div className="relative w-28 h-28">
+                              {imagePreview ? (
+                                <>
+                                  <img
+                                    src={getImageSource()}
+                                    alt="Payment Receipt"
+                                    className="w-full h-full object-cover rounded-xl border border-gray-300 shadow-sm"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={handleRemoveLogo}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-red-600 shadow-md"
+                                    title="Remove image"
+                                  >
+                                    ×
+                                  </button>
+                                </>
+                              ) : (
+                                <div
+                                  onClick={() => fileInputRef.current?.click()}
+                                  className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-400 rounded-xl cursor-pointer transition-colors hover:border-blue-500 bg-gray-50"
+                                >
+                                  <span className="text-gray-500 text-3xl leading-none">
+                                    +
+                                  </span>
+                                  <span className="text-xs text-muted-foreground mt-1">
+                                    Upload
+                                  </span>
+                                </div>
+                              )}
+                              <Input
+                                type="file"
+                                ref={fileInputRef}
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFileChange}
                               />
-                              <button
-                                type="button"
-                                onClick={handleRemoveLogo}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-red-600 shadow-md"
-                                title="Remove image"
-                              >
-                                ×
-                              </button>
-                            </>
-                          ) : (
-                            <div
-                              onClick={() => fileInputRef.current?.click()}
-                              className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-400 rounded-xl cursor-pointer transition-colors hover:border-blue-500 bg-gray-50"
-                            >
-                              <span className="text-gray-500 text-3xl leading-none">
-                                +
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                Upload
-                              </span>
                             </div>
-                          )}
-                          <Input
-                            type="file"
-                            ref={fileInputRef}
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleFileChange}
-                          />
-                        </div>
+                          </div>
 
-                        {imagePreview && (
-                          <p className="text-xs text-muted-foreground">
-                            Click ❌ to remove
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                          {imagePreview && (
+                            <p className="text-xs text-muted-foreground text-center mt-2">
+                              Click ❌ to remove
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
                   </CardContent>
                 </Card>
               )}

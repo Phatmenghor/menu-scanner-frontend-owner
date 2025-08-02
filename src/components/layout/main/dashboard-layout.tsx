@@ -34,9 +34,7 @@ export default function DashboardLayout({
         )}
       >
         <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="dashboard-main overflow-y-auto mb-30 p-2 md:p-4">
-          {children}
-        </main>
+        <main className="dashboard-main mb-30 p-2 md:p-4">{children}</main>
       </div>
     </div>
   );
