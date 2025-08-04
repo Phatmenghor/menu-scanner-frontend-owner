@@ -57,7 +57,6 @@ export default function BusinessPage() {
     handleSubmit,
     control,
     reset,
-    trigger,
     watch,
     setValue,
     formState: { isSubmitting },

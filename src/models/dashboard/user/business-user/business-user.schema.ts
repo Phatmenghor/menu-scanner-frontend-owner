@@ -22,4 +22,6 @@ export const updateMyBusinessSchema = z.object({
     .optional(),
 });
 
-export type MyBusinessFormData = z.infer<typeof updateMyBusinessSchema>;
+export type MyBusinessFormData = z.infer<typeof updateMyBusinessSchema> & {
+  id?: string;
+};

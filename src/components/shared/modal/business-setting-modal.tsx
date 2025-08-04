@@ -49,7 +49,7 @@ export default function ModalBusinessSetting({
   } = useForm<z.infer<typeof updateMyBusinessSchema>>({
     resolver: zodResolver(updateMyBusinessSchema),
     defaultValues: {
-      logoUrl: "",
+      imageUrl: "",
       name: "",
       description: "",
       phone: "",
@@ -64,7 +64,7 @@ export default function ModalBusinessSetting({
     mode: "onChange",
   });
 
-  const logoUrl = watch("logoUrl");
+  const logoUrl = watch("imageUrl");
 
   useEffect(() => {
     if (logoUrl) {
@@ -74,7 +74,7 @@ export default function ModalBusinessSetting({
 
   useEffect(() => {
     reset({
-      logoUrl: Data?.logoUrl || "",
+      imageUrl: Data?.imageUrl || "",
       name: Data?.name || "",
       description: Data?.description || "",
       phone: Data?.phone || "",
@@ -86,7 +86,7 @@ export default function ModalBusinessSetting({
       usdToKhrRate: Data?.usdToKhrRate || 0,
       taxRate: Data?.taxRate || 0,
     });
-    setLogoPreview(Data?.logoUrl || null);
+    setLogoPreview(Data?.imageUrl || null);
   }, [Data, reset, isOpen]);
 
   // Clean up blob URLs
@@ -117,7 +117,7 @@ export default function ModalBusinessSetting({
         const response = await uploadImageService(payload);
         if (response?.imageUrl) {
           setValue(
-            "logoUrl",
+            "imageUrl",
             process.env.NEXT_PUBLIC_API_BASE_URL + response?.imageUrl,
             {
               shouldValidate: true,
@@ -141,7 +141,7 @@ export default function ModalBusinessSetting({
 
   const handleRemoveLogo = () => {
     setLogoPreview(null);
-    setValue("logoUrl", "", { shouldDirty: true });
+    setValue("imageUrl", "", { shouldDirty: true });
   };
 
   const getImageSource = () => {
@@ -167,7 +167,7 @@ export default function ModalBusinessSetting({
 
     const payload: MyBusinessFormData = {
       id: cleanValue(Data?.id),
-      logoUrl: cleanValue(formData.logoUrl),
+      imageUrl: cleanValue(formData.imageUrl),
       name: cleanValue(formData.name),
       description: cleanValue(formData.description),
       phone: cleanValue(formData.phone),
