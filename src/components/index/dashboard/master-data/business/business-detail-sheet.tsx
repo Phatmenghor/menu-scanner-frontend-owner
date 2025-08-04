@@ -88,7 +88,7 @@ export function BusinessDetailSheet({
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarImage
-                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${business?.logoUrl}`}
+                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${business?.imageUrl}`}
                 alt={business?.name}
               />
               <AvatarFallback className="text-lg">
@@ -154,21 +154,6 @@ export function BusinessDetailSheet({
                       {business?.businessType || "---"}
                     </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Cuisine Type
-                    </label>
-                    <p className="mt-1">{business?.cuisineType || "---"}</p>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Operating Hours
-                  </label>
-                  <p className="flex items-center gap-2 mt-1">
-                    <Clock className="h-4 w-4" />
-                    {business?.operatingHours || "---"}
-                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -191,17 +176,7 @@ export function BusinessDetailSheet({
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <span>{business?.phone || "---"}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <a
-                      href={business?.website || "---"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      {business?.website || "---"}
-                    </a>
-                  </div>
+
                   <div className="flex items-start gap-3">
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <span className="text-sm">
@@ -254,53 +229,7 @@ export function BusinessDetailSheet({
                     alt="Telegram Icon"
                     className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
                   />{" "}
-                  <span>{business?.telegramContact || "---"}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Payment Methods */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Payment Methods
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2">
-                    {business?.acceptsOnlinePayment ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <span className="text-sm">Online Payment</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {business?.acceptsCashPayment ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <span className="text-sm">Cash Payment</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {business?.acceptsBankTransfer ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <span className="text-sm">Bank Transfer</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {business?.acceptsMobilePayment ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <span className="text-sm">Mobile Payment</span>
-                  </div>
+                  <span>{business?.telegramUrl || "---"}</span>
                 </div>
               </CardContent>
             </Card>
@@ -332,15 +261,6 @@ export function BusinessDetailSheet({
                       {business?.taxRate || "---"}
                     </p>
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Service Charge Rate
-                  </label>
-                  <p className="text-lg font-semibold mt-1 flex items-center gap-1">
-                    <Percent className="h-4 w-4" />
-                    {business?.serviceChargeRate || "---"}
-                  </p>
                 </div>
               </CardContent>
             </Card>

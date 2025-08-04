@@ -425,6 +425,11 @@ export default function BusinessUserPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleResetPassword = (user: UserModel) => {
+    setSelectedUser(user);
+    setIsResetPasswordDialogOpen(true);
+  };
+
   const handleCloseViewUserDetail = () => {
     setSelectedUser(null);
     setIsUserDetailOpen(false);
@@ -585,7 +590,7 @@ export default function BusinessUserPage() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleDelete(user)}
+                            onClick={() => handleResetPassword(user)}
                           >
                             <RotateCw className="w-4 h-4" />
                           </Button>

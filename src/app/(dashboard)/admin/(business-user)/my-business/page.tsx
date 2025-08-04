@@ -16,21 +16,13 @@ import {
   Edit,
   Save,
   X,
-  Upload,
-  Globe,
   Phone,
   MapPin,
-  Clock,
-  Facebook,
-  Instagram,
-  MessageCircle,
   DollarSign,
   Percent,
-  CreditCard,
   Shield,
   Calendar,
   ChefHat,
-  CheckCircle,
   AlertTriangle,
 } from "lucide-react";
 import { MyBusinessModel } from "@/models/dashboard/user/business-user/business-user.response.model";
@@ -51,6 +43,7 @@ import { UpdateMyBusinessRequest } from "@/models/dashboard/user/business-user/b
 import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { uploadImageService } from "@/services/dashboard/image/image.service";
 import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
+import { cleanValue } from "@/lib/utils";
 
 export default function BusinessPage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -77,20 +70,12 @@ export default function BusinessPage() {
       description: "",
       phone: "",
       address: "",
-      website: "",
       businessType: "",
-      cuisineType: "",
-      operatingHours: "",
       facebookUrl: "",
       instagramUrl: "",
-      telegramContact: "",
+      telegramUrl: "",
       usdToKhrRate: 0,
       taxRate: 0,
-      serviceChargeRate: 0,
-      acceptsOnlinePayment: false,
-      acceptsCashPayment: false,
-      acceptsBankTransfer: false,
-      acceptsMobilePayment: false,
     },
   });
 
@@ -105,27 +90,18 @@ export default function BusinessPage() {
   useEffect(() => {
     if (businessData) {
       reset({
-        logoUrl: businessData?.logoUrl || "",
-        name: businessData?.name || "",
-        description: businessData?.description || "",
-        phone: businessData?.phone || "",
-        address: businessData?.address || "",
-        website: businessData?.website || "",
-        businessType: businessData?.businessType || "",
-        cuisineType: businessData?.cuisineType || "",
-        operatingHours: businessData?.operatingHours || "",
-        facebookUrl: businessData?.facebookUrl || "",
-        instagramUrl: businessData?.instagramUrl || "",
-        telegramContact: businessData?.telegramContact || "",
-        usdToKhrRate: businessData?.usdToKhrRate || 0,
-        taxRate: businessData?.taxRate || 0,
-        serviceChargeRate: businessData?.serviceChargeRate || 0,
-        acceptsOnlinePayment: businessData?.acceptsOnlinePayment || false,
-        acceptsCashPayment: businessData?.acceptsCashPayment || false,
-        acceptsBankTransfer: businessData?.acceptsBankTransfer || false,
-        acceptsMobilePayment: businessData?.acceptsMobilePayment || false,
+        name: businessData.name || "",
+        description: businessData.description || "",
+        phone: businessData.phone || "",
+        address: businessData.address || "",
+        businessType: businessData.businessType || "",
+        facebookUrl: businessData.facebookUrl || "",
+        instagramUrl: businessData.instagramUrl || "",
+        telegramUrl: businessData.telegramUrl || "",
+        usdToKhrRate: businessData.usdToKhrRate || 0,
+        taxRate: businessData.taxRate || 0,
       });
-      setLogoPreview(businessData.logoUrl);
+      setLogoPreview(businessData.imageUrl);
     }
   }, [businessData, reset]);
 
@@ -191,25 +167,17 @@ export default function BusinessPage() {
       const response = await getMyBusinessService();
       setBusinessData(response);
       reset({
-        logoUrl: response?.logoUrl || "",
-        name: response?.name || "",
-        description: response?.description || "",
-        phone: response?.phone || "",
-        address: response?.address || "",
-        website: response?.website || "",
-        businessType: response?.businessType || "",
-        cuisineType: response?.cuisineType || "",
-        operatingHours: response?.operatingHours || "",
-        facebookUrl: response?.facebookUrl || "",
-        instagramUrl: response?.instagramUrl || "",
-        telegramContact: response?.telegramContact || "",
-        usdToKhrRate: response?.usdToKhrRate || 0,
-        taxRate: response?.taxRate || 0,
-        serviceChargeRate: response?.serviceChargeRate || 0,
-        acceptsOnlinePayment: response?.acceptsOnlinePayment || false,
-        acceptsCashPayment: response?.acceptsCashPayment || false,
-        acceptsBankTransfer: response?.acceptsBankTransfer || false,
-        acceptsMobilePayment: response?.acceptsMobilePayment || false,
+        logoUrl: response.imageUrl || "",
+        name: response.name || "",
+        description: response.description || "",
+        phone: response.phone || "",
+        address: response.address || "",
+        businessType: response.businessType || "",
+        facebookUrl: response.facebookUrl || "",
+        instagramUrl: response.instagramUrl || "",
+        telegramUrl: response.telegramUrl || "",
+        usdToKhrRate: response.usdToKhrRate || 0,
+        taxRate: response.taxRate || 0,
       });
     } catch (error) {
       console.error("Fail to fetch my business");
@@ -225,48 +193,37 @@ export default function BusinessPage() {
   };
 
   const handleCancel = () => {
+    reset({
+      logoUrl: "",
+      name: "",
+      description: "",
+      phone: "",
+      address: "",
+      businessType: "",
+      facebookUrl: "",
+      instagramUrl: "",
+      telegramUrl: "",
+      usdToKhrRate: 0,
+      taxRate: 0,
+    });
     setIsEditing(false);
   };
 
   const onSubmit = async (formData: MyBusinessFormData) => {
     setIsLoading(true);
     try {
-      const cleanValue = (value: any) => {
-        if (
-          value === null ||
-          value === undefined ||
-          (typeof value === "string" && value.trim() === "") ||
-          value === 0
-        ) {
-          return undefined;
-        }
-        return typeof value === "string" ? value.trim() : value;
-      };
-
       const payload: UpdateMyBusinessRequest = {
         logoUrl: cleanValue(formData.logoUrl),
         name: cleanValue(formData.name),
         description: cleanValue(formData.description),
         phone: cleanValue(formData.phone),
         address: cleanValue(formData.address),
-        website: cleanValue(formData.website),
-
         businessType: cleanValue(formData.businessType),
-        cuisineType: cleanValue(formData.cuisineType),
-        operatingHours: cleanValue(formData.operatingHours),
-
         facebookUrl: cleanValue(formData.facebookUrl),
         instagramUrl: cleanValue(formData.instagramUrl),
-        telegramContact: cleanValue(formData.telegramContact),
-
+        telegramUrl: cleanValue(formData.telegramUrl),
         usdToKhrRate: cleanValue(formData.usdToKhrRate),
         taxRate: cleanValue(formData.taxRate),
-        serviceChargeRate: cleanValue(formData.serviceChargeRate),
-
-        acceptsOnlinePayment: cleanValue(formData.acceptsOnlinePayment),
-        acceptsCashPayment: cleanValue(formData.acceptsCashPayment),
-        acceptsBankTransfer: cleanValue(formData.acceptsBankTransfer),
-        acceptsMobilePayment: cleanValue(formData.acceptsMobilePayment),
       };
 
       const response = await updateMyBusinessService(payload);
@@ -443,15 +400,6 @@ export default function BusinessPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">
-                      Cuisine Type
-                    </Label>
-                    <p className="text-gray-900">
-                      {businessData?.cuisineType || "---"}
-                    </p>
-                  </div>
-
                   <Separator />
 
                   <div>
@@ -539,57 +487,6 @@ export default function BusinessPage() {
                       </p>
                     )}
                   </div>
-
-                  <div>
-                    <Label htmlFor="cuisineType">Cuisine Type</Label>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="cuisineType"
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="cuisineType"
-                            type="text"
-                            autoFocus
-                            disabled={isSubmitting}
-                            autoComplete="cuisineType"
-                          />
-                        )}
-                      />
-                    ) : (
-                      <p className="mt-1 text-gray-900">
-                        {businessData?.cuisineType || "---"}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="operatingHours">Operating Hours</Label>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="operatingHours"
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="operatingHours"
-                            type="number"
-                            autoFocus
-                            disabled={isSubmitting}
-                            autoComplete="operatingHours"
-                          />
-                        )}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Clock className="w-4 h-4 text-gray-500" />
-                        <span className="text-gray-900">
-                          {businessData?.operatingHours || "---"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
                 </div>
 
                 <div>
@@ -648,38 +545,6 @@ export default function BusinessPage() {
                         <span className="text-gray-900">
                           {businessData?.phone || "---"}
                         </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="website">Website</Label>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="website"
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="website"
-                            type="text"
-                            autoFocus
-                            disabled={isSubmitting}
-                            autoComplete="website"
-                          />
-                        )}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Globe className="w-4 h-4 text-gray-500" />
-                        <a
-                          href={businessData?.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          {businessData?.website || "---"}
-                        </a>
                       </div>
                     )}
                   </div>
@@ -792,37 +657,6 @@ export default function BusinessPage() {
                       </div>
                     )}
                   </div>
-
-                  <div>
-                    <Label htmlFor="telegramContact">Telegram Contact</Label>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="telegramContact"
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="telegramContact"
-                            type="text"
-                            autoFocus
-                            disabled={isSubmitting}
-                            autoComplete="telegramContact"
-                          />
-                        )}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2 mt-1">
-                        <img
-                          src={AppIcons.Telegram}
-                          alt="Telegram Icon"
-                          className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
-                        />{" "}
-                        <span className="text-gray-900">
-                          {businessData?.telegramContact || "---"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -847,10 +681,18 @@ export default function BusinessPage() {
                           <Input
                             {...field}
                             id="usdToKhrRate"
-                            type="number"
+                            type="text"
                             autoFocus
                             disabled={isSubmitting}
                             autoComplete="usdToKhrRate"
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              const parsed = parseFloat(value);
+                              field.onChange(
+                                isNaN(parsed) ? undefined : parsed
+                              );
+                            }}
+                            value={field.value ?? ""}
                           />
                         )}
                       />
@@ -871,10 +713,18 @@ export default function BusinessPage() {
                           <Input
                             {...field}
                             id="taxRate"
-                            type="number"
+                            type="text"
                             autoFocus
                             disabled={isSubmitting}
                             autoComplete="taxRate"
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              const parsed = parseFloat(value);
+                              field.onChange(
+                                isNaN(parsed) ? undefined : parsed
+                              );
+                            }}
+                            value={field.value ?? ""}
                           />
                         )}
                       />
@@ -884,156 +734,6 @@ export default function BusinessPage() {
                         <span className="text-lg font-semibold text-gray-900">
                           {businessData?.taxRate}
                         </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="serviceChargeRate">
-                      Service Charge (%)
-                    </Label>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="serviceChargeRate"
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="serviceChargeRate"
-                            type="number"
-                            autoFocus
-                            disabled={isSubmitting}
-                            autoComplete="serviceChargeRate"
-                          />
-                        )}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Percent className="w-4 h-4 text-gray-500" />
-                        <span className="text-lg font-semibold text-gray-900">
-                          {businessData?.serviceChargeRate}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Payment Methods */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Payment Methods
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium">Online Payment</span>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="acceptsOnlinePayment"
-                        render={({ field }) => (
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={field.disabled}
-                            name={field.name}
-                            ref={field.ref}
-                          />
-                        )}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        {businessData?.acceptsOnlinePayment ? (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <X className="w-4 h-4 text-red-600" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium">Cash Payment</span>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="acceptsCashPayment"
-                        render={({ field }) => (
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={field.disabled}
-                            name={field.name}
-                            ref={field.ref}
-                          />
-                        )}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        {businessData?.acceptsCashPayment ? (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <X className="w-4 h-4 text-red-600" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium">Bank Transfer</span>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="acceptsBankTransfer"
-                        render={({ field }) => (
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={field.disabled}
-                            name={field.name}
-                            ref={field.ref}
-                          />
-                        )}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        {businessData?.acceptsBankTransfer ? (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <X className="w-4 h-4 text-red-600" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium">Mobile Payment</span>
-                    {isEditing ? (
-                      <Controller
-                        control={control}
-                        name="acceptsMobilePayment"
-                        render={({ field }) => (
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={field.disabled}
-                            name={field.name}
-                            ref={field.ref}
-                          />
-                        )}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        {businessData?.acceptsMobilePayment ? (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <X className="w-4 h-4 text-red-600" />
-                        )}
                       </div>
                     )}
                   </div>

@@ -61,6 +61,7 @@ import { getUserInfo } from "@/utils/local-storage/userInfo";
 import ModalBusinessSetting from "@/components/shared/modal/business-setting-modal";
 import { MyBusinessFormData } from "@/models/dashboard/user/business-user/business-user.schema";
 import { UpdateMyBusinessRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
+import { cleanValue } from "@/lib/utils";
 
 export default function ManageBusinessPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -207,25 +208,17 @@ export default function ManageBusinessPage() {
     setIsSubmitting(true);
     try {
       const payload: UpdateMyBusinessRequest = {
-        logoUrl: formData?.logoUrl,
-        name: formData?.name,
-        description: formData?.description,
-        phone: formData?.phone,
-        address: formData?.address,
-        website: formData?.website,
-        businessType: formData?.businessType,
-        cuisineType: formData?.cuisineType,
-        operatingHours: formData?.operatingHours,
-        facebookUrl: formData?.facebookUrl,
-        instagramUrl: formData?.instagramUrl,
-        telegramContact: formData?.telegramContact,
-        usdToKhrRate: formData?.usdToKhrRate,
-        taxRate: formData?.taxRate,
-        serviceChargeRate: formData?.serviceChargeRate,
-        acceptsOnlinePayment: formData?.acceptsOnlinePayment,
-        acceptsCashPayment: formData?.acceptsCashPayment,
-        acceptsBankTransfer: formData?.acceptsBankTransfer,
-        acceptsMobilePayment: formData?.acceptsMobilePayment,
+        logoUrl: cleanValue(formData.logoUrl),
+        name: cleanValue(formData.name),
+        description: cleanValue(formData.description),
+        phone: cleanValue(formData.phone),
+        address: cleanValue(formData.address),
+        businessType: cleanValue(formData.businessType),
+        facebookUrl: cleanValue(formData.facebookUrl),
+        instagramUrl: cleanValue(formData.instagramUrl),
+        telegramUrl: cleanValue(formData.telegramUrl),
+        usdToKhrRate: cleanValue(formData.usdToKhrRate),
+        taxRate: cleanValue(formData.taxRate),
       };
 
       // Update mode
@@ -512,12 +505,15 @@ export default function ManageBusinessPage() {
                 ) : (
                   data.content.map((business, index) => {
                     const logoUrl =
-                      business?.logoUrl && process.env.NEXT_PUBLIC_API_BASE_URL
-                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${business.logoUrl}`
+                      business?.imageUrl && process.env.NEXT_PUBLIC_API_BASE_URL
+                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${business.imageUrl}`
                         : undefined;
 
                     return (
-                      <TableRow key={business.id} className="text-sm">
+                      <TableRow
+                        key={`${business.id}-${business.createdAt}`}
+                        className="text-sm"
+                      >
                         {/* Index */}
                         <TableCell className="font-medium truncate">
                           {indexDisplay(data.pageNo, data.pageSize, index)}
@@ -528,7 +524,7 @@ export default function ManageBusinessPage() {
                           <div>
                             <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
                               <AvatarImage
-                                src={business.logoUrl ? logoUrl : ""}
+                                src={business.imageUrl ? logoUrl : ""}
                                 alt={`${business.name} logo`}
                               />
                               <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">
@@ -552,15 +548,6 @@ export default function ManageBusinessPage() {
                           <div className="flex flex-col">
                             <span className="font-medium">
                               {business?.businessType || "---"}
-                            </span>
-                          </div>
-                        </TableCell>
-
-                        {/* Cuisine Type  */}
-                        <TableCell className="text-xs">
-                          <div className="flex flex-col">
-                            <span className="text-muted-foreground">
-                              {business?.cuisineType || "---"}
                             </span>
                           </div>
                         </TableCell>
@@ -604,19 +591,6 @@ export default function ManageBusinessPage() {
                                 {business.daysRemaining} days left
                               </span>
                             )}
-                          </div>
-                        </TableCell>
-
-                        {/* Status Switch */}
-                        <TableCell>
-                          <div className="flex flex-col justify-center">
-                            <BusinessStatusBadge
-                              status={business?.status}
-                              isSubscriptionActive={
-                                business?.isSubscriptionActive
-                              }
-                              isExpiringSoon={business?.isExpiringSoon}
-                            />
                           </div>
                         </TableCell>
 

@@ -13,11 +13,8 @@ export default function middleware(req: NextRequest) {
   // If not authenticated
   if (!token) {
     // Avoid infinite loop
-    if (pathname !== ROUTES.AUTH.LOGIN) {
-      console.log("No token, redirecting to login...");
-      return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, req.url));
-    }
-    return NextResponse.next();
+    console.log("No token, redirecting to login...");
+    return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, req.url));
   }
 
   // If authenticated and trying to access root, redirect to dashboard

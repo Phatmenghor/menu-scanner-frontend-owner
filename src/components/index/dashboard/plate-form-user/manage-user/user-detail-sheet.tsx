@@ -17,6 +17,7 @@ import {
   XCircle,
   AlertTriangle,
   Crown,
+  Building2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -221,7 +222,7 @@ export function UserDetailSheet({
             </Card>
 
             {/* Business Association */}
-            {/* <Card>
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
@@ -235,16 +236,8 @@ export function UserDetailSheet({
                   </label>
                   <p className="mt-1 font-medium">{user?.businessName}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Business ID
-                  </label>
-                  <p className="mt-1 font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                    {user?.businessId}
-                  </p>
-                </div>
               </CardContent>
-            </Card> */}
+            </Card>
 
             {/* Roles & Permissions */}
             <Card>
@@ -348,13 +341,17 @@ export function UserDetailSheet({
                   <span className="text-sm font-medium text-muted-foreground">
                     Created
                   </span>
-                  <span className="text-sm">{formatDate(user?.createdAt)}</span>
+                  <span className="text-sm">
+                    {formatDate(user?.createdAt ?? "---")}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium text-muted-foreground">
                     Last Updated
                   </span>
-                  <span className="text-sm">{formatDate(user?.updatedAt)}</span>
+                  <span className="text-sm">
+                    {formatDate(user?.updatedAt ?? "---")}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium text-muted-foreground">

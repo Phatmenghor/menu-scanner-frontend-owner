@@ -208,7 +208,7 @@ export function ComboboxSelectBusiness({
                   <div className="flex items-start space-x-3 w-full">
                     {/* Business Logo/Avatar */}
                     <Avatar className="h-12 w-12 flex-shrink-0">
-                      <AvatarImage src={item.logoUrl} alt={item.name} />
+                      <AvatarImage src={item.imageUrl} alt={item.name} />
                       <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
                         {item.name
                           .split(" ")
@@ -296,22 +296,7 @@ export function ComboboxSelectBusiness({
                             <span>{item.totalCustomers} customers</span>
                           </div>
                         </div>
-                        {item.website && (
-                          <div className="flex items-center text-xs text-blue-600">
-                            <Globe className="h-3 w-3 mr-1" />
-                            <span className="truncate max-w-20">Website</span>
-                          </div>
-                        )}
                       </div>
-
-                      {/* Cuisine Type Badge (if applicable) */}
-                      {item.cuisineType && (
-                        <div className="mt-2">
-                          <Badge variant="outline" className="text-xs">
-                            {item.cuisineType}
-                          </Badge>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </CommandItem>

@@ -574,8 +574,8 @@ export default function BusinessPage() {
                 ) : (
                   data.content.map((business, index) => {
                     const logoUrl =
-                      business?.logoUrl && process.env.NEXT_PUBLIC_API_BASE_URL
-                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${business.logoUrl}`
+                      business?.imageUrl && process.env.NEXT_PUBLIC_API_BASE_URL
+                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${business.imageUrl}`
                         : undefined;
 
                     return (
@@ -590,7 +590,7 @@ export default function BusinessPage() {
                           <div>
                             <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
                               <AvatarImage
-                                src={business.logoUrl ? logoUrl : ""}
+                                src={business.imageUrl ? logoUrl : ""}
                                 alt={`${business.name} logo`}
                               />
                               <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">
@@ -614,15 +614,6 @@ export default function BusinessPage() {
                           <div className="flex flex-col">
                             <span className="font-medium">
                               {business?.businessType || "---"}
-                            </span>
-                          </div>
-                        </TableCell>
-
-                        {/* Cuisine Type  */}
-                        <TableCell className="">
-                          <div className="flex flex-col">
-                            <span className="text-muted-foreground">
-                              {business?.cuisineType || "---"}
                             </span>
                           </div>
                         </TableCell>

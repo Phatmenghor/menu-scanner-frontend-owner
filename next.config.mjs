@@ -42,7 +42,6 @@ const nextConfig = {
       /Critical dependency/,
       /the request of a dependency is an expression/,
     ];
-    config.bail = false;
     return config;
   },
   // No headers = No CSP restrictions for full-stack flexibility

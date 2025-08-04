@@ -17,7 +17,6 @@ import {
 } from "@/models/dashboard/user/business-user/business-user.schema";
 import { uploadImageService } from "@/services/dashboard/image/image.service";
 import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import z from "zod";
 
@@ -47,29 +46,20 @@ export default function ModalBusinessSetting({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<MyBusinessFormData>({
-    resolver: zodResolver(updateMyBusinessSchema), // Use dynamic schema instead of hardcoded UserFormSchema
+  } = useForm<z.infer<typeof updateMyBusinessSchema>>({
+    resolver: zodResolver(updateMyBusinessSchema),
     defaultValues: {
       logoUrl: "",
-      id: "",
       name: "",
       description: "",
       phone: "",
       address: "",
-      website: "",
       businessType: "",
-      cuisineType: "",
-      operatingHours: undefined,
       facebookUrl: "",
       instagramUrl: "",
-      telegramContact: "",
-      usdToKhrRate: 0,
-      taxRate: 0,
-      serviceChargeRate: 0,
-      acceptsOnlinePayment: false,
-      acceptsCashPayment: false,
-      acceptsBankTransfer: false,
-      acceptsMobilePayment: false,
+      telegramUrl: "",
+      usdToKhrRate: undefined,
+      taxRate: undefined,
     },
     mode: "onChange",
   });
@@ -84,26 +74,17 @@ export default function ModalBusinessSetting({
 
   useEffect(() => {
     reset({
-      id: Data?.id,
       logoUrl: Data?.logoUrl || "",
       name: Data?.name || "",
       description: Data?.description || "",
       phone: Data?.phone || "",
       address: Data?.address || "",
-      website: Data?.website || "",
       businessType: Data?.businessType || "",
-      cuisineType: Data?.cuisineType || "",
-      operatingHours: Data?.operatingHours || undefined,
       facebookUrl: Data?.facebookUrl || "",
       instagramUrl: Data?.instagramUrl || "",
-      telegramContact: Data?.telegramContact || "",
+      telegramUrl: Data?.telegramUrl || "",
       usdToKhrRate: Data?.usdToKhrRate || 0,
       taxRate: Data?.taxRate || 0,
-      serviceChargeRate: Data?.serviceChargeRate || 0,
-      acceptsOnlinePayment: Data?.acceptsOnlinePayment || false,
-      acceptsCashPayment: Data?.acceptsCashPayment || false,
-      acceptsBankTransfer: Data?.acceptsBankTransfer || false,
-      acceptsMobilePayment: Data?.acceptsMobilePayment || false,
     });
     setLogoPreview(Data?.logoUrl || null);
   }, [Data, reset, isOpen]);
@@ -190,25 +171,14 @@ export default function ModalBusinessSetting({
       name: cleanValue(formData.name),
       description: cleanValue(formData.description),
       phone: cleanValue(formData.phone),
+
       address: cleanValue(formData.address),
-      website: cleanValue(formData.website),
-
       businessType: cleanValue(formData.businessType),
-      cuisineType: cleanValue(formData.cuisineType),
-      operatingHours: formData.operatingHours?.trim() ?? undefined,
-
       facebookUrl: cleanValue(formData.facebookUrl),
       instagramUrl: cleanValue(formData.instagramUrl),
-      telegramContact: cleanValue(formData.telegramContact),
-
-      usdToKhrRate: Number(cleanValue(formData.usdToKhrRate)),
-      taxRate: Number(cleanValue(formData.taxRate)),
-      serviceChargeRate: Number(cleanValue(formData.serviceChargeRate)),
-
-      acceptsOnlinePayment: cleanValue(formData.acceptsOnlinePayment),
-      acceptsCashPayment: cleanValue(formData.acceptsCashPayment),
-      acceptsBankTransfer: cleanValue(formData.acceptsBankTransfer),
-      acceptsMobilePayment: cleanValue(formData.acceptsMobilePayment),
+      telegramUrl: cleanValue(formData.telegramUrl),
+      usdToKhrRate: cleanValue(formData.usdToKhrRate),
+      taxRate: cleanValue(formData.taxRate),
     };
 
     console.log(" Payload:", payload);
@@ -293,7 +263,7 @@ export default function ModalBusinessSetting({
                   {...field}
                   id="businessType"
                   type="text"
-                  placeholder="Restaurant ..."
+                  placeholder="e.g. Restaurant, Café, Retail..."
                   disabled={isSubmitting}
                   autoComplete="street-address"
                   className={errors.businessType ? "border-red-500" : ""}
@@ -303,56 +273,6 @@ export default function ModalBusinessSetting({
             {errors.businessType && (
               <p className="text-sm text-destructive">
                 {errors.businessType.message}
-              </p>
-            )}
-          </div>
-
-          {/* Cuisine Type Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="cuisineType">Business Type</Label>
-            <Controller
-              control={control}
-              name="cuisineType"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="cuisineType"
-                  type="text"
-                  placeholder="vietnam, us, japanese, ..."
-                  disabled={isSubmitting}
-                  autoComplete="street-address"
-                  className={errors.cuisineType ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.cuisineType && (
-              <p className="text-sm text-destructive">
-                {errors.cuisineType.message}
-              </p>
-            )}
-          </div>
-
-          {/* Cuisine Type Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="cuisineType">Cuisine Type</Label>
-            <Controller
-              control={control}
-              name="description"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="cuisineType"
-                  type="text"
-                  placeholder="vietnam, us, japanese, ..."
-                  disabled={isSubmitting}
-                  autoComplete="street-address"
-                  className={errors.cuisineType ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.cuisineType && (
-              <p className="text-sm text-destructive">
-                {errors.cuisineType.message}
               </p>
             )}
           </div>
@@ -405,63 +325,6 @@ export default function ModalBusinessSetting({
               </p>
             )}
           </div>
-
-          {/* Operating hours Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="operatingHours">Operating Hours</Label>
-            <Controller
-              control={control}
-              name="operatingHours"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="operatingHours"
-                  type="text"
-                  placeholder="e.g. Mon-Sun: 6AM-10PM"
-                  disabled={isSubmitting}
-                  autoComplete="operatingHours"
-                  className={errors.operatingHours ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.operatingHours && (
-              <p className="text-sm text-destructive">
-                {errors.operatingHours.message}
-              </p>
-            )}
-          </div>
-
-          {/* Service Charge Rate Field - Optional */}
-          <Controller
-            control={control}
-            name="serviceChargeRate"
-            rules={{
-              required: "Service charge is required",
-              validate: (value) => {
-                const number = Number(value);
-                if (isNaN(number)) return "Must be a valid number";
-                if (number < 0) return "Cannot be negative";
-                return true;
-              },
-            }}
-            render={({ field }) => (
-              <Input
-                {...field}
-                id="serviceChargeRate"
-                type="text" // ← use text for better control
-                placeholder="e.g., 40"
-                disabled={isSubmitting}
-                autoComplete="serviceChargeRate"
-                onChange={(e) => field.onChange(e.target.value)}
-                className={errors.serviceChargeRate ? "border-red-500" : ""}
-              />
-            )}
-          />
-          {errors.serviceChargeRate && (
-            <p className="text-sm text-destructive">
-              {errors.serviceChargeRate.message}
-            </p>
-          )}
 
           {/* taxRate Field - Optional */}
           <Controller
@@ -579,142 +442,24 @@ export default function ModalBusinessSetting({
             <Label htmlFor="telegramContact">Telegram Contact</Label>
             <Controller
               control={control}
-              name="telegramContact"
+              name="telegramUrl"
               render={({ field }) => (
                 <Input
                   {...field}
                   id="telegramContact"
                   type="text"
-                  placeholder="i.e, @restaurant"
-                  disabled={isSubmitting}
-                  autoComplete="telegramContact"
-                  className={errors.telegramContact ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.telegramContact && (
-              <p className="text-sm text-destructive">
-                {errors.telegramContact.message}
-              </p>
-            )}
-          </div>
-
-          {/* website Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="website">Website</Label>
-            <Controller
-              control={control}
-              name="website"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="website"
-                  type="text"
                   placeholder="i.e, link"
                   disabled={isSubmitting}
-                  autoComplete="website"
-                  className={errors.website ? "border-red-500" : ""}
+                  autoComplete="telegramContact"
+                  className={errors.telegramUrl ? "border-red-500" : ""}
                 />
               )}
             />
-            {errors.website && (
+            {errors.telegramUrl && (
               <p className="text-sm text-destructive">
-                {errors.website.message}
+                {errors.telegramUrl.message}
               </p>
             )}
-          </div>
-
-          <div className="flex flex-wrap py-2 gap-4">
-            {/* Online Payment Field - Optional */}
-            <div className="flex items-center space-y-1 gap-2">
-              <Label htmlFor="acceptsOnlinePayment">Online Payment</Label>
-              <Controller
-                control={control}
-                name="acceptsOnlinePayment"
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={field.disabled}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                )}
-              />
-              {errors.acceptsOnlinePayment && (
-                <p className="text-sm text-destructive">
-                  {errors.acceptsOnlinePayment.message}
-                </p>
-              )}
-            </div>
-            {/* Bank Transfer Field - Optional */}
-            <div className="flex items-center space-y-1 gap-2">
-              <Label htmlFor="acceptsBankTransfer">Bank Transfer</Label>
-              <Controller
-                control={control}
-                name="acceptsBankTransfer"
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={field.disabled}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                )}
-              />
-              {errors.acceptsBankTransfer && (
-                <p className="text-sm text-destructive">
-                  {errors.acceptsBankTransfer.message}
-                </p>
-              )}
-            </div>
-
-            {/* Cash Payment Field - Optional */}
-            <div className="flex items-center space-y-1 gap-2">
-              <Label htmlFor="acceptsCashPayment">Cash Payment</Label>
-              <Controller
-                control={control}
-                name="acceptsCashPayment"
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={field.disabled}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                )}
-              />
-              {errors.acceptsCashPayment && (
-                <p className="text-sm text-destructive">
-                  {errors.acceptsCashPayment.message}
-                </p>
-              )}
-            </div>
-
-            {/* Mobile Payment Field - Optional */}
-            <div className="flex items-center space-y-1 gap-2">
-              <Label htmlFor="acceptsMobilePayment">Mobile Payment</Label>
-              <Controller
-                control={control}
-                name="acceptsMobilePayment"
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={field.disabled}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                )}
-              />
-              {errors.acceptsMobilePayment && (
-                <p className="text-sm text-destructive">
-                  {errors.acceptsMobilePayment.message}
-                </p>
-              )}
-            </div>
           </div>
 
           <Card className="mt-6 ">
