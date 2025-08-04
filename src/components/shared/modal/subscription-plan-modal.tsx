@@ -23,9 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  createSubscriptionPlanSchema,
   SubscriptionPlanFormData,
-  updateSubscriptionPlanSchema,
+  SubscriptionPlanSchema,
 } from "@/models/dashboard/master-data/subscription-plan/subscription-plan.schema";
 
 type Props = {
@@ -46,9 +45,6 @@ export default function ModalSubscriptionPlan({
   isSubmitting = false,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
-  const schema = isCreate
-    ? createSubscriptionPlanSchema
-    : updateSubscriptionPlanSchema;
 
   const {
     control,
@@ -56,7 +52,7 @@ export default function ModalSubscriptionPlan({
     reset,
     formState: { errors },
   } = useForm<SubscriptionPlanFormData>({
-    resolver: zodResolver(schema), // Always use the form schema
+    resolver: zodResolver(SubscriptionPlanSchema), // Always use the form schema
     defaultValues: {
       id: "",
       name: "",
@@ -160,7 +156,7 @@ export default function ModalSubscriptionPlan({
                   type="text"
                   inputMode="numeric"
                   placeholder="Enter number of days"
-                  onChange={(e) => field.onChange(e.target.value)}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
                   disabled={isSubmitting}
                   autoComplete="off"
                   className={errors.durationDays ? "border-red-500" : ""}
@@ -189,7 +185,7 @@ export default function ModalSubscriptionPlan({
                   type="text"
                   inputMode="decimal"
                   placeholder="Enter price"
-                  onChange={(e) => field.onChange(e.target.value)}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
                   disabled={isSubmitting}
                   autoComplete="off"
                   className={errors.price ? "border-red-500" : ""}

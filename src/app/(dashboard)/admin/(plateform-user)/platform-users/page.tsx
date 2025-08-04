@@ -81,6 +81,7 @@ import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
 import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
+import { getUserInfo } from "@/utils/local-storage/userInfo";
 
 export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,6 +116,7 @@ export default function UserPage() {
   // Debounced search query - Optimized api performance when search
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
 
+  const user = getUserInfo();
   const searchParams = useSearchParams();
 
   const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
@@ -492,9 +494,9 @@ export default function UserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Customer Users List", href: "" },
+            { label: "PlateForm Users List", href: "" },
           ]}
-          title="Customer Users"
+          title="PlateForm Users"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
           buttonIcon={<Plus className="w-3 h-3" />}

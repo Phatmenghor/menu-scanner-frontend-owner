@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 export const updateMyBusinessSchema = z.object({
-  id: z.string().optional(),
-  logoUrl: z.string().optional(),
+  imageUrl: z.string().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
   phone: z.string().optional(),
@@ -11,12 +10,12 @@ export const updateMyBusinessSchema = z.object({
   facebookUrl: z.string().optional(),
   instagramUrl: z.string().optional(),
   telegramUrl: z.string().optional(),
-  usdToKhrRate: z.coerce
+  usdToKhrRate: z
     .number()
     .min(1000, "Exchange rate must be at least 1000 KHR per USD")
     .max(10000, "Exchange rate cannot exceed 10000 KHR per USD")
     .optional(),
-  taxRate: z.coerce
+  taxRate: z
     .number()
     .min(0, "Tax rate cannot be negative")
     .max(100, "Tax rate cannot exceed 100%")

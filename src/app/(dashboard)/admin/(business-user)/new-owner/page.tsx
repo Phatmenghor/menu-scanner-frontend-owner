@@ -309,7 +309,7 @@ export default function BusinessRegistrationForm() {
       const response = await createBusinessOwnerService(payload);
 
       AppToast({
-        type: "success",
+        type: "celebration",
         message: `Owner ${
           response.ownerUserIdentifier || response.ownerUserIdentifier
         } added successfully`,

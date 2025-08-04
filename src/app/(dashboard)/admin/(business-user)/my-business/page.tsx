@@ -6,11 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 import {
   Building2,
   Edit,
@@ -59,13 +57,14 @@ export default function BusinessPage() {
     handleSubmit,
     control,
     reset,
+    trigger,
     watch,
     setValue,
     formState: { isSubmitting },
   } = useForm<MyBusinessFormData>({
     resolver: zodResolver(updateMyBusinessSchema),
     defaultValues: {
-      logoUrl: "",
+      imageUrl: "",
       name: "",
       description: "",
       phone: "",
@@ -79,13 +78,13 @@ export default function BusinessPage() {
     },
   });
 
-  const logoUrl = watch("logoUrl");
+  const imageUrl = watch("imageUrl");
 
   useEffect(() => {
-    if (logoUrl) {
-      setLogoPreview(logoUrl);
+    if (imageUrl) {
+      setLogoPreview(imageUrl);
     }
-  }, [logoUrl]);
+  }, [imageUrl]);
 
   useEffect(() => {
     if (businessData) {
@@ -100,6 +99,7 @@ export default function BusinessPage() {
         telegramUrl: businessData.telegramUrl || "",
         usdToKhrRate: businessData.usdToKhrRate || 0,
         taxRate: businessData.taxRate || 0,
+        imageUrl: businessData.imageUrl || "",
       });
       setLogoPreview(businessData.imageUrl);
     }
@@ -131,17 +131,15 @@ export default function BusinessPage() {
         };
 
         const response = await uploadImageService(payload);
-        if (response?.imageUrl) {
-          setValue("logoUrl", response?.imageUrl, {
-            shouldValidate: true,
-          });
-          console.log(
-            "Image Preview URL:",
-            process.env.NEXT_PUBLIC_API_BASE_URL + response.imageUrl
-          );
+        setValue("imageUrl", response?.imageUrl, {
+          shouldValidate: true,
+        });
+        console.log(
+          "Image Preview URL:",
+          process.env.NEXT_PUBLIC_API_BASE_URL + response.imageUrl
+        );
 
-          setLogoPreview(response?.imageUrl);
-        }
+        setLogoPreview(response?.imageUrl);
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -153,7 +151,7 @@ export default function BusinessPage() {
 
   const handleRemoveLogo = () => {
     setLogoPreview(null);
-    setValue("logoUrl", "", { shouldDirty: true });
+    setValue("imageUrl", "", { shouldDirty: true });
   };
 
   const getImageSource = () => {
@@ -166,8 +164,9 @@ export default function BusinessPage() {
     try {
       const response = await getMyBusinessService();
       setBusinessData(response);
+      console.log("Load business: ", response);
       reset({
-        logoUrl: response.imageUrl || "",
+        imageUrl: response.imageUrl || "",
         name: response.name || "",
         description: response.description || "",
         phone: response.phone || "",
@@ -194,17 +193,17 @@ export default function BusinessPage() {
 
   const handleCancel = () => {
     reset({
-      logoUrl: "",
-      name: "",
-      description: "",
-      phone: "",
-      address: "",
-      businessType: "",
-      facebookUrl: "",
-      instagramUrl: "",
-      telegramUrl: "",
-      usdToKhrRate: 0,
-      taxRate: 0,
+      imageUrl: businessData?.imageUrl || "",
+      name: businessData?.name || "",
+      description: businessData?.description || "",
+      phone: businessData?.phone || "",
+      address: businessData?.address || "",
+      businessType: businessData?.businessType || "",
+      facebookUrl: businessData?.facebookUrl || "",
+      instagramUrl: businessData?.instagramUrl || "",
+      telegramUrl: businessData?.telegramUrl || "",
+      usdToKhrRate: businessData?.usdToKhrRate || 0,
+      taxRate: businessData?.taxRate || 0,
     });
     setIsEditing(false);
   };
@@ -213,7 +212,7 @@ export default function BusinessPage() {
     setIsLoading(true);
     try {
       const payload: UpdateMyBusinessRequest = {
-        logoUrl: cleanValue(formData.logoUrl),
+        imageUrl: cleanValue(formData.imageUrl),
         name: cleanValue(formData.name),
         description: cleanValue(formData.description),
         phone: cleanValue(formData.phone),
@@ -657,6 +656,42 @@ export default function BusinessPage() {
                       </div>
                     )}
                   </div>
+
+                  <div>
+                    <Label htmlFor="telegramUrl">Telegram URL</Label>
+                    {isEditing ? (
+                      <Controller
+                        control={control}
+                        name="telegramUrl"
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            id="telegramUrl"
+                            type="text"
+                            autoFocus
+                            disabled={isSubmitting}
+                            autoComplete="telegramUrl"
+                          />
+                        )}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 mt-1">
+                        <img
+                          src={AppIcons.Telegram}
+                          alt="Telegram Icon"
+                          className="h-4 w-4 mr-3 sm:mr-5 text-muted-foreground"
+                        />{" "}
+                        <a
+                          href={businessData?.telegramUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-pink-600 hover:underline"
+                        >
+                          Telegram Profile
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -686,13 +721,8 @@ export default function BusinessPage() {
                             disabled={isSubmitting}
                             autoComplete="usdToKhrRate"
                             onChange={(e) => {
-                              const value = e.target.value;
-                              const parsed = parseFloat(value);
-                              field.onChange(
-                                isNaN(parsed) ? undefined : parsed
-                              );
+                              field.onChange(Number(e.target.value));
                             }}
-                            value={field.value ?? ""}
                           />
                         )}
                       />
@@ -717,14 +747,9 @@ export default function BusinessPage() {
                             autoFocus
                             disabled={isSubmitting}
                             autoComplete="taxRate"
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              const parsed = parseFloat(value);
-                              field.onChange(
-                                isNaN(parsed) ? undefined : parsed
-                              );
-                            }}
-                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         )}
                       />
