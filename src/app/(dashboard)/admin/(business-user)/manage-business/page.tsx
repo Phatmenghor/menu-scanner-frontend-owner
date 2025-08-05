@@ -208,7 +208,7 @@ export default function ManageBusinessPage() {
     setIsSubmitting(true);
     try {
       const payload: UpdateMyBusinessRequest = {
-        logoUrl: cleanValue(formData.logoUrl),
+        imageUrl: cleanValue(formData.imageUrl),
         name: cleanValue(formData.name),
         description: cleanValue(formData.description),
         phone: cleanValue(formData.phone),
