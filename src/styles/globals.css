@@ -43,9 +43,9 @@
     --primary-hover: 334 51% 34%; /* Darker for hover */
     --primary-active: 334 51% 29%; /* Even darker for active */
 
-    --secondary: 334 51% 85%; /* Lighter variant */
+    --secondary: 220 13% 95%; /* Lighter variant */
     --secondary-foreground: 240 5.9% 10%;
-    --secondary-hover: 334 51% 80%;
+    --secondary-hover: 220 13% 91%;
 
     --muted: 220 13% 95%; /* Better neutral muted */
     --muted-foreground: 220 8.5% 46%;
@@ -60,10 +60,10 @@
     --destructive-hover: 0 84% 55%;
 
     /* Enhanced border system for better visual separation */
-    --border: 220 13% 75%; /* Stronger default border */
-    --border-strong: 220 13% 60%; /* For emphasis */
-    --border-subtle: 220 13% 85%; /* For gentle separation */
-    --input: 220 13% 80%;
+    --border: 220 13% 91%; /* Softer default border */
+    --border-strong: 220 13% 75%; /* For emphasis */
+    --border-subtle: 220 13% 96%; /* For gentle separation */
+    --input: 220 13% 91%;
     --input-focus: 334 51% 39%; /* Brand color for focus */
     --ring: 334 51% 39%;
 
@@ -114,15 +114,6 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 334 51% 39%;
 
-    /* Enhanced table colors with stronger borders */
-    --table-header-bg: #33373d;
-    --table-header-text: #ffffff;
-    --table-border: #6b7280; /* Strong gray-500 */
-    --table-border-strong: #4b5563; /* Stronger gray-600 */
-    --table-row-even: #fafafa; /* Very light gray */
-    --table-row-odd: #ffffff; /* Pure white */
-    --table-hover: #f3f4f6; /* Light gray on hover */
-
     /* Enhanced surface colors for layering */
     --surface-1: 0 0% 100%;
     --surface-2: 220 13% 98%;
@@ -169,18 +160,18 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: hsl(var(--border-strong));
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--border-strong));
+    background: hsl(var(--primary));
   }
 
   /* Enhanced dialog styling */
   dialog {
     @apply bg-card text-card-foreground shadow-xl p-0;
-    border: 2px solid hsl(var(--border));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--card-radius);
     backdrop-filter: blur(8px);
   }
@@ -192,109 +183,79 @@
 }
 
 @layer components {
-  /* Enhanced table styling with better UX */
+  /* Modern table styling with shadcn approach */
   table {
-    @apply w-full table-auto text-sm;
-    border-collapse: collapse;
-    border: 2px solid var(--table-border-strong);
-    border-radius: var(--card-radius);
-    overflow: hidden;
-    box-shadow: var(--shadow-lg);
-    background: white;
+    @apply w-full text-sm;
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
-  /* Table header with enhanced styling */
+  /* Modern table container */
+  .table-container {
+    @apply w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm;
+  }
+
+  /* Table header with clean modern styling */
   thead {
-    @apply sticky top-0 z-20;
+    @apply bg-muted/50;
   }
 
   th {
-    @apply px-4 py-3 text-left font-semibold text-sm;
-    background-color: var(--table-header-bg) !important;
-    color: var(--table-header-text) !important;
+    @apply px-4 py-3 text-left font-semibold text-sm text-muted-foreground;
+    @apply border-b border-border;
+    @apply first:rounded-tl-lg last:rounded-tr-lg;
     white-space: nowrap;
-    border: 1px solid var(--table-border);
-    position: relative;
+    background: hsl(var(--muted) / 0.5);
   }
 
-  th:first-child {
-    border-top-left-radius: calc(var(--card-radius) - 2px);
-  }
-
-  th:last-child {
-    border-top-right-radius: calc(var(--card-radius) - 2px);
-  }
-
-  /* Enhanced table cells */
+  /* Clean table cells */
   td {
-    @apply px-3 py-2;
-    border: 1px solid var(--table-border);
-    background: white;
+    @apply px-4 py-3 text-sm;
+    @apply border-b border-border/50;
+    background: hsl(var(--card));
     transition: background-color var(--transition-fast) ease-in-out;
   }
 
-  /* Enhanced row styling */
+  /* Modern row styling */
   tbody tr {
     @apply transition-all duration-200 ease-in-out;
   }
 
-  tbody tr:nth-child(even) {
-    background-color: var(--table-row-even);
-  }
-
-  tbody tr:nth-child(odd) {
-    background-color: var(--table-row-odd);
-  }
-
   tbody tr:hover {
-    background-color: var(--table-hover) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    @apply bg-muted/30;
   }
 
   tbody tr:hover td {
     background-color: transparent;
   }
 
-  /* Last row border radius */
+  /* Remove bottom border from last row */
+  tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  /* Round bottom corners for last row */
   tbody tr:last-child td:first-child {
-    border-bottom-left-radius: calc(var(--card-radius) - 2px);
+    @apply rounded-bl-lg;
   }
 
   tbody tr:last-child td:last-child {
-    border-bottom-right-radius: calc(var(--card-radius) - 2px);
-  }
-
-  /* Enhanced table container */
-  .table-container {
-    @apply w-full overflow-hidden;
-    border-radius: var(--card-radius);
-    box-shadow: var(--shadow-lg);
-    border: 1px solid hsl(var(--border));
-  }
-
-  .table-container .overflow-x-auto {
-    border-radius: var(--card-radius);
+    @apply rounded-br-lg;
   }
 
   /* Enhanced pagination */
   .pagination {
     @apply flex items-center justify-between mt-6 px-4 py-3 bg-card rounded-lg;
-    border: 1px solid hsl(var(--border));
-    box-shadow: var(--shadow-sm);
+    @apply border border-border shadow-sm;
   }
 
-  /* Enhanced utility classes for status colors with opacity support */
+  /* Enhanced utility classes for status colors */
   .bg-success {
     background-color: hsl(var(--success));
   }
 
   .bg-success\/10 {
     background-color: hsl(var(--success) / 0.1);
-  }
-
-  .bg-success\/70 {
-    background-color: hsl(var(--success) / 0.7);
   }
 
   .text-success {
@@ -309,10 +270,6 @@
     background-color: hsl(var(--warning) / 0.1);
   }
 
-  .bg-warning\/70 {
-    background-color: hsl(var(--warning) / 0.7);
-  }
-
   .text-warning {
     color: hsl(var(--warning));
   }
@@ -323,10 +280,6 @@
 
   .bg-info\/10 {
     background-color: hsl(var(--info) / 0.1);
-  }
-
-  .bg-info\/70 {
-    background-color: hsl(var(--info) / 0.7);
   }
 
   .text-info {
@@ -341,15 +294,11 @@
     background-color: hsl(var(--error) / 0.1);
   }
 
-  .bg-error\/70 {
-    background-color: hsl(var(--error) / 0.7);
-  }
-
   .text-error {
     color: hsl(var(--error));
   }
 
-  /* Enhanced primary variants with 70% opacity for active states */
+  /* Enhanced primary variants */
   .bg-primary\/5 {
     background-color: hsl(var(--primary) / 0.05);
   }
@@ -362,10 +311,6 @@
     background-color: hsl(var(--primary) / 0.2);
   }
 
-  .bg-primary\/70 {
-    background-color: hsl(var(--primary) / 0.7);
-  }
-
   .hover\:bg-primary\/5:hover {
     background-color: hsl(var(--primary) / 0.05);
   }
@@ -374,16 +319,8 @@
     background-color: hsl(var(--primary) / 0.1);
   }
 
-  .active\:bg-primary\/70:active {
-    background-color: hsl(var(--primary) / 0.7);
-  }
-
   .hover\:bg-muted\/30:hover {
     background-color: hsl(var(--muted-hover));
-  }
-
-  .active\:bg-muted\/70:active {
-    background-color: hsl(var(--muted) / 0.7);
   }
 
   /* Enhanced border utilities */
