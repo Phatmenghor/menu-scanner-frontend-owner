@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  ArrowLeft,
   Camera,
   Edit,
   Mail,
@@ -14,16 +13,23 @@ import {
   Trash2,
   Save,
   X,
+  MessageCircle,
+  CheckCircle,
+  AlertCircle,
+  User,
+  Phone,
+  Briefcase,
+  FileText,
+  Settings,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
 import {
   getUserProfileService,
@@ -42,6 +48,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { STATUS_USER_OPTIONS } from "@/constants/AppResource/status/status";
+import axios from "axios";
+
+// Telegram types
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+}
+
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        initDataUnsafe: {
+          user?: TelegramUser;
+        };
+        ready(): void;
+        expand(): void;
+        showAlert(message: string): void;
+      };
+    };
+  }
+}
 
 // Extended form data interface to handle local form state
 interface FormData {
@@ -56,19 +87,22 @@ interface FormData {
   notes: string;
 }
 
-const tapList = [
-  { label: "Profile", value: "profile" },
-  { label: "Security", value: "security" },
-  { label: "Notifications", value: "notifications" },
-];
-
 export default function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
+  const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<UserModel | null>(null);
+  const [activeSection, setActiveSection] = useState("profile");
+
+  // Telegram states
+  const [telegramLoading, setTelegramLoading] = useState(false);
+  const [telegramError, setTelegramError] = useState("");
+  const [telegramSuccess, setTelegramSuccess] = useState("");
+  const [telegramAvailable, setTelegramAvailable] = useState(false);
+  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
 
   // Separate form data state for editing
   const [formData, setFormData] = useState<FormData>({
@@ -90,6 +124,28 @@ export default function UserProfilePage() {
     securityAlerts: true,
     systemUpdates: false,
   });
+
+  const API_BASE =
+    process.env.NEXT_PUBLIC_API_URL || "http://152.42.219.13:8080";
+
+  // Get auth token
+  const getAuthToken = () => {
+    return localStorage.getItem("accessToken");
+  };
+
+  // Check if running in Telegram
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
+      setTelegramAvailable(true);
+      const webApp = window.Telegram.WebApp;
+      webApp.ready();
+      webApp.expand();
+
+      if (webApp.initDataUnsafe.user) {
+        setTelegramUser(webApp.initDataUnsafe.user);
+      }
+    }
+  }, []);
 
   const loadProfile = useCallback(async () => {
     setIsProfileLoading(true);
@@ -137,23 +193,20 @@ export default function UserProfilePage() {
       };
 
       const response = await updateUserProfileService(updateData);
-
-      // Update the user profile state with new data
       setUserProfile(response);
-
       setIsEditing(false);
+
       AppToast({
         type: "success",
         message: "Profile updated successfully",
         duration: 3000,
         position: "top-right",
       });
-      console.log("Profile updated successfully");
     } catch (error) {
       console.error("Error updating user profile:", error);
       AppToast({
         type: "error",
-        message: "Fail to updated profile",
+        message: "Failed to update profile",
         duration: 3000,
         position: "top-right",
       });
@@ -163,15 +216,10 @@ export default function UserProfilePage() {
   };
 
   const handleCancel = () => {
-    // Reset form data to original values
     if (userProfile) {
-      const nameParts = userProfile.fullName?.split(" ") || ["", ""];
-      const firstName = nameParts[0] || "";
-      const lastName = nameParts.slice(1).join(" ") || "";
-
       setFormData({
-        firstName,
-        lastName,
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
         status: userProfile.accountStatus,
         position: userProfile.position,
         email: userProfile.email || "",
@@ -191,592 +239,596 @@ export default function UserProfilePage() {
     }));
   };
 
+  // Telegram functions
+  const handleLinkTelegramClick = () => {
+    setIsPolicyModalOpen(true);
+  };
+
+  const handleLinkTelegram = async () => {
+    setIsPolicyModalOpen(false);
+
+    if (!telegramUser) {
+      setTelegramError(
+        "Telegram user data not available. Please open this page from Telegram."
+      );
+      return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+      setTelegramError("Please login first");
+      return;
+    }
+
+    setTelegramLoading(true);
+    setTelegramError("");
+    setTelegramSuccess("");
+
+    try {
+      const telegramData = {
+        telegramUserId: telegramUser.id,
+        telegramUsername: telegramUser.username,
+        telegramFirstName: telegramUser.first_name,
+        telegramLastName: telegramUser.last_name,
+        telegramPhotoUrl: telegramUser.photo_url,
+        authDate: Math.floor(Date.now() / 1000).toString(),
+        hash: "web_app_hash",
+      };
+
+      await axios.post(`${API_BASE}/api/v1/auth/telegram/link`, telegramData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setTelegramSuccess("Telegram account linked successfully!");
+      await loadProfile();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to link Telegram account";
+      setTelegramError(errorMessage);
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
+  const handleUnlinkTelegram = async () => {
+    const token = getAuthToken();
+    if (!token) {
+      setTelegramError("Please login first");
+      return;
+    }
+
+    setTelegramLoading(true);
+    setTelegramError("");
+    setTelegramSuccess("");
+
+    try {
+      await axios.post(
+        `${API_BASE}/api/v1/auth/telegram/unlink`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setTelegramSuccess("Telegram account unlinked successfully.");
+      await loadProfile();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to unlink Telegram account";
+      setTelegramError(errorMessage);
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
   if (isProfileLoading) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-600 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Loading profile...</p>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Loading profile...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div className="border-b border-gray-800 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => router.back()}
-              variant="ghost"
-              size="sm"
-              className="text-gray-400"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-            </Button>
-            <div>
-              <h1 className="text-2xl text-black font-semibold">
-                User Profile
-              </h1>
-              <p className="text-gray-400">
-                Manage your account settings and preferences
-              </p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-background">
+      {/* Simple Header */}
+      <div className="bg-card border-b">
+        <div className="max-w-4xl mx-auto px-4 py-3">
+          <h1 className="text-lg font-semibold text-foreground">
+            Profile Settings
+          </h1>
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="max-w-full mx-auto">
-          <Tabs defaultValue="profile" className="space-y-4">
-            <TabsList>
-              {tapList.map((t, index) => {
-                return (
-                  <TabsTrigger
-                    value={t.value}
-                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Profile Header - Compact like Facebook */}
+        <Card className="mb-4">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage
+                    src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${userProfile?.profileImageUrl}`}
+                  />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xl font-bold">
+                    {userProfile?.fullName?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                {isEditing && (
+                  <Button
+                    size="sm"
+                    className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full p-0"
                   >
-                    {t.label}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+                    <Camera className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
 
-            <TabsContent value="profile" className="space-y-4">
-              {/* Profile Header Card */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-6">
-                    <div className="relative">
-                      <Avatar className="h-24 w-24">
-                        <AvatarImage
-                          src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${userProfile?.profileImageUrl}`}
-                        />
-                        <AvatarFallback className="bg-primary text-white text-2xl">
-                          {userProfile?.fullName?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      {isEditing && (
-                        <Button
-                          size="sm"
-                          className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-pink-600 hover:bg-pink-700"
+              <div className="flex-1">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">
+                      {isEditing
+                        ? `${formData.firstName} ${formData.lastName}`.trim()
+                        : userProfile?.fullName}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      {userProfile?.email}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {userProfile?.userType}
+                      </Badge>
+                      {userProfile?.hasTelegramLinked && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-success text-success"
                         >
-                          <Camera className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-4">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h2 className="text-2xl font-semibold">
-                            {isEditing
-                              ? `${formData.firstName} ${formData.lastName}`.trim()
-                              : userProfile?.fullName}
-                          </h2>
-                          <p className="text-gray-400">
-                            {isEditing ? formData.email : userProfile?.email}
-                          </p>
-                        </div>
-                        <Badge className="bg-pink-600/20 text-pink-400 border-pink-600/30">
-                          <Shield className="h-3 w-3 mr-1" />
-                          {userProfile?.userType}
+                          Telegram
                         </Badge>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <Calendar className="h-4 w-4" />
-                          Joined {userProfile?.createdAt}
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <MapPin className="h-4 w-4" />
-                          {isEditing ? formData.address : userProfile?.address}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-end gap-2">
-                      {isEditing ? (
-                        <Card className="flex gap-2">
-                          <Button
-                            onClick={handleCancel}
-                            variant="outline"
-                            size="sm"
-                            disabled={isSubmitting}
-                          >
-                            <X className="h-4 w-4 mr-2" />
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handleSave}
-                            className="bg-pink-600 hover:bg-pink-700"
-                            size="sm"
-                            disabled={isSubmitting}
-                          >
-                            <Save className="h-4 w-4 mr-2" />
-                            {isSubmitting ? "Saving..." : "Save Changes"}
-                          </Button>
-                        </Card>
-                      ) : (
-                        <Button onClick={() => setIsEditing(true)} size="sm">
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
-                        </Button>
                       )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Personal Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5" />
-                    Personal Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {!isEditing && (
-                      <div className="space-y-1">
-                        <Label>FullName</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.fullName || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
+                  <div className="flex gap-2">
                     {isEditing ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input
-                          id="firstName"
-                          value={formData.firstName}
-                          onChange={(e) =>
-                            handleInputChange("firstName", e.target.value)
-                          }
-                          disabled={!isEditing}
-                          className="disabled:opacity-60"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <Label>First Name</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.firstName || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input
-                          id="lastName"
-                          value={formData.lastName}
-                          onChange={(e) =>
-                            handleInputChange("lastName", e.target.value)
-                          }
-                          disabled={!isEditing}
-                          className="disabled:opacity-60"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <Label>Last Name</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.lastName || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {!isEditing && (
-                      <div className="space-y-1">
-                        <Label>User Identifier</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.userIdentifier || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) =>
-                            handleInputChange("email", e.target.value)
-                          }
-                          disabled={true} // Email should typically not be editable
-                          className="disabled:opacity-60"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <Label>Email</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.email || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          value={formData.phoneNumber}
-                          onChange={(e) =>
-                            handleInputChange("phoneNumber", e.target.value)
-                          }
-                          disabled={!isEditing}
-                          className="disabled:opacity-60"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <Label>Phone</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.phoneNumber || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="address">Address</Label>
-                        <Input
-                          id="address"
-                          value={formData.address}
-                          onChange={(e) =>
-                            handleInputChange("address", e.target.value)
-                          }
-                          disabled={!isEditing}
-                          className="disabled:opacity-60"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <Label>Address</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.address || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {isEditing ? (
-                      <div className=" space-y-2">
-                        <Label htmlFor="position">Position</Label>
-                        <Input
-                          id="position"
-                          value={formData.position}
-                          onChange={(e) =>
-                            handleInputChange("position", e.target.value)
-                          }
-                          disabled={!isEditing}
-                          className="disabled:opacity-60"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <Label>Position</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.position || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {isEditing ? (
-                      <div className=" space-y-2">
-                        <Label htmlFor="status-select">
-                          Status <span className="text-red-500">*</span>
-                        </Label>
-
-                        <Select
-                          value={formData.status}
-                          onValueChange={(value) =>
-                            handleInputChange("status", value)
-                          }
-                          disabled={isSubmitting}
-                        >
-                          <SelectTrigger id="status-select">
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {STATUS_USER_OPTIONS.map((status) => (
-                              <SelectItem
-                                key={status.value}
-                                value={status.value}
-                              >
-                                {status.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <Label>Status</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.accountStatus || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="notes">Notes</Label>
-                        <Textarea
-                          id="notes"
-                          value={formData.notes}
-                          onChange={(e) =>
-                            handleInputChange("notes", e.target.value)
-                          }
-                          disabled={!isEditing}
-                          className="disabled:opacity-60"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <Label>Notes</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {userProfile?.notes || (
-                            <span className="text-gray-400">---</span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {isEditing && (
-                    <Card>
-                      <CardContent className="flex gap-2 p-4 justify-end">
+                      <>
                         <Button
-                          onClick={handleCancel}
                           variant="outline"
                           size="sm"
+                          onClick={handleCancel}
                           disabled={isSubmitting}
                         >
-                          <X className="h-4 w-4 mr-2" />
                           Cancel
                         </Button>
                         <Button
-                          onClick={handleSave}
-                          className="bg-pink-600 hover:bg-pink-700"
                           size="sm"
+                          onClick={handleSave}
                           disabled={isSubmitting}
                         >
-                          <Save className="h-4 w-4 mr-2" />
-                          {isSubmitting ? "Saving..." : "Save Changes"}
+                          {isSubmitting ? "Saving..." : "Save"}
                         </Button>
-                      </CardContent>
-                    </Card>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="security" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Key className="h-5 w-5" />
-                    Security Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Change Password</h3>
-                        <p className="text-sm text-gray-400">
-                          Update your password to keep your account secure
-                        </p>
-                      </div>
+                      </>
+                    ) : (
                       <Button
                         variant="outline"
-                        onClick={() => setIsChangePasswordModalOpen(true)}
-                        className="border-gray-600 bg-transparent"
+                        size="sm"
+                        onClick={() => setIsEditing(true)}
                       >
-                        Change Password
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
                       </Button>
-                    </div>
-                    <Separator className="bg-gray-700" />
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">
-                          Two-Factor Authentication
-                        </h3>
-                        <p className="text-sm text-gray-400">
-                          Add an extra layer of security to your account
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        className="border-gray-600 bg-transparent"
-                      >
-                        Enable 2FA
-                      </Button>
-                    </div>
-                    <Separator className="bg-gray-700" />
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Active Sessions</h3>
-                        <p className="text-sm text-gray-400">
-                          Manage your active sessions across devices
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        className="border-gray-600 bg-transparent"
-                      >
-                        View Sessions
-                      </Button>
-                    </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-            <TabsContent value="notifications" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Notification Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Email Notifications</h3>
-                        <p className="text-sm text-gray-400">
-                          Receive notifications via email
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notifications.emailNotifications}
-                        onCheckedChange={(checked) =>
-                          setNotifications({
-                            ...notifications,
-                            emailNotifications: checked,
-                          })
-                        }
-                      />
-                    </div>
-                    <Separator className="bg-gray-700" />
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Push Notifications</h3>
-                        <p className="text-sm text-gray-400">
-                          Receive push notifications in your browser
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notifications.pushNotifications}
-                        onCheckedChange={(checked) =>
-                          setNotifications({
-                            ...notifications,
-                            pushNotifications: checked,
-                          })
-                        }
-                      />
-                    </div>
-                    <Separator className="bg-gray-700" />
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Security Alerts</h3>
-                        <p className="text-sm text-gray-400">
-                          Get notified about security-related events
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notifications.securityAlerts}
-                        onCheckedChange={(checked) =>
-                          setNotifications({
-                            ...notifications,
-                            securityAlerts: checked,
-                          })
-                        }
-                      />
-                    </div>
-                    <Separator className="bg-gray-700" />
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">System Updates</h3>
-                        <p className="text-sm text-gray-400">
-                          Receive notifications about system updates
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notifications.systemUpdates}
-                        onCheckedChange={(checked) =>
-                          setNotifications({
-                            ...notifications,
-                            systemUpdates: checked,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+        {/* Navigation Pills */}
+        <div className="flex gap-1 mb-4 bg-card rounded-lg p-1 border">
+          {[
+            { id: "profile", label: "Profile" },
+            { id: "security", label: "Security" },
+            { id: "notifications", label: "Notifications" },
+          ].map((section) => (
+            <button
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeSection === section.id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              {section.label}
+            </button>
+          ))}
+        </div>
 
-          {/* Danger Zone */}
+        {/* Content Sections */}
+        {activeSection === "profile" && (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-400">
-                <Trash2 className="h-5 w-5" />
-                Danger Zone
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-foreground">
+                Personal Information
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-medium text-red-400">Delete Account</h3>
-                  <p className="text-sm text-gray-400">
-                    Permanently delete your account and all associated data
+                  <Label className="text-sm font-medium text-foreground">
+                    First Name
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.firstName}
+                      onChange={(e) =>
+                        handleInputChange("firstName", e.target.value)
+                      }
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="mt-1 text-sm text-foreground">
+                      {userProfile?.firstName || "—"}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-foreground">
+                    Last Name
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.lastName}
+                      onChange={(e) =>
+                        handleInputChange("lastName", e.target.value)
+                      }
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="mt-1 text-sm text-foreground">
+                      {userProfile?.lastName || "—"}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-foreground">
+                    Phone Number
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.phoneNumber}
+                      onChange={(e) =>
+                        handleInputChange("phoneNumber", e.target.value)
+                      }
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="mt-1 text-sm text-foreground">
+                      {userProfile?.phoneNumber || "—"}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-foreground">
+                    Position
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.position}
+                      onChange={(e) =>
+                        handleInputChange("position", e.target.value)
+                      }
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="mt-1 text-sm text-foreground">
+                      {userProfile?.position || "—"}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-foreground">
+                  Address
+                </Label>
+                {isEditing ? (
+                  <Input
+                    value={formData.address}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="mt-1 text-sm text-foreground">
+                    {userProfile?.address || "—"}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-foreground">
+                  Notes
+                </Label>
+                {isEditing ? (
+                  <Textarea
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    className="mt-1"
+                    rows={3}
+                  />
+                ) : (
+                  <p className="mt-1 text-sm text-foreground">
+                    {userProfile?.notes || "—"}
+                  </p>
+                )}
+              </div>
+
+              {!isEditing && (
+                <div>
+                  <Label className="text-sm font-medium text-foreground">
+                    User ID
+                  </Label>
+                  <p className="mt-1 text-sm font-mono bg-muted text-foreground px-2 py-1 rounded">
+                    {userProfile?.userIdentifier || "—"}
                   </p>
                 </div>
-                <Button
-                  variant="destructive"
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Delete Account
-                </Button>
-              </div>
+              )}
             </CardContent>
           </Card>
+        )}
 
-          <ChangePasswordModal
-            isOpen={isChangePasswordModalOpen}
-            onClose={() => setIsChangePasswordModalOpen(false)}
-          />
-        </div>
+        {activeSection === "security" && (
+          <div className="space-y-4">
+            {/* Telegram */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium text-foreground">
+                        Telegram Account
+                      </h3>
+                      <p
+                        className={`text-sm ${
+                          userProfile?.hasTelegramLinked
+                            ? "text-success"
+                            : "text-error"
+                        }`}
+                      >
+                        {userProfile?.hasTelegramLinked
+                          ? "Connected"
+                          : "Not connected"}
+                      </p>
+                    </div>
+                    {userProfile?.hasTelegramLinked ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleUnlinkTelegram}
+                        disabled={telegramLoading}
+                      >
+                        {telegramLoading ? "Unlinking..." : "Unlink"}
+                      </Button>
+                    ) : (
+                      <>
+                        {telegramAvailable && telegramUser ? (
+                          <Button
+                            size="sm"
+                            onClick={handleLinkTelegramClick}
+                            disabled={telegramLoading}
+                          >
+                            {telegramLoading ? "Linking..." : "Link"}
+                          </Button>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Show policy and requirements when can't link */}
+                  {!userProfile?.hasTelegramLinked &&
+                    (!telegramAvailable || !telegramUser) && (
+                      <div className="p-3 bg-error/10 border border-error/20 rounded-md">
+                        <p className="text-sm text-error font-medium mb-2">
+                          Cannot link Telegram account
+                        </p>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          To link your Telegram account, please open this page
+                          from Telegram WebApp.
+                        </p>
+
+                        <div className="text-xs text-muted-foreground">
+                          <p className="font-medium mb-1">Linking Policy:</p>
+                          <ul className="list-disc list-inside space-y-1 ml-2">
+                            <li>Allow notifications via Telegram</li>
+                            <li>Share Telegram username and profile</li>
+                            <li>Enable secure authentication</li>
+                            <li>Follow privacy policy and terms</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+
+                  {telegramSuccess && (
+                    <div className="p-3 bg-success/10 border border-success/20 text-success rounded-md">
+                      <p className="text-sm">{telegramSuccess}</p>
+                    </div>
+                  )}
+
+                  {telegramError && (
+                    <div className="p-3 bg-error/10 border border-error/20 text-error rounded-md">
+                      <p className="text-sm">{telegramError}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Password */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-foreground">Password</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Change your password
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsChangePasswordModalOpen(true)}
+                  >
+                    Change
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Delete Account */}
+            <Card className="border-destructive/50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-destructive">
+                      Delete Account
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently delete your account
+                    </p>
+                  </div>
+                  <Button variant="destructive" size="sm">
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeSection === "notifications" && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-foreground">
+                Notification Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                {
+                  key: "emailNotifications",
+                  title: "Email Notifications",
+                  description: "Receive notifications via email",
+                },
+                {
+                  key: "pushNotifications",
+                  title: "Push Notifications",
+                  description: "Browser push notifications",
+                },
+                {
+                  key: "securityAlerts",
+                  title: "Security Alerts",
+                  description: "Security-related notifications",
+                },
+                {
+                  key: "systemUpdates",
+                  title: "System Updates",
+                  description: "System and feature updates",
+                },
+              ].map((item) => (
+                <div
+                  key={item.key}
+                  className="flex items-center justify-between py-2"
+                >
+                  <div>
+                    <h4 className="font-medium text-sm text-foreground">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={
+                      notifications[item.key as keyof typeof notifications]
+                    }
+                    onCheckedChange={(checked) =>
+                      setNotifications({
+                        ...notifications,
+                        [item.key]: checked,
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        <ChangePasswordModal
+          isOpen={isChangePasswordModalOpen}
+          onClose={() => setIsChangePasswordModalOpen(false)}
+        />
+
+        {/* Policy Modal */}
+        {isPolicyModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 max-w-md mx-4 border">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                Telegram Integration Policy
+              </h3>
+              <div className="space-y-3 text-sm text-muted-foreground mb-6">
+                <p>By linking your Telegram account, you agree to:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>
+                    Allow this application to send notifications via Telegram
+                  </li>
+                  <li>Share your Telegram username and profile information</li>
+                  <li>Enable secure authentication through Telegram</li>
+                  <li>Follow our privacy policy and terms of service</li>
+                </ul>
+                <p className="text-xs">
+                  You can unlink your account at any time from the security
+                  settings.
+                </p>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsPolicyModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleLinkTelegram}
+                  disabled={
+                    telegramLoading || !telegramAvailable || !telegramUser
+                  }
+                >
+                  I Agree & Link
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
