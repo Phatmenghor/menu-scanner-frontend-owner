@@ -20,17 +20,17 @@ export const CustomPagination: React.FC<CustomPaginationProps> = ({
     sm: {
       button: "h-8 px-3 text-xs",
       icon: "h-3 w-3",
-      pageButton: "h-8 w-8 text-xs",
+      pageButton: "h-8 min-w-8 text-xs",
     },
     md: {
       button: "h-9 px-4 text-sm",
       icon: "h-4 w-4",
-      pageButton: "h-9 w-9 text-sm",
+      pageButton: "h-9 min-w-9 text-sm",
     },
     lg: {
       button: "h-10 px-5 text-base",
       icon: "h-5 w-5",
-      pageButton: "h-10 w-10 text-base",
+      pageButton: "h-10 min-w-10 text-base",
     },
   };
 
@@ -94,7 +94,7 @@ export const CustomPagination: React.FC<CustomPaginationProps> = ({
   }
 
   return (
-    <div className={`flex items-center justify-center gap-2 p-4 ${className}`}>
+    <div className={`flex items-center justify-end gap-2 p-4 ${className}`}>
       {/* Previous Button */}
       <button
         onClick={handlePreviousPage}
@@ -133,7 +133,7 @@ export const CustomPagination: React.FC<CustomPaginationProps> = ({
               onClick={() => onPageChange(item)}
               className={`
                 ${classes.pageButton}
-                rounded-lg font-medium transition-all duration-200
+                rounded-lg font-medium px-2 transition-all duration-200 
                 ${
                   currentPage === item
                     ? "bg-primary text-primary-foreground shadow-sm"
@@ -153,7 +153,7 @@ export const CustomPagination: React.FC<CustomPaginationProps> = ({
         disabled={currentPage === totalPages}
         className={`
           ${classes.button}
-          flex items-center gap-2 rounded-lg border font-medium transition-all duration-200
+          flex items-center gap-2 rounded-lg border  font-medium transition-all duration-200
           ${
             currentPage === totalPages
               ? "opacity-50 cursor-not-allowed text-muted-foreground border-border"

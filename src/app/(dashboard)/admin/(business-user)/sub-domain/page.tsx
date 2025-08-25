@@ -36,7 +36,7 @@ import { getAllSubdomainService } from "@/services/dashboard/sub-domain/sub-doma
 import { subdomainTableHeaders } from "@/constants/AppResource/table/user/sub-domain";
 import { getSubdomainStatusBadge } from "@/components/shared/badge/payment-status-badge";
 import { SubdomainStatusBadge } from "@/components/shared/badge/subdomain-status-badge";
-import { SubdomainDetailSheet } from "@/components/index/dashboard/business-user/subdomain-detail-sheet";
+import { SubdomainDetailSheet } from "@/components/dashboard/business-user/subdomain-detail-sheet";
 
 export default function SubdomainPage() {
   const [searchQuery, setSearchQuery] = useState("");

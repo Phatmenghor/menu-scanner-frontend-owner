@@ -1,4 +1,13 @@
 import { ReactNode } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface TableColumn<T = any> {
   key: string;
@@ -30,101 +39,101 @@ export function DataTable<T = any>({
   if (loading) {
     return (
       <div className={`rounded-md border overflow-x-auto ${className}`}>
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50">
-            <tr>
+        <Table>
+          <TableHeader>
+            <TableRow>
               {columns.map((column) => (
-                <th
+                <TableHead
                   key={column.key}
-                  className={`px-4 py-3 text-left font-semibold text-xs text-muted-foreground border-b border-border ${
-                    column.className || ""
-                  }`}
+                  className={`font-semibold text-xs ${column.className || ""}`}
                 >
                   {column.label}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {[...Array(5)].map((_, i) => (
-              <tr key={i}>
+              <TableRow key={i}>
                 {columns.map((column) => (
-                  <td
+                  <TableCell
                     key={column.key}
-                    className="px-4 py-3 border-b border-border/50"
+                    className={column.className || ""}
                   >
-                    <div className="h-4 bg-muted animate-pulse rounded" />
-                  </td>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     );
   }
 
   return (
-    <div
-      className={`rounded-md border overflow-x-auto whitespace-nowrap ${className}`}
-    >
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50">
-          <tr>
+    <div className={`rounded-md border overflow-x-auto ${className}`}>
+      <Table>
+        <TableHeader>
+          <TableRow>
             {columns.map((column) => (
-              <th
+              <TableHead
                 key={column.key}
-                className={`px-4 py-3 text-left font-semibold text-xs text-muted-foreground border-b border-border ${
-                  column.className || ""
-                }`}
+                className={`font-semibold text-xs ${column.className || ""}`}
               >
-                <div
-                  className={`flex items-center gap-1 ${
-                    column.className || ""
-                  }`}
-                >
+                <div className="flex items-center gap-1">
                   <span>{column.label}</span>
                 </div>
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {!data || data.length === 0 ? (
-            <tr>
-              <td
+            <TableRow>
+              <TableCell
                 colSpan={columns.length}
-                className="px-4 py-8 text-center text-muted-foreground border-b border-border/50"
+                className="px-4 py-8 text-center text-muted-foreground"
               >
                 {emptyMessage}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : (
             data.map((item, index) => (
-              <tr
+              <TableRow
                 key={getRowKey(item, index)}
-                className={`text-sm transition-all duration-200 hover:bg-muted/30 ${
+                className={`transition-all duration-200 hover:bg-muted/30 ${
                   onRowClick ? "cursor-pointer" : ""
                 }`}
                 onClick={() => onRowClick?.(item)}
               >
-                {columns.map((column) => (
-                  <td
-                    key={column.key}
-                    className={`px-4 py-3 border-b border-border/50 ${
-                      column.className || ""
-                    }`}
-                  >
-                    {column.render
-                      ? column.render(item, index)
-                      : String(item[column.key as keyof T] || "---")}
-                  </td>
-                ))}
-              </tr>
+                {columns.map((column) => {
+                  const hasMaxWidth = column.className?.includes("max-w-");
+                  const cellContent = column.render
+                    ? column.render(item, index)
+                    : String(item[column.key as keyof T] || "---");
+
+                  return (
+                    <TableCell
+                      key={column.key}
+                      className={`${column.className || ""} ${
+                        hasMaxWidth ? "truncate" : ""
+                      }`}
+                      title={
+                        hasMaxWidth && typeof cellContent === "string"
+                          ? cellContent
+                          : undefined
+                      }
+                    >
+                      {cellContent}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

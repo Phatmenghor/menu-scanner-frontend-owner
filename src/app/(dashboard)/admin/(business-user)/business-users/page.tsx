@@ -60,7 +60,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
-import { UserDetailSheet } from "@/components/index/dashboard/plate-form-user/manage-user/user-detail-sheet";
+import { UserDetailSheet } from "@/components/dashboard/plate-form-user/manage-user/user-detail-sheet";
 import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";

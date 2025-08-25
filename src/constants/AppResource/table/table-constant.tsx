@@ -1,7 +1,14 @@
+import { ReactNode } from "react";
 import { BusinessStatusBadge } from "@/components/shared/badge/business-status-badge";
 import { CustomAvatar } from "@/components/shared/common/custom-avator";
 import { TableColumn } from "@/components/shared/table/table";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   BusinessModel,
   AllBusinessResponse,
@@ -9,6 +16,7 @@ import {
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash } from "lucide-react";
+import { ActionButton } from "@/components/shared/common/action-button";
 
 interface BusinessTableHandlers {
   handleEditBusiness: (business: BusinessModel) => void;
@@ -32,7 +40,7 @@ export const createBusinessTableColumns = ({
     {
       key: "index",
       label: "#",
-      className: "w-[60px]",
+      className: "max-w-[120px]",
       render: (_, index) => (
         <span className="font-medium">
           {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index)}
@@ -42,7 +50,7 @@ export const createBusinessTableColumns = ({
     {
       key: "avatar",
       label: "Logo",
-      className: "w-[80px]",
+      className: "max-w-[80px]",
       render: (business) => (
         <CustomAvatar
           imageUrl={business.imageUrl}
@@ -54,51 +62,65 @@ export const createBusinessTableColumns = ({
     {
       key: "name",
       label: "Business Name",
+      className: "max-w-[200px]",
       render: (business) => (
-        <span className="font-medium">{business.name || "---"}</span>
+        <span className="font-medium" title={business.name}>
+          {business.name || "---"}
+        </span>
       ),
     },
     {
       key: "businessType",
       label: "Business Type",
-      render: (business) => business.businessType || "---",
+      className: "max-w-[120px]",
+      render: (business) => (
+        <span title={business.businessType}>
+          {business.businessType || "---"}
+        </span>
+      ),
     },
     {
       key: "email",
       label: "Email",
-      render: (business) => (
-        <span className="font-medium">{business.email || "---"}</span>
-      ),
+      className: "max-w-[250px]",
+      render: (business) => business.email || "---",
     },
     {
       key: "phone",
       label: "Phone",
-      render: (business) => business.phone || "---",
+      className: "max-w-[150px]",
+      render: (business) => (
+        <span title={business.phone}>{business.phone || "---"}</span>
+      ),
     },
     {
       key: "subscription",
       label: "Subscription Plan",
-      render: (business) => business.currentSubscriptionPlan || "No Plan",
+      className: "max-w-[200px]",
+      render: (business) => (
+        <span title={business.currentSubscriptionPlan}>
+          {business.currentSubscriptionPlan || "No Plan"}
+        </span>
+      ),
     },
     {
       key: "daysRemaining",
       label: "Days Remaining",
-      render: (business) =>
-        business.daysRemaining ? (
-          <span
-            className={
-              business.isExpiringSoon ? "text-warning" : "text-muted-foreground"
-            }
-          >
-            {business.daysRemaining} days left
-          </span>
-        ) : (
-          "---"
-        ),
+      className: "max-w-[150px]",
+      render: (business) => (
+        <span
+          className={
+            business.isExpiringSoon ? "text-warning" : "text-muted-foreground"
+          }
+        >
+          {business.daysRemaining || "---"}
+        </span>
+      ),
     },
     {
       key: "status",
       label: "Status",
+      className: "max-w-[150px]",
       render: (business) => (
         <BusinessStatusBadge
           status={business.status}
@@ -110,6 +132,7 @@ export const createBusinessTableColumns = ({
     {
       key: "createdAt",
       label: "Created At",
+      className: "max-w-[180px]",
       render: (business) => (
         <span className="text-muted-foreground">
           {DateTimeFormat(business.createdAt)}
@@ -122,27 +145,22 @@ export const createBusinessTableColumns = ({
       className: "w-[160px]",
       render: (business) => (
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
+          <ActionButton
+            icon={<Edit className="h-4 w-4" />}
+            tooltip="Edit Business"
             onClick={() => handleEditBusiness(business)}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
+          />
+          <ActionButton
+            icon={<Eye className="w-4 h-4" />}
+            tooltip="View Details"
             onClick={() => handleViewBusinessDetail(business)}
-          >
-            <Eye className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
+          />
+          <ActionButton
+            icon={<Trash className="w-3 h-3" />}
+            tooltip="Delete Business"
             onClick={() => handleDelete(business)}
-          >
-            <Trash className="w-3 h-3" />
-          </Button>
+            variant="destructive"
+          />
         </div>
       ),
     },

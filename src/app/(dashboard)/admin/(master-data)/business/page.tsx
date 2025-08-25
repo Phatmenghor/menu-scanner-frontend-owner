@@ -7,6 +7,7 @@ import {
   BusinessStatus,
   ModalMode,
   Status,
+  subscriptionOptions,
 } from "@/constants/AppResource/status/status";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { useSearchParams } from "next/navigation";
@@ -31,7 +32,6 @@ import {
 } from "@/services/dashboard/master-data/business/business.service";
 import ModalBusiness from "@/components/shared/modal/business-modal";
 import { CardHeaderSection } from "@/components/layout/main/card-header-section";
-import { BusinessDetailSheet } from "@/components/index/dashboard/master-data/business/business-detail-sheet";
 import {
   CustomSelect,
   SelectOption,
@@ -40,6 +40,7 @@ import { DataTable } from "@/components/shared/common/data-table";
 import { createBusinessTableColumns } from "@/constants/AppResource/table/table-constant";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
 import { set } from "nprogress";
+import { BusinessDetailModal } from "@/components/dashboard/master-data/business/business-detail-modal";
 
 export default function BusinessPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,11 +87,10 @@ export default function BusinessPage() {
     setIsLoading(true);
     try {
       const response = await getAllBusinessService({
-        status: statusFilter,
+        status: statusFilter == BusinessStatus.All ? undefined : statusFilter,
         hasActiveSubscription: hasSubscription,
         search: debouncedSearchQuery,
         pageNo: currentPage,
-        pageSize: 10,
       });
       setData(response);
     } catch (error: any) {
@@ -257,13 +257,6 @@ export default function BusinessPage() {
     loadBusiness();
   };
 
-  // Subscription options for select
-  const subscriptionOptions: SelectOption[] = [
-    { value: undefined, label: "All" },
-    { value: "true", label: "Subscribed" },
-    { value: "false", label: "Not Subscribed" },
-  ];
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="space-y-6">
@@ -310,8 +303,6 @@ export default function BusinessPage() {
           }
         />
 
-        <Separator className="bg-gray-300" />
-
         <div className="space-y-4">
           <DataTable
             data={data?.content || []}
@@ -336,7 +327,6 @@ export default function BusinessPage() {
           />
         </div>
 
-        {/* Modals and Dialogs */}
         <ModalBusiness
           isOpen={isModalOpen}
           onClose={() => {
@@ -349,17 +339,7 @@ export default function BusinessPage() {
           mode={mode}
         />
 
-        <ResetPasswordModal
-          isOpen={isResetPasswordDialogOpen}
-          userName={selectedBusiness?.name || selectedBusiness?.email}
-          onClose={() => {
-            setIsResetPasswordDialogOpen(false);
-            setSelectedBusiness(null);
-          }}
-          userId={selectedBusiness?.id}
-        />
-
-        <BusinessDetailSheet
+        <BusinessDetailModal
           isOpen={isBusinessDetailOpen}
           onClose={() => {
             setSelectedBusiness(null);
@@ -379,30 +359,6 @@ export default function BusinessPage() {
           description="Are you sure you want to delete this business?"
           itemName={selectedBusiness?.name || selectedBusiness?.email}
           isSubmitting={isSubmitting}
-        />
-
-        <ConfirmDialog
-          open={isToggleStatusDialogOpen}
-          onOpenChange={() => {
-            setIsToggleStatusDialogOpen(false);
-            setSelectedBusinessToggle(null);
-          }}
-          title="Change business status"
-          description={`Are you sure you want to ${
-            selectedBusinessToggle?.status === BusinessStatus.ACTIVE
-              ? "disable"
-              : "enable"
-          } this business: ${selectedBusinessToggle?.email}?`}
-          confirmButton={{
-            text: `${
-              selectedBusinessToggle?.status === "ACTIVE" ? "Disable" : "Enable"
-            }`,
-            onClick: () => {
-              // Handle status toggle logic here
-            },
-            variant: "primary",
-          }}
-          size="md"
         />
       </div>
     </div>

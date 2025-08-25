@@ -1,3 +1,5 @@
+import { SelectOption } from "@/components/shared/common/custom-select";
+
 export enum Status {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
@@ -113,6 +115,13 @@ export const BUSINESS_STATUS_OPTIONS = [
   { value: BusinessStatus.INACTIVE, label: "Inactive" },
   { value: BusinessStatus.SUSPENDED, label: "Suspended" },
   { value: BusinessStatus.PENDING, label: "Pending Approval" },
+];
+
+// Subscription options for select
+export const subscriptionOptions: SelectOption[] = [
+  { value: undefined, label: "All" },
+  { value: "true", label: "Subscribed" },
+  { value: "false", label: "Not Subscribed" },
 ];
 
 export const PAYMENT_STATUS_OPTIONS = [

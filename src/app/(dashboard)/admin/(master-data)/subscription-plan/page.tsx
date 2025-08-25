@@ -52,9 +52,9 @@ import {
   getAllSubscriptionPlanService,
   updateSubscriptionPlanService,
 } from "@/services/dashboard/master-data/subscrion-plan/subscription-plan.service";
-import { SubscriptionPlanFilters } from "@/components/index/dashboard/master-data/subscription-plan/subscription-plan-filter";
+import { SubscriptionPlanFilters } from "@/components/dashboard/master-data/subscription-plan/subscription-plan-filter";
 import ModalSubscriptionPlan from "@/components/shared/modal/subscription-plan-modal";
-import { SubscriptionPlanDetailSheet } from "@/components/index/dashboard/master-data/subscription-plan/subscription-plan-detail-sheet";
+import { SubscriptionPlanDetailSheet } from "@/components/dashboard/master-data/subscription-plan/subscription-plan-detail-sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { SubscriptionPlanTableHeaders } from "@/constants/AppResource/table/master-data/subscription-plan";

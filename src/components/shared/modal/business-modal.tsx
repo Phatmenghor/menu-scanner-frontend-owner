@@ -11,13 +11,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  BUSINESS_STATUS_OPTIONS,
-  ModalMode,
-} from "@/constants/AppResource/status/status";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, Building2, X } from "lucide-react";
+import { BUSINESS_STATUS_OPTIONS } from "@/constants/AppResource/status/status";
 import {
   BusinessFormData,
-  createBusinessSchema,
   updateBusinessSchema,
 } from "@/models/dashboard/master-data/business/business.schema";
 import {
@@ -29,8 +28,7 @@ import {
 } from "@/components/ui/select";
 
 type Props = {
-  mode: ModalMode;
-  Data?: BusinessFormData | null;
+  Data: BusinessFormData;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
@@ -41,20 +39,16 @@ export default function ModalBusiness({
   isOpen,
   onClose,
   Data,
-  mode,
   onSave,
   isSubmitting = false,
 }: Props) {
-  const isCreate = mode === ModalMode.CREATE_MODE;
-  const schema = isCreate ? createBusinessSchema : updateBusinessSchema;
-
   const {
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<BusinessFormData>({
-    resolver: zodResolver(schema), // Use dynamic schema instead of hardcoded UserFormSchema
+    resolver: zodResolver(updateBusinessSchema),
     defaultValues: {
       id: "",
       address: "",
@@ -62,232 +56,322 @@ export default function ModalBusiness({
       email: "",
       name: "",
       phone: "",
-      status: "",
+      status: "active", // Default to active to fix the type issue
     },
     mode: "onChange",
   });
 
   // Reset form when modal opens or data changes
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && Data) {
       const formData = {
-        id: Data?.id ?? "",
-        email: Data?.email ?? "",
-        name: Data?.name ?? "",
-        status: Data?.status ?? "",
-        address: Data?.address ?? "",
-        description: Data?.description ?? "",
-        phone: Data?.phone ?? "",
+        id: Data.id || "",
+        email: Data.email || "",
+        name: Data.name || "",
+        status: Data.status || "active", // Provide fallback to fix undefined issue
+        address: Data.address || "",
+        description: Data.description || "",
+        phone: Data.phone || "",
       };
-
       reset(formData);
     }
   }, [isOpen, Data, reset]);
 
   const onSubmit = (data: BusinessFormData) => {
-    console.log("Form submitted with mode:", mode, "Data:", data); // Debug log
+    console.log("Form submitted - Update Mode, Data:", data);
 
     const payload = {
-      id: Data?.id?.trim(),
-      email: data?.email?.trim()!,
-      name: data.name?.trim()!,
-      status: data?.status,
-      address: data.address?.trim(),
-      description: data.description?.trim(),
-      phone: data?.phone?.trim(),
+      id: Data.id,
+      email: data.email?.trim() || "",
+      name: data.name?.trim() || "",
+      status: data.status || "active",
+      address: data.address?.trim() || "",
+      description: data.description?.trim() || "",
+      phone: data.phone?.trim() || "",
     };
-    console.log(" Payload:", payload);
+
+    console.log("Update Payload:", payload);
     onSave(payload);
-    onClose();
   };
 
   const handleClose = () => {
-    reset(); // Reset form when closing
+    reset();
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isCreate ? "Create Business" : "Edit Business"}
-          </DialogTitle>
-          <DialogDescription>
-            {isCreate
-              ? "Fill out the form to create a new Business."
-              : "Update Business information below."}
-          </DialogDescription>
+      <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">
+        {/* Header */}
+        <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
+          <div className="flex items-center gap-4 pr-8">
+            <div className="p-2 bg-blue-100 rounded-full">
+              <Building2 className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <DialogTitle className="text-xl font-semibold">
+                Edit Business
+              </DialogTitle>
+              <DialogDescription className="text-base text-muted-foreground">
+                Update "{Data?.name || "business"}" information below.
+              </DialogDescription>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute right-4 top-4"
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email Field */}
-          <div className="space-y-1">
-            <Label htmlFor="email">
-              Email <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="email"
-                  type="email"
-                  placeholder="email@example.com"
-                  disabled={isSubmitting}
-                  autoComplete="email"
-                  className={errors.email ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
+        {/* Content */}
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="p-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Basic Information Section */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Business Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-medium">
+                      Business Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Controller
+                      control={control}
+                      name="name"
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="name"
+                          type="text"
+                          placeholder="Enter business name"
+                          disabled={isSubmitting}
+                          autoComplete="organization"
+                          className={`transition-colors ${
+                            errors.name
+                              ? "border-red-500 focus:border-red-500"
+                              : "focus:border-blue-500"
+                          }`}
+                        />
+                      )}
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-red-600 flex items-center gap-1">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
 
-          {/* name Field */}
-          <div className="space-y-1">
-            <Label htmlFor="name">
-              Name <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="name"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="name"
-                  type="text"
-                  placeholder="johndoe"
-                  disabled={isSubmitting}
-                  autoComplete="username"
-                  className={errors.name ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
-          </div>
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">
+                      Email Address <span className="text-red-500">*</span>
+                    </Label>
+                    <Controller
+                      control={control}
+                      name="email"
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="email"
+                          type="email"
+                          placeholder="business@example.com"
+                          disabled={isSubmitting}
+                          autoComplete="email"
+                          className={`transition-colors ${
+                            errors.email
+                              ? "border-red-500 focus:border-red-500"
+                              : "focus:border-blue-500"
+                          }`}
+                        />
+                      )}
+                    />
+                    {errors.email && (
+                      <p className="text-sm text-red-600">
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-          {/* Phone Number Field */}
-          <div className="space-y-1">
-            <Label htmlFor="phoneNumber">
-              Phone Number <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="phone"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="phoneNumber"
-                  type="tel"
-                  placeholder="+1234567890"
-                  disabled={isSubmitting}
-                  autoComplete="tel"
-                  className={errors.phone ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.phone && (
-              <p className="text-sm text-destructive">{errors.phone.message}</p>
-            )}
-          </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Phone */}
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-medium">
+                      Phone Number <span className="text-red-500">*</span>
+                    </Label>
+                    <Controller
+                      control={control}
+                      name="phone"
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="phone"
+                          type="tel"
+                          placeholder="+1 (555) 123-4567"
+                          disabled={isSubmitting}
+                          autoComplete="tel"
+                          className={`transition-colors ${
+                            errors.phone
+                              ? "border-red-500 focus:border-red-500"
+                              : "focus:border-blue-500"
+                          }`}
+                        />
+                      )}
+                    />
+                    {errors.phone && (
+                      <p className="text-sm text-red-600">
+                        {errors.phone.message}
+                      </p>
+                    )}
+                  </div>
 
-          {/* Status Field */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="status-select">
-                Status <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="status"
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isSubmitting}
-                  >
-                    <SelectTrigger
-                      id="status-select"
-                      className={`bg-white dark:bg-inherit ${
-                        errors.status ? "border-red-500" : ""
-                      }`}
+                  {/* Status */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="status-select"
+                      className="text-sm font-medium"
                     >
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BUSINESS_STATUS_OPTIONS.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.status && (
-                <p className="text-sm text-destructive">
-                  {errors.status.message}
-                </p>
-              )}
-            </div>
-          )}
+                      Status <span className="text-red-500">*</span>
+                    </Label>
+                    <Controller
+                      control={control}
+                      name="status"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value || "active"}
+                          onValueChange={field.onChange}
+                          disabled={isSubmitting}
+                        >
+                          <SelectTrigger
+                            id="status-select"
+                            className={`transition-colors ${
+                              errors.status
+                                ? "border-red-500 focus:border-red-500"
+                                : "focus:border-blue-500"
+                            }`}
+                          >
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {BUSINESS_STATUS_OPTIONS.map((status) => (
+                              <SelectItem
+                                key={status.value || "unknown"}
+                                value={String(status.value || "active")}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${
+                                      String(status.value) === "active"
+                                        ? "bg-green-500"
+                                        : String(status.value) === "pending"
+                                        ? "bg-yellow-500"
+                                        : String(status.value) === "suspended"
+                                        ? "bg-red-500"
+                                        : "bg-gray-500"
+                                    }`}
+                                  />
+                                  {status.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.status && (
+                      <p className="text-sm text-red-600">
+                        {errors.status.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-          {/* Address Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="address">Address</Label>
-            <Controller
-              control={control}
-              name="address"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="address"
-                  type="text"
-                  placeholder="Street address"
-                  disabled={isSubmitting}
-                  autoComplete="street-address"
-                  className={errors.address ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.address && (
-              <p className="text-sm text-destructive">
-                {errors.address.message}
-              </p>
-            )}
+              {/* Additional Information Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gray-400 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Additional Information
+                  </h3>
+                </div>
+
+                {/* Address */}
+                <div className="space-y-2">
+                  <Label htmlFor="address" className="text-sm font-medium">
+                    Business Address
+                  </Label>
+                  <Controller
+                    control={control}
+                    name="address"
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        id="address"
+                        type="text"
+                        placeholder="123 Main Street, City, State, ZIP"
+                        disabled={isSubmitting}
+                        autoComplete="street-address"
+                        className={`transition-colors ${
+                          errors.address
+                            ? "border-red-500 focus:border-red-500"
+                            : "focus:border-blue-500"
+                        }`}
+                      />
+                    )}
+                  />
+                  {errors.address && (
+                    <p className="text-sm text-red-600">
+                      {errors.address.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm font-medium">
+                    Description
+                  </Label>
+                  <Controller
+                    control={control}
+                    name="description"
+                    render={({ field }) => (
+                      <Textarea
+                        {...field}
+                        id="description"
+                        placeholder="Brief description of the business..."
+                        disabled={isSubmitting}
+                        className={`min-h-[100px] transition-colors ${
+                          errors.description
+                            ? "border-red-500 focus:border-red-500"
+                            : "focus:border-blue-500"
+                        }`}
+                        rows={4}
+                      />
+                    )}
+                  />
+                  {errors.description && (
+                    <p className="text-sm text-red-600">
+                      {errors.description.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </form>
           </div>
+        </ScrollArea>
 
-          {/* Notes Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="description">Description</Label>
-            <Controller
-              control={control}
-              name="description"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="description"
-                  type="text"
-                  placeholder="Description"
-                  disabled={isSubmitting}
-                  className={errors.description ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.description && (
-              <p className="text-sm text-destructive">
-                {errors.description.message}
-              </p>
-            )}
+        {/* Footer */}
+        <div className="flex justify-between items-center p-6 border-t bg-muted/30 flex-shrink-0">
+          <div className="text-sm text-muted-foreground">
+            {isDirty ? "You have unsaved changes" : "No changes made"}
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex gap-3">
             <Button
               type="button"
               variant="outline"
@@ -296,11 +380,22 @@ export default function ModalBusiness({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : isCreate ? "Create" : "Update"}
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              disabled={isSubmitting || !isDirty}
+              className="min-w-[120px]"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Business"
+              )}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
