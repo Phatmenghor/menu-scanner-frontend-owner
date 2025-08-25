@@ -1,27 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import {
   Camera,
   Edit,
-  Mail,
-  MapPin,
-  Calendar,
-  Shield,
-  Key,
-  Bell,
-  Trash2,
-  Save,
-  X,
   MessageCircle,
   CheckCircle,
   AlertCircle,
-  User,
-  Phone,
-  Briefcase,
-  FileText,
-  Settings,
-  AlertTriangle,
+  Loader2,
+  ExternalLink,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,41 +29,9 @@ import { UpdateUserRequest } from "@/models/dashboard/user/plateform-user/user.r
 import { useRouter } from "next/navigation";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { STATUS_USER_OPTIONS } from "@/constants/AppResource/status/status";
 import axios from "axios";
 
-// Telegram types
-interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-}
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: {
-        initDataUnsafe: {
-          user?: TelegramUser;
-        };
-        ready(): void;
-        expand(): void;
-        showAlert(message: string): void;
-      };
-    };
-  }
-}
-
-// Extended form data interface to handle local form state
+// Form data interface
 interface FormData {
   firstName: string;
   lastName: string;
@@ -88,11 +45,11 @@ interface FormData {
 }
 
 export default function UserProfilePage() {
+  // Component states
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
-  const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<UserModel | null>(null);
   const [activeSection, setActiveSection] = useState("profile");
@@ -101,10 +58,11 @@ export default function UserProfilePage() {
   const [telegramLoading, setTelegramLoading] = useState(false);
   const [telegramError, setTelegramError] = useState("");
   const [telegramSuccess, setTelegramSuccess] = useState("");
-  const [telegramAvailable, setTelegramAvailable] = useState(false);
-  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  const [showWidgetBackup, setShowWidgetBackup] = useState(false);
+  const [pendingConnectionCode, setPendingConnectionCode] =
+    useState<string>("");
 
-  // Separate form data state for editing
+  // Form data state
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -117,43 +75,34 @@ export default function UserProfilePage() {
     notes: "",
   });
 
-  const router = useRouter();
+  // Notification preferences
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     pushNotifications: false,
     securityAlerts: true,
     systemUpdates: false,
+    telegramNotifications: true,
   });
 
+  const router = useRouter();
+
+  // Configuration
   const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL || "http://152.42.219.13:8080";
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://152.42.219.13:8080";
+  const TELEGRAM_BOT_NAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "";
 
   // Get auth token
   const getAuthToken = () => {
     return localStorage.getItem("accessToken");
   };
 
-  // Check if running in Telegram
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-      setTelegramAvailable(true);
-      const webApp = window.Telegram.WebApp;
-      webApp.ready();
-      webApp.expand();
-
-      if (webApp.initDataUnsafe.user) {
-        setTelegramUser(webApp.initDataUnsafe.user);
-      }
-    }
-  }, []);
-
+  // Load user profile
   const loadProfile = useCallback(async () => {
     setIsProfileLoading(true);
     try {
       const response: UserModel = await getUserProfileService();
       setUserProfile(response);
 
-      // Initialize form data from user profile
       if (response) {
         setFormData({
           firstName: response.firstName,
@@ -166,9 +115,23 @@ export default function UserProfilePage() {
           profileImageUrl: response.profileImageUrl || "",
           notes: response.notes || "",
         });
+
+        setNotifications((prev) => ({
+          ...prev,
+          telegramNotifications: response.telegramNotificationsEnabled || false,
+        }));
       }
     } catch (error: any) {
-      console.error(error?.message || "Error fetching profile");
+      console.error(
+        "Profile loading error:",
+        error?.message || "Error fetching profile"
+      );
+      AppToast({
+        type: "error",
+        message: "Failed to load profile",
+        duration: 3000,
+        position: "top-right",
+      });
     } finally {
       setIsProfileLoading(false);
     }
@@ -178,6 +141,175 @@ export default function UserProfilePage() {
     loadProfile();
   }, [loadProfile]);
 
+  // Poll for connection status when using deep-link method
+  useEffect(() => {
+    if (pendingConnectionCode && telegramLoading) {
+      const pollInterval = setInterval(async () => {
+        try {
+          // Reload profile to check if linking was successful
+          const response: UserModel = await getUserProfileService();
+          if (response.hasTelegramLinked) {
+            setTelegramLoading(false);
+            setTelegramSuccess(
+              "🎉 Telegram account linked successfully! You'll now receive notifications via Telegram."
+            );
+            setPendingConnectionCode("");
+            setUserProfile(response);
+            clearInterval(pollInterval);
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+        }
+      }, 2000);
+
+      // Stop polling after 5 minutes
+      const timeoutId = setTimeout(() => {
+        clearInterval(pollInterval);
+        if (telegramLoading && pendingConnectionCode) {
+          setTelegramLoading(false);
+          setTelegramError(
+            "Connection timeout. Please try again or contact support if the issue persists."
+          );
+          setPendingConnectionCode("");
+        }
+      }, 300000); // 5 minutes
+
+      return () => {
+        clearInterval(pollInterval);
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [pendingConnectionCode, telegramLoading]);
+
+  // Handle Telegram widget authentication (backup method)
+  const handleTelegramAuth = async (telegramUser: any) => {
+    const token = getAuthToken();
+    if (!token) {
+      setTelegramError("Authentication required. Please login first.");
+      return;
+    }
+
+    setTelegramLoading(true);
+    setTelegramError("");
+    setTelegramSuccess("");
+
+    try {
+      const linkData = {
+        telegramUserId: parseInt(telegramUser.id),
+        telegramUsername: telegramUser.username || null,
+        telegramFirstName: telegramUser.first_name || null,
+        telegramLastName: telegramUser.last_name || null,
+        telegramPhotoUrl: telegramUser.photo_url || null,
+        authDate: telegramUser.auth_date
+          ? telegramUser.auth_date.toString()
+          : null,
+        hash: telegramUser.hash,
+        chatId: null,
+        languageCode: telegramUser.language_code || "en",
+        isPremium: telegramUser.is_premium || false,
+      };
+
+      console.log("####Telegram linking successfullinkData:", linkData);
+
+      const response = await axios.post(
+        `${API_BASE}/api/v1/auth/telegram/link`,
+        linkData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setTelegramSuccess(
+        response.data?.message || "🎉 Telegram account linked successfully!"
+      );
+
+      console.log("####Telegram linking successful:", response.data);
+
+      await loadProfile();
+    } catch (error: any) {
+      console.error("Telegram linking error:", error);
+      let errorMessage = "Failed to link Telegram account. Please try again.";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 400) {
+        errorMessage = "Invalid Telegram authentication data.";
+      } else if (error.response?.status === 409) {
+        errorMessage =
+          "This Telegram account is already linked to another user.";
+      }
+
+      setTelegramError(errorMessage);
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
+  // Handle deep-link connection method (primary method)
+  const handleDeepLinkConnection = (connectionCode: string) => {
+    setTelegramLoading(true);
+    setTelegramError("");
+    setTelegramSuccess("");
+    setPendingConnectionCode(connectionCode);
+
+    console.log("Starting deep-link connection with code:", connectionCode);
+
+    AppToast({
+      type: "info",
+      message:
+        "Complete the connection in Telegram. We'll automatically detect when it's done!",
+      duration: 5000,
+      position: "top-right",
+    });
+  };
+
+  // Handle widget domain error (show backup options)
+  const handleWidgetDomainError = () => {
+    console.log("Widget domain error detected, showing backup options");
+    setShowWidgetBackup(false); // Hide widget, rely on deep-link
+  };
+
+  // Handle unlinking
+  const handleUnlinkTelegram = async () => {
+    const token = getAuthToken();
+    if (!token) {
+      setTelegramError("Authentication required. Please login first.");
+      return;
+    }
+
+    setTelegramLoading(true);
+    setTelegramError("");
+    setTelegramSuccess("");
+
+    try {
+      const response = await axios.post(
+        `${API_BASE}/api/v1/auth/telegram/unlink`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setTelegramSuccess("Telegram account unlinked successfully.");
+      await loadProfile();
+    } catch (error: any) {
+      console.error("Telegram unlinking error:", error);
+      setTelegramError(
+        error.response?.data?.message ||
+          "Failed to unlink Telegram account. Please try again."
+      );
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
+  // Profile update handlers
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
@@ -239,97 +371,26 @@ export default function UserProfilePage() {
     }));
   };
 
-  // Telegram functions
-  const handleLinkTelegramClick = () => {
-    setIsPolicyModalOpen(true);
-  };
-
-  const handleLinkTelegram = async () => {
-    setIsPolicyModalOpen(false);
-
-    if (!telegramUser) {
-      setTelegramError(
-        "Telegram user data not available. Please open this page from Telegram."
-      );
-      return;
+  // Clear messages after delay
+  useEffect(() => {
+    if (telegramSuccess) {
+      const timer = setTimeout(() => setTelegramSuccess(""), 10000);
+      return () => clearTimeout(timer);
     }
+  }, [telegramSuccess]);
 
-    const token = getAuthToken();
-    if (!token) {
-      setTelegramError("Please login first");
-      return;
+  useEffect(() => {
+    if (telegramError) {
+      const timer = setTimeout(() => setTelegramError(""), 10000);
+      return () => clearTimeout(timer);
     }
-
-    setTelegramLoading(true);
-    setTelegramError("");
-    setTelegramSuccess("");
-
-    try {
-      const telegramData = {
-        telegramUserId: telegramUser.id,
-        telegramUsername: telegramUser.username,
-        telegramFirstName: telegramUser.first_name,
-        telegramLastName: telegramUser.last_name,
-        telegramPhotoUrl: telegramUser.photo_url,
-        authDate: Math.floor(Date.now() / 1000).toString(),
-        hash: "web_app_hash",
-      };
-
-      await axios.post(`${API_BASE}/api/v1/auth/telegram/link`, telegramData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setTelegramSuccess("Telegram account linked successfully!");
-      await loadProfile();
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to link Telegram account";
-      setTelegramError(errorMessage);
-    } finally {
-      setTelegramLoading(false);
-    }
-  };
-
-  const handleUnlinkTelegram = async () => {
-    const token = getAuthToken();
-    if (!token) {
-      setTelegramError("Please login first");
-      return;
-    }
-
-    setTelegramLoading(true);
-    setTelegramError("");
-    setTelegramSuccess("");
-
-    try {
-      await axios.post(
-        `${API_BASE}/api/v1/auth/telegram/unlink`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setTelegramSuccess("Telegram account unlinked successfully.");
-      await loadProfile();
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to unlink Telegram account";
-      setTelegramError(errorMessage);
-    } finally {
-      setTelegramLoading(false);
-    }
-  };
+  }, [telegramError]);
 
   if (isProfileLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
           <p className="mt-3 text-sm text-muted-foreground">
             Loading profile...
           </p>
@@ -340,7 +401,26 @@ export default function UserProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Simple Header */}
+      {/* Telegram Widget Styles */}
+      <style jsx global>{`
+        .telegram-login-widget {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 40px;
+        }
+        .telegram-login-widget iframe {
+          border-radius: 6px !important;
+          transition: all 0.2s ease-in-out;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .telegram-login-widget iframe:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+      `}</style>
+
+      {/* Header */}
       <div className="bg-card border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <h1 className="text-lg font-semibold text-foreground">
@@ -350,7 +430,7 @@ export default function UserProfilePage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Profile Header - Compact like Facebook */}
+        {/* Profile Header */}
         <Card className="mb-4">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -384,7 +464,7 @@ export default function UserProfilePage() {
                     <p className="text-muted-foreground text-sm">
                       {userProfile?.email}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-2">
                       <Badge variant="secondary" className="text-xs">
                         {userProfile?.userType}
                       </Badge>
@@ -393,6 +473,7 @@ export default function UserProfilePage() {
                           variant="outline"
                           className="text-xs border-success text-success"
                         >
+                          <MessageCircle className="h-3 w-3 mr-1" />
                           Telegram
                         </Badge>
                       )}
@@ -415,7 +496,14 @@ export default function UserProfilePage() {
                           onClick={handleSave}
                           disabled={isSubmitting}
                         >
-                          {isSubmitting ? "Saving..." : "Save"}
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            "Save"
+                          )}
                         </Button>
                       </>
                     ) : (
@@ -435,7 +523,7 @@ export default function UserProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Navigation Pills */}
+        {/* Navigation Tabs */}
         <div className="flex gap-1 mb-4 bg-card rounded-lg p-1 border">
           {[
             { id: "profile", label: "Profile" },
@@ -456,7 +544,7 @@ export default function UserProfilePage() {
           ))}
         </div>
 
-        {/* Content Sections */}
+        {/* Profile Section */}
         {activeSection === "profile" && (
           <Card>
             <CardHeader className="pb-3">
@@ -572,6 +660,7 @@ export default function UserProfilePage() {
                     onChange={(e) => handleInputChange("notes", e.target.value)}
                     className="mt-1"
                     rows={3}
+                    placeholder="Add any additional notes..."
                   />
                 ) : (
                   <p className="mt-1 text-sm text-foreground">
@@ -594,100 +683,17 @@ export default function UserProfilePage() {
           </Card>
         )}
 
+        {/* Security Section */}
         {activeSection === "security" && (
           <div className="space-y-4">
-            {/* Telegram */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-foreground">
-                        Telegram Account
-                      </h3>
-                      <p
-                        className={`text-sm ${
-                          userProfile?.hasTelegramLinked
-                            ? "text-success"
-                            : "text-error"
-                        }`}
-                      >
-                        {userProfile?.hasTelegramLinked
-                          ? "Connected"
-                          : "Not connected"}
-                      </p>
-                    </div>
-                    {userProfile?.hasTelegramLinked ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleUnlinkTelegram}
-                        disabled={telegramLoading}
-                      >
-                        {telegramLoading ? "Unlinking..." : "Unlink"}
-                      </Button>
-                    ) : (
-                      <>
-                        {telegramAvailable && telegramUser ? (
-                          <Button
-                            size="sm"
-                            onClick={handleLinkTelegramClick}
-                            disabled={telegramLoading}
-                          >
-                            {telegramLoading ? "Linking..." : "Link"}
-                          </Button>
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-
-                  {/* Show policy and requirements when can't link */}
-                  {!userProfile?.hasTelegramLinked &&
-                    (!telegramAvailable || !telegramUser) && (
-                      <div className="p-3 bg-error/10 border border-error/20 rounded-md">
-                        <p className="text-sm text-error font-medium mb-2">
-                          Cannot link Telegram account
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-3">
-                          To link your Telegram account, please open this page
-                          from Telegram WebApp.
-                        </p>
-
-                        <div className="text-xs text-muted-foreground">
-                          <p className="font-medium mb-1">Linking Policy:</p>
-                          <ul className="list-disc list-inside space-y-1 ml-2">
-                            <li>Allow notifications via Telegram</li>
-                            <li>Share Telegram username and profile</li>
-                            <li>Enable secure authentication</li>
-                            <li>Follow privacy policy and terms</li>
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-
-                  {telegramSuccess && (
-                    <div className="p-3 bg-success/10 border border-success/20 text-success rounded-md">
-                      <p className="text-sm">{telegramSuccess}</p>
-                    </div>
-                  )}
-
-                  {telegramError && (
-                    <div className="p-3 bg-error/10 border border-error/20 text-error rounded-md">
-                      <p className="text-sm">{telegramError}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Password */}
+            {/* Password Management Card */}
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-medium text-foreground">Password</h3>
                     <p className="text-sm text-muted-foreground">
-                      Change your password
+                      Change your account password
                     </p>
                   </div>
                   <Button
@@ -695,13 +701,13 @@ export default function UserProfilePage() {
                     size="sm"
                     onClick={() => setIsChangePasswordModalOpen(true)}
                   >
-                    Change
+                    Change Password
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Delete Account */}
+            {/* Account Deletion Card */}
             <Card className="border-destructive/50">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -710,11 +716,11 @@ export default function UserProfilePage() {
                       Delete Account
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Permanently delete your account
+                      Permanently delete your account and all data
                     </p>
                   </div>
                   <Button variant="destructive" size="sm">
-                    Delete
+                    Delete Account
                   </Button>
                 </div>
               </CardContent>
@@ -722,12 +728,16 @@ export default function UserProfilePage() {
           </div>
         )}
 
+        {/* Notifications Section */}
         {activeSection === "notifications" && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-foreground">
                 Notification Preferences
               </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Choose how you want to receive notifications
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               {[
@@ -735,34 +745,56 @@ export default function UserProfilePage() {
                   key: "emailNotifications",
                   title: "Email Notifications",
                   description: "Receive notifications via email",
+                  icon: "📧",
+                },
+                {
+                  key: "telegramNotifications",
+                  title: "Telegram Notifications",
+                  description: "Receive instant notifications via Telegram",
+                  icon: "💬",
+                  disabled: !userProfile?.hasTelegramLinked,
+                  helper: !userProfile?.hasTelegramLinked
+                    ? "Link your Telegram account to enable"
+                    : undefined,
                 },
                 {
                   key: "pushNotifications",
-                  title: "Push Notifications",
+                  title: "Browser Push Notifications",
                   description: "Browser push notifications",
+                  icon: "🔔",
                 },
                 {
                   key: "securityAlerts",
                   title: "Security Alerts",
-                  description: "Security-related notifications",
+                  description: "Important security-related notifications",
+                  icon: "🔒",
                 },
                 {
                   key: "systemUpdates",
                   title: "System Updates",
-                  description: "System and feature updates",
+                  description: "System maintenance and feature updates",
+                  icon: "⚙️",
                 },
               ].map((item) => (
                 <div
                   key={item.key}
-                  className="flex items-center justify-between py-2"
+                  className="flex items-start justify-between py-3 border-b border-border/50 last:border-b-0"
                 >
-                  <div>
-                    <h4 className="font-medium text-sm text-foreground">
-                      {item.title}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {item.description}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <span className="text-lg">{item.icon}</span>
+                    <div>
+                      <h4 className="font-medium text-sm text-foreground">
+                        {item.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        {item.description}
+                      </p>
+                      {item.helper && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                          {item.helper}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <Switch
                     checked={
@@ -774,6 +806,7 @@ export default function UserProfilePage() {
                         [item.key]: checked,
                       })
                     }
+                    disabled={item.disabled}
                   />
                 </div>
               ))}
@@ -781,54 +814,11 @@ export default function UserProfilePage() {
           </Card>
         )}
 
+        {/* Change Password Modal */}
         <ChangePasswordModal
           isOpen={isChangePasswordModalOpen}
           onClose={() => setIsChangePasswordModalOpen(false)}
         />
-
-        {/* Policy Modal */}
-        {isPolicyModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-card rounded-lg p-6 max-w-md mx-4 border">
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                Telegram Integration Policy
-              </h3>
-              <div className="space-y-3 text-sm text-muted-foreground mb-6">
-                <p>By linking your Telegram account, you agree to:</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>
-                    Allow this application to send notifications via Telegram
-                  </li>
-                  <li>Share your Telegram username and profile information</li>
-                  <li>Enable secure authentication through Telegram</li>
-                  <li>Follow our privacy policy and terms of service</li>
-                </ul>
-                <p className="text-xs">
-                  You can unlink your account at any time from the security
-                  settings.
-                </p>
-              </div>
-              <div className="flex gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsPolicyModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleLinkTelegram}
-                  disabled={
-                    telegramLoading || !telegramAvailable || !telegramUser
-                  }
-                >
-                  I Agree & Link
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

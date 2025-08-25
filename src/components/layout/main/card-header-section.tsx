@@ -142,22 +142,6 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                     onChange={onSearchChange}
                   />
                 </div>
-                <Button
-                  onClick={handleResetFilters}
-                  disabled={disableReset}
-                  variant="outline"
-                  size="icon"
-                  className={`
-                  transition-all duration-300
-                  ${
-                    disableReset
-                      ? "opacity-50 cursor-not-allowed"
-                      : "text-gray-500"
-                  }
-                `}
-                >
-                  <RefreshCcw className="h-4 w-4" />
-                </Button>
               </div>
             )}
 
