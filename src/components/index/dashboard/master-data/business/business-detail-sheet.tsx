@@ -2,25 +2,17 @@
 
 import type React from "react";
 import {
-  Eye,
-  Globe,
   Phone,
   Mail,
   MapPin,
-  Clock,
   Users,
   Calendar,
-  CreditCard,
-  Facebook,
-  Instagram,
-  MessageCircle,
   Building2,
   ChefHat,
   DollarSign,
   Percent,
   Shield,
   CheckCircle,
-  XCircle,
   AlertTriangle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

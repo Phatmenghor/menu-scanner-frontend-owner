@@ -28,9 +28,9 @@ interface LocaleLayoutProps {
   children: ReactNode;
 }
 
-export default async function LocaleLayout({ children }: LocaleLayoutProps) {
-  // Load messages for the current locale
+export const dynamic = "force-dynamic";
 
+export default async function LocaleLayout({ children }: LocaleLayoutProps) {
   return (
     <html
       lang="en"

@@ -429,7 +429,7 @@ function ModalUser({
                 render={({ field }) => (
                   <Select
                     value={field.value}
-                    onValueChange={(value) => field.onChange([value])}
+                    onValueChange={(value) => field.onChange(value)}
                     disabled={isSubmitting}
                   >
                     <SelectTrigger

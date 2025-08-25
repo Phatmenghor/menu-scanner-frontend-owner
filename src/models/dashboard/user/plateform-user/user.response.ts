@@ -21,6 +21,7 @@ export interface UserModel {
   firstName: string;
   lastName: string;
   fullName: string;
+  displayName: string;
   phoneNumber: string;
   profileImageUrl: string;
   userType: string;
@@ -31,6 +32,16 @@ export interface UserModel {
   position: string;
   address: string;
   notes: string;
+
+  // ===== TELEGRAM INTEGRATION FIELDS =====
+  socialProvider: string;
+  hasTelegramLinked: boolean;
+  telegramUserId?: number;
+  telegramUsername?: string;
+  telegramDisplayName?: string;
+  telegramLinkedAt?: string;
+  telegramNotificationsEnabled?: boolean;
+  canReceiveTelegramNotifications?: boolean;
 }
 
 export interface CreateUserResponse {
@@ -39,6 +50,7 @@ export interface CreateUserResponse {
   firstName: string;
   lastName: string;
   fullName: string;
+  displayName: string;
   phoneNumber: string;
   userType: string;
   accountStatus: string;
@@ -53,4 +65,67 @@ export interface CreateUserResponse {
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
+
+  // ===== TELEGRAM INTEGRATION FIELDS =====
+  socialProvider: string;
+  hasTelegramLinked: boolean;
+  telegramUserId?: number;
+  telegramUsername?: string;
+  telegramDisplayName?: string;
+  telegramLinkedAt?: string;
+  telegramNotificationsEnabled?: boolean;
+  canReceiveTelegramNotifications?: boolean;
+}
+
+// ===== TELEGRAM-SPECIFIC INTERFACES =====
+export interface TelegramAuthResponse {
+  accessToken: string;
+  tokenType: string;
+  userId: string;
+  userIdentifier: string;
+  email?: string;
+  fullName: string;
+  displayName: string;
+  userType: string;
+  roles: string[];
+  businessId?: string;
+  businessName?: string;
+  socialProvider: string;
+  telegramUserId: number;
+  telegramUsername?: string;
+  telegramDisplayName: string;
+  telegramLinkedAt: string;
+  isNewUser: boolean;
+  hasPasswordSet: boolean;
+  welcomeMessage: string;
+  message?: string;
+}
+
+export interface TelegramLinkRequest {
+  telegramUserId: number;
+  telegramUsername?: string;
+  telegramFirstName?: string;
+  telegramLastName?: string;
+  telegramPhotoUrl?: string;
+  authDate?: string;
+  hash?: string;
+  chatId?: string;
+  languageCode?: string;
+  isPremium?: boolean;
+}
+
+export interface TelegramLoginRequest {
+  telegramUserId: number;
+  telegramUsername?: string;
+  telegramFirstName?: string;
+  telegramLastName?: string;
+  telegramPhotoUrl?: string;
+  authDate?: string;
+  hash?: string;
+  chatId?: string;
+  languageCode?: string;
+  isPremium?: boolean;
+  email?: string;
+  phoneNumber?: string;
+  userIdentifier?: string;
 }
