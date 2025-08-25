@@ -147,69 +147,6 @@ export default function BusinessUserPage() {
     setSearchQuery(e.target.value);
   };
 
-  const handleExportToPdf = async (data: AllUserResponse | null) => {
-    setIsExportingToExcel(true);
-    try {
-      const columns: ExcelColumn[] = [
-        {
-          header: "Id",
-          key: "id",
-          width: 15,
-          style: { alignment: { horizontal: "right" } },
-        },
-        { header: "Name", key: "name", width: 15 },
-        { header: "Email", key: "email", width: 30 },
-        { header: "Role", key: "role", width: 15 },
-        { header: "Status", key: "status", width: 15 },
-        {
-          header: "Join Date",
-          key: "createdAt",
-          width: 25,
-          type: "date",
-          format: "mm/dd/yyyy",
-        },
-      ];
-
-      // await quickExport(data?.content ?? [], {
-      //   filename: "users.xlsx",
-      //   title: "User List",
-      //   autoFilter: true,
-      //   columns: columns,
-      //   sortBy: [{ key: "createdAt", order: "desc" }],
-      // });
-
-      const exporter = new ExcelExporter({
-        filename: "user.xlsx",
-        title: "User Report",
-        author: "IT Department",
-        useAlternateRows: true,
-        protection: {
-          password: "Mak12pa12",
-          deleteRows: false,
-        },
-      });
-
-      const sheetConfig: ExcelSheet = {
-        name: "User",
-        data: data?.content ?? [],
-        columns,
-        autoFilter: true,
-        freezeRows: 1,
-        sortBy: [{ key: "createAt", order: "desc" }],
-      };
-
-      exporter.addSheet(sheetConfig);
-      await exporter.export();
-
-      toast.success("Successfully export to excel");
-    } catch (err: any) {
-      toast.success("Failed to export to excel");
-      console.log("Error exporting to excel: ", err);
-    } finally {
-      setIsExportingToExcel(false);
-    }
-  };
-
   async function handleSubmit(formData: UserFormData) {
     console.log("Submitting form:", formData, "mode:", mode);
 
