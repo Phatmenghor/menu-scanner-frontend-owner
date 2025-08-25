@@ -100,6 +100,7 @@ export const USER_TYPE_OPTIONS = [
 ];
 
 export enum BusinessStatus {
+  All = "All",
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   SUSPENDED = "SUSPENDED",
@@ -107,6 +108,7 @@ export enum BusinessStatus {
 }
 
 export const BUSINESS_STATUS_OPTIONS = [
+  { value: undefined, label: "All" },
   { value: BusinessStatus.ACTIVE, label: "Active" },
   { value: BusinessStatus.INACTIVE, label: "Inactive" },
   { value: BusinessStatus.SUSPENDED, label: "Suspended" },

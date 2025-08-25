@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/select";
 
 export interface SelectOption {
-  value: string;
+  value: string | undefined;
   label: string;
   disabled?: boolean;
 }
@@ -48,7 +48,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         {options.map((option) => (
           <SelectItem
             key={option.value}
-            value={option.value}
+            value={option.value == undefined ? "All" : option.value}
             disabled={option.disabled}
             className={sizeClasses[size]}
           >

@@ -39,6 +39,7 @@ import {
 import { DataTable } from "@/components/shared/common/data-table";
 import { createBusinessTableColumns } from "@/constants/AppResource/table/table-constant";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
+import { set } from "nprogress";
 
 export default function BusinessPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,7 +54,7 @@ export default function BusinessPage() {
   const [isBusinessDetailOpen, setIsBusinessDetailOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [statusFilter, setStatusFilter] = useState<BusinessStatus | undefined>(
-    undefined
+    BusinessStatus.All
   );
   const [hasSubscription, setHasSubscription] = useState<boolean | undefined>(
     undefined
@@ -258,26 +259,10 @@ export default function BusinessPage() {
 
   // Subscription options for select
   const subscriptionOptions: SelectOption[] = [
-    { value: "all", label: "All" },
+    { value: undefined, label: "All" },
     { value: "true", label: "Subscribed" },
     { value: "false", label: "Not Subscribed" },
   ];
-
-  const getSubscriptionValue = () => {
-    if (hasSubscription === true) return "true";
-    if (hasSubscription === false) return "false";
-    return "all";
-  };
-
-  const handleSubscriptionChange = (value: string) => {
-    if (value === "true") {
-      setHasSubscription(true);
-    } else if (value === "false") {
-      setHasSubscription(false);
-    } else {
-      setHasSubscription(undefined);
-    }
-  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -306,9 +291,19 @@ export default function BusinessPage() {
                 />
                 <CustomSelect
                   options={subscriptionOptions}
-                  value={getSubscriptionValue()}
+                  value={
+                    hasSubscription === undefined
+                      ? "All"
+                      : hasSubscription
+                      ? "true"
+                      : "false"
+                  }
                   placeholder="All"
-                  onValueChange={handleSubscriptionChange}
+                  onValueChange={(value) => {
+                    if (value === "true") setHasSubscription(true);
+                    else if (value === "false") setHasSubscription(false);
+                    else setHasSubscription(undefined);
+                  }}
                 />
               </div>
             </div>
