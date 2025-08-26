@@ -11,7 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  BUSINESS_STATUS_OPTIONS,
+  BusinessStatus,
   ModalMode,
+  SUBSCRIPTION_PLAN_OPTIONS,
+  subscriptionOptions,
   SubscriptionPlanStatus,
 } from "@/constants/AppResource/status/status";
 import { indexDisplay } from "@/utils/common/common";
@@ -58,6 +62,7 @@ import { SubscriptionPlanDetailSheet } from "@/components/dashboard/master-data/
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { SubscriptionPlanTableHeaders } from "@/constants/AppResource/table/master-data/subscription-plan";
+import { CustomSelect } from "@/components/shared/common/custom-select";
 
 export default function SubscriptionPlanPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,7 +76,6 @@ export default function SubscriptionPlanPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubPlanDetailOpen, setIsSubPlanDetailOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
-  const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
     SubscriptionPlanStatus | undefined
   >(undefined);
@@ -150,69 +154,6 @@ export default function SubscriptionPlanPage() {
   // Simplified search change handler - just updates the state, debouncing handles the rest
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-  };
-
-  const handleExportToPdf = async (data: AllSubscriptionPlan | null) => {
-    setIsExportingToExcel(true);
-    try {
-      const columns: ExcelColumn[] = [
-        {
-          header: "Id",
-          key: "id",
-          width: 15,
-          style: { alignment: { horizontal: "right" } },
-        },
-        { header: "Name", key: "name", width: 15 },
-        { header: "Email", key: "email", width: 30 },
-        { header: "Role", key: "role", width: 15 },
-        { header: "Status", key: "status", width: 15 },
-        {
-          header: "Join Date",
-          key: "createdAt",
-          width: 25,
-          type: "date",
-          format: "mm/dd/yyyy",
-        },
-      ];
-
-      // await quickExport(data?.content ?? [], {
-      //   filename: "users.xlsx",
-      //   title: "User List",
-      //   autoFilter: true,
-      //   columns: columns,
-      //   sortBy: [{ key: "createdAt", order: "desc" }],
-      // });
-
-      const exporter = new ExcelExporter({
-        filename: "user.xlsx",
-        title: "User Report",
-        author: "IT Department",
-        useAlternateRows: true,
-        protection: {
-          password: "Mak12pa12",
-          deleteRows: false,
-        },
-      });
-
-      const sheetConfig: ExcelSheet = {
-        name: "User",
-        data: data?.content ?? [],
-        columns,
-        autoFilter: true,
-        freezeRows: 1,
-        sortBy: [{ key: "createAt", order: "desc" }],
-      };
-
-      exporter.addSheet(sheetConfig);
-      await exporter.export();
-
-      toast.success("Successfully export to excel");
-    } catch (err: any) {
-      toast.success("Failed to export to excel");
-      console.log("Error exporting to excel: ", err);
-    } finally {
-      setIsExportingToExcel(false);
-    }
   };
 
   async function handleSubmit(formData: SubscriptionPlanFormData) {
@@ -421,90 +362,43 @@ export default function SubscriptionPlanPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Subscription Plan List", href: "" },
+            { label: "Subscription Plans", href: "" },
           ]}
-          title="Subscription Plan"
+          title="Subscription Plans"
           searchValue={searchQuery}
           searchPlaceholder="Search..."
-          buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="Add new"
-          onSearchChange={handleSearchChange}
-          openModal={handleCreateBusiness}
-          disableReset={!statusFilter && !publicOnly && !freeOnly}
+          disableReset={!statusFilter && !hasSubscription}
           handleResetFilters={handleResetFilters}
-          children1={
-            <div className="max-w-md flex flex-row gap-3">
-              {/* Duration Range */}
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    type="number"
-                    value={minDuration ?? ""}
-                    onChange={(e) =>
-                      handleDurationChange(
-                        Number(e.target.value) || undefined,
-                        maxDuration
-                      )
-                    }
-                    placeholder="Duration Min"
-                    className="h-9 text-sm bg-white text-black dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                    min="0"
-                  />
-                  <Input
-                    type="number"
-                    value={maxDuration ?? ""}
-                    onChange={(e) =>
-                      handleDurationChange(
-                        minDuration,
-                        Number(e.target.value) || undefined
-                      )
-                    }
-                    placeholder="Duration Max"
-                    className="h-9 text-sm bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                    min="0"
-                  />
-                </div>
-              </div>
-              {/* Plan Type Filters */}
-              <div className="space-y-1 flex justify-center">
-                <div className="flex flex-row gap-2">
-                  <label className="inline-flex items-center gap-2 cursor-pointer group">
-                    <Checkbox
-                      checked={publicOnly}
-                      onCheckedChange={(val) => setPublicOnly(Boolean(val))}
-                      className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-gray-300 dark:border-gray-600"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-                      Public
-                    </span>
-                  </label>
-                  <label className="inline-flex items-center gap-2 cursor-pointer group">
-                    <Checkbox
-                      checked={freeOnly}
-                      onCheckedChange={(val) => setFreeOnly(Boolean(val))}
-                      className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-gray-300 dark:border-gray-600"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-                      Free
-                    </span>
-                  </label>
-                </div>
+          onSearchChange={handleSearchChange}
+          children={
+            <div className="flex flex-wrap items-center justify-start gap-4 w-full">
+              <div className="flex items-center gap-3">
+                <CustomSelect
+                  options={SUBSCRIPTION_PLAN_OPTIONS}
+                  value={statusFilter}
+                  placeholder="Select Status"
+                  onValueChange={(value) =>
+                    setStatusFilter(value as SubscriptionPlanStatus)
+                  }
+                />
+                <CustomSelect
+                  options={subscriptionOptions}
+                  value={
+                    hasSubscription === undefined
+                      ? "All"
+                      : hasSubscription
+                      ? "true"
+                      : "false"
+                  }
+                  placeholder="All"
+                  onValueChange={(value) => {
+                    if (value === "true") setHasSubscription(true);
+                    else if (value === "false") setHasSubscription(false);
+                    else setHasSubscription(undefined);
+                  }}
+                />
               </div>
             </div>
-          }
-          children={
-            <SubscriptionPlanFilters
-              statusFilter={statusFilter}
-              onStatusChange={handleStatusChange}
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-              onPriceChange={handlePriceChange}
-              publicOnly={publicOnly}
-              freeOnly={freeOnly}
-              setPublicOnly={setPublicOnly}
-              setFreeOnly={setFreeOnly}
-              onExport={() => handleExportToPdf(data)}
-            />
           }
         />
 

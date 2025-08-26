@@ -49,11 +49,13 @@ export enum BusinessUserRole {
 }
 
 export enum SubscriptionPlanStatus {
+  ALL = "ALL",
   PUBLIC = "PUBLIC",
   PRIVATE = "PRIVATE",
 }
 
 export const SUBSCRIPTION_PLAN_OPTIONS = [
+  { value: undefined, label: "All" },
   { value: SubscriptionPlanStatus.PUBLIC, label: "Public" },
   { value: SubscriptionPlanStatus.PRIVATE, label: "Private" },
 ];
@@ -102,7 +104,7 @@ export const USER_TYPE_OPTIONS = [
 ];
 
 export enum BusinessStatus {
-  All = "All",
+  All = "ALL",
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   SUSPENDED = "SUSPENDED",

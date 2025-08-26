@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 
 type Props = {
-  Data: BusinessFormData;
+  data?: BusinessFormData | null;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
@@ -38,7 +38,7 @@ type Props = {
 export default function ModalBusiness({
   isOpen,
   onClose,
-  Data,
+  data: Data,
   onSave,
   isSubmitting = false,
 }: Props) {
@@ -81,7 +81,7 @@ export default function ModalBusiness({
     console.log("Form submitted - Update Mode, Data:", data);
 
     const payload = {
-      id: Data.id,
+      id: data.id || "",
       email: data.email?.trim() || "",
       name: data.name?.trim() || "",
       status: data.status || "active",

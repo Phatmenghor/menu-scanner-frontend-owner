@@ -61,12 +61,6 @@ export default function BusinessPage() {
     undefined
   );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
-    useState(false);
-  const [selectedBusinessToggle, setSelectedBusinessToggle] =
-    useState<BusinessModel | null>(null);
-  const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
-    useState(false);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
   const searchParams = useSearchParams();
@@ -335,8 +329,7 @@ export default function BusinessPage() {
           }}
           isSubmitting={isSubmitting}
           onSave={handleSubmit}
-          Data={initializeBusiness}
-          mode={mode}
+          data={initializeBusiness}
         />
 
         <BusinessDetailModal

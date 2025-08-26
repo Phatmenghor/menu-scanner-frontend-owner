@@ -113,7 +113,7 @@ export const createBusinessTableColumns = ({
             business.isExpiringSoon ? "text-warning" : "text-muted-foreground"
           }
         >
-          {business.daysRemaining || "---"}
+          {`${business.daysRemaining} days` || "---"}
         </span>
       ),
     },
