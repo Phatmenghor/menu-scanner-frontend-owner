@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   SUBSCRIPTION_PLAN_OPTIONS,
   subscriptionOptions,
@@ -36,6 +35,15 @@ import { SubscriptionPlanDetailModal } from "@/components/dashboard/master-data/
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
 import { DataTable } from "@/components/shared/common/data-table";
 
+// Status options for filter
+const SUBSCRIPTION_PLAN_STATUS_OPTIONS = [
+  { value: undefined, label: "All Status" },
+  { value: "PUBLIC", label: "Public" },
+  { value: "PRIVATE", label: "Private" },
+  { value: "INACTIVE", label: "Inactive" },
+  { value: "DRAFT", label: "Draft" },
+];
+
 export default function SubscriptionPlanPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<AllSubscriptionPlan | null>(null);
@@ -44,14 +52,12 @@ export default function SubscriptionPlanPage() {
   // Modal states
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    mode: ModalMode;
-    data: SubscriptionPlanFormData | null;
+    planId: string;
     isSubmitting: boolean;
     error: string | null;
   }>({
     isOpen: false,
-    mode: ModalMode.CREATE_MODE,
-    data: null,
+    planId: "",
     isSubmitting: false,
     error: null,
   });
@@ -59,10 +65,10 @@ export default function SubscriptionPlanPage() {
   // Detail modal state
   const [detailModalState, setDetailModalState] = useState<{
     isOpen: boolean;
-    plan: SubscriptionPlanModel | null;
+    planId: string;
   }>({
     isOpen: false,
-    plan: null,
+    planId: "",
   });
 
   // Delete modal state
@@ -77,18 +83,9 @@ export default function SubscriptionPlanPage() {
   });
 
   // Filter states
-  const [statusFilter, setStatusFilter] = useState<
-    SubscriptionPlanStatus | undefined
-  >(undefined);
-  const [hasSubscription, setHasSubscription] = useState<boolean | undefined>(
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(
     undefined
   );
-  const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
-  const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
-  const [minDuration, setMinDuration] = useState<number | undefined>(undefined);
-  const [maxDuration, setMaxDuration] = useState<number | undefined>(undefined);
-  const [publicOnly, setPublicOnly] = useState(false);
-  const [freeOnly, setFreeOnly] = useState(false);
 
   // Debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -113,12 +110,6 @@ export default function SubscriptionPlanPage() {
     try {
       const response = await getAllSubscriptionPlanService({
         status: statusFilter,
-        freeOnly: freeOnly,
-        publicOnly: publicOnly,
-        maxDurationDays: maxDuration,
-        minDurationDays: minDuration,
-        maxPrice: maxPrice,
-        minPrice: minPrice,
         search: debouncedSearchQuery,
         pageNo: currentPage,
         pageSize: 10,
@@ -131,17 +122,7 @@ export default function SubscriptionPlanPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    debouncedSearchQuery,
-    statusFilter,
-    currentPage,
-    maxPrice,
-    minPrice,
-    minDuration,
-    maxDuration,
-    publicOnly,
-    freeOnly,
-  ]);
+  }, [debouncedSearchQuery, statusFilter, currentPage]);
 
   useEffect(() => {
     loadSubscriptionPlan();
@@ -156,15 +137,7 @@ export default function SubscriptionPlanPage() {
   const handleEditPlan = useCallback((plan: SubscriptionPlanModel) => {
     setModalState({
       isOpen: true,
-      mode: ModalMode.UPDATE_MODE,
-      data: {
-        id: plan.id?.toString() || "",
-        name: plan.name || "",
-        status: plan.status || "active",
-        price: plan.price || 0,
-        durationDays: plan.durationDays || 30,
-        description: plan.description || "",
-      },
+      planId: plan.id || "",
       isSubmitting: false,
       error: null,
     });
@@ -173,7 +146,7 @@ export default function SubscriptionPlanPage() {
   const handleViewPlanDetail = useCallback((plan: SubscriptionPlanModel) => {
     setDetailModalState({
       isOpen: true,
-      plan: plan,
+      planId: plan.id || "",
     });
   }, []);
 
@@ -209,8 +182,7 @@ export default function SubscriptionPlanPage() {
   const openCreateModal = () => {
     setModalState({
       isOpen: true,
-      mode: ModalMode.CREATE_MODE,
-      data: null,
+      planId: "",
       isSubmitting: false,
       error: null,
     });
@@ -221,7 +193,7 @@ export default function SubscriptionPlanPage() {
     setModalState((prev) => ({
       ...prev,
       isOpen: false,
-      data: null,
+      planId: "",
       error: null,
     }));
   };
@@ -230,7 +202,7 @@ export default function SubscriptionPlanPage() {
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      plan: null,
+      planId: "",
     });
   };
 
@@ -254,7 +226,7 @@ export default function SubscriptionPlanPage() {
         error: null,
       }));
 
-      const isCreate = modalState.mode === ModalMode.CREATE_MODE;
+      const isCreate = !modalState.planId;
 
       if (
         !formData.name ||
@@ -267,9 +239,9 @@ export default function SubscriptionPlanPage() {
 
       const payload = {
         name: formData.name,
-        durationDays: formData.durationDays,
-        price: formData.price,
         description: formData.description || "",
+        price: formData.price,
+        durationDays: formData.durationDays,
         status: formData.status,
       };
 
@@ -304,12 +276,12 @@ export default function SubscriptionPlanPage() {
           });
         }
       } else {
-        if (!formData?.id) {
+        if (!modalState.planId) {
           throw new Error("Plan ID is required for update");
         }
 
         const response = await updateSubscriptionPlanService(
-          formData.id,
+          modalState.planId,
           payload
         );
         if (response) {
@@ -318,7 +290,7 @@ export default function SubscriptionPlanPage() {
               ? {
                   ...prev,
                   content: prev.content.map((plan) =>
-                    plan.id?.toString() === formData.id ? response : plan
+                    plan.id?.toString() === modalState.planId ? response : plan
                   ),
                 }
               : prev
@@ -400,28 +372,10 @@ export default function SubscriptionPlanPage() {
             <div className="flex flex-wrap items-center justify-between gap-4 w-full">
               <div className="flex items-center gap-3">
                 <CustomSelect
-                  options={SUBSCRIPTION_PLAN_OPTIONS}
+                  options={SUBSCRIPTION_PLAN_STATUS_OPTIONS}
                   value={statusFilter}
                   placeholder="Select Status"
-                  onValueChange={(value) =>
-                    setStatusFilter(value as SubscriptionPlanStatus)
-                  }
-                />
-                <CustomSelect
-                  options={subscriptionOptions}
-                  value={
-                    hasSubscription === undefined
-                      ? "All"
-                      : hasSubscription
-                      ? "true"
-                      : "false"
-                  }
-                  placeholder="All"
-                  onValueChange={(value) => {
-                    if (value === "true") setHasSubscription(true);
-                    else if (value === "false") setHasSubscription(false);
-                    else setHasSubscription(undefined);
-                  }}
+                  onValueChange={(value) => setStatusFilter(value)}
                 />
               </div>
 
@@ -461,10 +415,9 @@ export default function SubscriptionPlanPage() {
       <ModalSubscriptionPlan
         isOpen={modalState.isOpen}
         onClose={closeModal}
+        subscriptionPlanId={modalState.planId}
         isSubmitting={modalState.isSubmitting}
         onSave={handleSubmit}
-        Data={modalState.data}
-        mode={modalState.mode}
         error={modalState.error}
       />
 
@@ -472,7 +425,7 @@ export default function SubscriptionPlanPage() {
       <SubscriptionPlanDetailModal
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
-        subPlan={detailModalState.plan}
+        subscriptionPlanId={detailModalState.planId}
       />
 
       {/* Delete Confirmation Dialog */}

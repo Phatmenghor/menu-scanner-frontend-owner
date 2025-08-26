@@ -1,4 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Crown, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -6,18 +12,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Crown, CreditCard, X } from "lucide-react";
-import {
-  ModalMode,
-  SUBSCRIPTION_PLAN_OPTIONS,
-} from "@/constants/AppResource/status/status";
 import {
   Select,
   SelectContent,
@@ -29,10 +23,22 @@ import {
   SubscriptionPlanFormData,
   SubscriptionPlanSchema,
 } from "@/models/dashboard/master-data/subscription-plan/subscription-plan.schema";
+import { SubscriptionPlanModel } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
+import { getSubscriptionPlanByIdService } from "@/services/dashboard/master-data/subscrion-plan/subscription-plan.service";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Loading from "../common/loading";
+import { Label } from "@/components/ui/label";
 
-type Props = {
-  mode: ModalMode;
-  Data?: SubscriptionPlanFormData | null;
+// Status options
+const SUBSCRIPTION_PLAN_STATUS_OPTIONS = [
+  { value: "PUBLIC", label: "Public" },
+  { value: "PRIVATE", label: "Private" },
+  { value: "INACTIVE", label: "Inactive" },
+  { value: "DRAFT", label: "Draft" },
+];
+
+type ModalSubscriptionPlanProps = {
+  subscriptionPlanId?: string;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
@@ -40,404 +46,363 @@ type Props = {
   error?: string | null;
 };
 
-// Default form values
-const DEFAULT_FORM_VALUES: SubscriptionPlanFormData = {
-  id: "",
-  name: "",
-  price: 0,
-  description: "",
-  durationDays: 30,
-  status: "active",
-};
-
 export default function ModalSubscriptionPlan({
   isOpen,
   onClose,
-  Data,
-  mode,
+  subscriptionPlanId,
   onSave,
   isSubmitting = false,
   error = null,
-}: Props) {
-  const isCreate = mode === ModalMode.CREATE_MODE;
-  const isEdit = mode === ModalMode.UPDATE_MODE;
+}: ModalSubscriptionPlanProps) {
+  const [planData, setPlanData] = useState<SubscriptionPlanModel | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const {
     control,
     handleSubmit,
     reset,
-    formState: { errors, isDirty, isValid },
-    watch,
+    formState: { errors, isDirty },
   } = useForm<SubscriptionPlanFormData>({
     resolver: zodResolver(SubscriptionPlanSchema),
-    defaultValues: DEFAULT_FORM_VALUES,
+    defaultValues: {
+      id: "",
+      name: "",
+      description: "",
+      price: 0,
+      durationDays: 30,
+      status: "PUBLIC",
+    },
     mode: "onChange",
   });
 
-  // Watch form values for debugging
-  const watchedValues = watch();
+  // Fetch plan data when subscriptionPlanId is provided
+  useEffect(() => {
+    const fetchPlanData = async () => {
+      if (!subscriptionPlanId || !isOpen) return;
 
-  // Reset form when modal opens or data changes
+      setIsLoadingData(true);
+
+      try {
+        const data = await getSubscriptionPlanByIdService(subscriptionPlanId);
+        setPlanData(data);
+      } catch (error: any) {
+        console.error("Error fetching subscription plan data:", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchPlanData();
+  }, [subscriptionPlanId, isOpen]);
+
   useEffect(() => {
     if (isOpen) {
-      if (isCreate) {
-        // For create mode, use default values
-        reset(DEFAULT_FORM_VALUES);
-      } else if (isEdit && Data) {
-        // For edit mode, populate with existing data
-        const formData: SubscriptionPlanFormData = {
-          id: Data.id || "",
-          name: Data.name || "",
-          status: Data.status || "active",
-          price: Data.price || 0,
-          durationDays: Data.durationDays || 30,
-          description: Data.description || "",
+      if (planData) {
+        const formData = {
+          id: planData.id || "",
+          name: planData.name || "",
+          description: planData.description || "",
+          price: planData.price || 0,
+          durationDays: planData.durationDays || 30,
+          status: planData.status || "PUBLIC",
         };
         reset(formData);
+      } else if (!subscriptionPlanId) {
+        // New plan - reset to empty form
+        reset({
+          id: "",
+          name: "",
+          description: "",
+          price: 0,
+          durationDays: 30,
+          status: "PUBLIC",
+        });
       }
     }
-  }, [isOpen, Data, mode, reset, isCreate, isEdit]);
+  }, [isOpen, planData, subscriptionPlanId, reset]);
 
   const onSubmit = async (data: SubscriptionPlanFormData) => {
     try {
-      console.log("Form submitted with mode:", mode, "Data:", data);
-
-      const payload: SubscriptionPlanFormData = {
-        // Only include ID for edit mode
-        ...(isEdit && Data?.id && { id: Data.id }),
+      const payload = {
+        id: data.id || "",
         name: data.name?.trim() || "",
-        status: data.status || "active",
+        description: data.description?.trim() || "",
         price: data.price || 0,
         durationDays: data.durationDays || 30,
-        description: data.description?.trim() || "",
+        status: data.status || "PUBLIC",
       };
 
-      console.log("Payload:", payload);
       await onSave(payload);
-
-      // Only close modal if save was successful
       handleClose();
     } catch (error) {
       console.error("Error saving subscription plan:", error);
-      // Don't close modal on error - let parent component handle error display
     }
   };
 
   const handleClose = () => {
-    reset(DEFAULT_FORM_VALUES);
+    reset();
+    setPlanData(null);
     onClose();
   };
-
-  // Form validation helper
-  const isSubmitDisabled = isSubmitting || !isValid || (isEdit && !isDirty);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">
         {/* Header */}
         <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
-          <div className="flex items-center gap-3 pr-8">
+          <div className="flex items-center gap-4 pr-8">
             <div className="p-2 bg-purple-100 rounded-full">
-              {isCreate ? (
-                <Crown className="h-5 w-5 text-purple-600" />
-              ) : (
-                <CreditCard className="h-5 w-5 text-purple-600" />
-              )}
+              <Crown className="h-5 w-5 text-purple-600" />
             </div>
-            <div>
-              <DialogTitle className="text-xl">
-                {isCreate
-                  ? "Create Subscription Plan"
-                  : "Edit Subscription Plan"}
+            <div className="flex-1">
+              <DialogTitle className="text-xl font-semibold">
+                {subscriptionPlanId
+                  ? "Edit Subscription Plan"
+                  : "Add New Subscription Plan"}
               </DialogTitle>
-              <DialogDescription className="text-base">
-                {isCreate
-                  ? "Fill out the form to create a new subscription plan."
-                  : `Update "${Data?.name || "plan"}" information below.`}
+              <DialogDescription className="text-base text-muted-foreground">
+                {subscriptionPlanId
+                  ? `Update "${planData?.name || "plan"}" information below.`
+                  : "Enter the subscription plan information below."}
               </DialogDescription>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-4 top-4"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
 
         {/* Content */}
         <ScrollArea className="flex-1 min-h-0">
           <div className="p-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Error Display */}
-              {error && (
-                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                  <p className="text-sm text-destructive font-medium">
-                    {error}
-                  </p>
-                </div>
-              )}
-
-              {/* Basic Information Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">
-                  Plan Information
-                </h3>
-
-                {/* Plan Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="name">
-                    Plan Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Controller
-                    control={control}
-                    name="name"
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="name"
-                        type="text"
-                        placeholder="Enter plan name (e.g., Premium Plan)"
-                        disabled={isSubmitting}
-                        className={`transition-colors ${
-                          errors.name
-                            ? "border-red-500 focus:border-red-500"
-                            : "focus:border-purple-500"
-                        }`}
-                      />
-                    )}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-red-600">
-                      {errors.name.message}
+            {/* Loading State */}
+            {isLoadingData ? (
+              <Loading />
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {/* Error Display */}
+                {error && (
+                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                    <p className="text-sm text-destructive font-medium">
+                      {error}
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Price */}
-                  <div className="space-y-2">
-                    <Label htmlFor="price">
-                      Price (USD) <span className="text-red-500">*</span>
-                    </Label>
-                    <Controller
-                      control={control}
-                      name="price"
-                      render={({ field }) => (
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                            $
-                          </span>
+                {/* Basic Information Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-foreground">
+                      Basic Information
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {/* Plan Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-sm font-medium">
+                        Plan Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Controller
+                        control={control}
+                        name="name"
+                        render={({ field }) => (
                           <Input
                             {...field}
-                            id="price"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value) || 0)
-                            }
+                            id="name"
+                            type="text"
+                            placeholder="Enter plan name"
                             disabled={isSubmitting}
-                            className={`pl-8 transition-colors ${
-                              errors.price
+                            className={`transition-colors ${
+                              errors.name
                                 ? "border-red-500 focus:border-red-500"
                                 : "focus:border-purple-500"
                             }`}
                           />
-                        </div>
+                        )}
+                      />
+                      {errors.name && (
+                        <p className="text-sm text-red-600">
+                          {errors.name.message}
+                        </p>
                       )}
-                    />
-                    {errors.price && (
-                      <p className="text-sm text-red-600">
-                        {errors.price.message}
-                      </p>
-                    )}
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="description"
+                        className="text-sm font-medium"
+                      >
+                        Description
+                      </Label>
+                      <Controller
+                        control={control}
+                        name="description"
+                        render={({ field }) => (
+                          <Textarea
+                            {...field}
+                            id="description"
+                            placeholder="Enter plan description"
+                            disabled={isSubmitting}
+                            className={`min-h-[100px] transition-colors ${
+                              errors.description
+                                ? "border-red-500 focus:border-red-500"
+                                : "focus:border-purple-500"
+                            }`}
+                            rows={4}
+                          />
+                        )}
+                      />
+                      {errors.description && (
+                        <p className="text-sm text-red-600">
+                          {errors.description.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Duration Days */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Price */}
+                    <div className="space-y-2">
+                      <Label htmlFor="price" className="text-sm font-medium">
+                        Price (USD) <span className="text-red-500">*</span>
+                      </Label>
+                      <Controller
+                        control={control}
+                        name="price"
+                        render={({ field }) => (
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                              $
+                            </span>
+                            <Input
+                              {...field}
+                              id="price"
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              placeholder="0.00"
+                              onChange={(e) =>
+                                field.onChange(parseFloat(e.target.value) || 0)
+                              }
+                              disabled={isSubmitting}
+                              className={`pl-8 transition-colors ${
+                                errors.price
+                                  ? "border-red-500 focus:border-red-500"
+                                  : "focus:border-purple-500"
+                              }`}
+                            />
+                          </div>
+                        )}
+                      />
+                      {errors.price && (
+                        <p className="text-sm text-red-600">
+                          {errors.price.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Duration Days */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="durationDays"
+                        className="text-sm font-medium"
+                      >
+                        Duration (Days) <span className="text-red-500">*</span>
+                      </Label>
+                      <Controller
+                        control={control}
+                        name="durationDays"
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            id="durationDays"
+                            type="number"
+                            min={subscriptionPlanId ? "0" : "1"}
+                            placeholder="30"
+                            onChange={(e) =>
+                              field.onChange(
+                                parseInt(e.target.value) ||
+                                  (subscriptionPlanId ? 0 : 1)
+                              )
+                            }
+                            disabled={isSubmitting}
+                            className={`transition-colors ${
+                              errors.durationDays
+                                ? "border-red-500 focus:border-red-500"
+                                : "focus:border-purple-500"
+                            }`}
+                          />
+                        )}
+                      />
+                      {errors.durationDays && (
+                        <p className="text-sm text-red-600">
+                          {errors.durationDays.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Status */}
                   <div className="space-y-2">
-                    <Label htmlFor="duration">
-                      Duration (Days) <span className="text-red-500">*</span>
+                    <Label
+                      htmlFor="status-select"
+                      className="text-sm font-medium"
+                    >
+                      Status <span className="text-red-500">*</span>
                     </Label>
                     <Controller
                       control={control}
-                      name="durationDays"
+                      name="status"
                       render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="duration"
-                          type="number"
-                          min="1"
-                          placeholder="30"
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value) || 30)
-                          }
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
                           disabled={isSubmitting}
-                          className={`transition-colors ${
-                            errors.durationDays
-                              ? "border-red-500 focus:border-red-500"
-                              : "focus:border-purple-500"
-                          }`}
-                        />
+                        >
+                          <SelectTrigger
+                            id="status-select"
+                            className={`transition-colors ${
+                              errors.status
+                                ? "border-red-500 focus:border-red-500"
+                                : "focus:border-purple-500"
+                            }`}
+                          >
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SUBSCRIPTION_PLAN_STATUS_OPTIONS.map((status) => (
+                              <SelectItem
+                                key={status.value}
+                                value={status.value}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {status.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       )}
                     />
-                    {errors.durationDays && (
+                    {errors.status && (
                       <p className="text-sm text-red-600">
-                        {errors.durationDays.message}
+                        {errors.status.message}
                       </p>
                     )}
                   </div>
                 </div>
-
-                {/* Status */}
-                <div className="space-y-2">
-                  <Label htmlFor="status-select">
-                    Status <span className="text-red-500">*</span>
-                  </Label>
-                  <Controller
-                    control={control}
-                    name="status"
-                    render={({ field }) => (
-                      <Select
-                        value={field.value || "active"}
-                        onValueChange={field.onChange}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger
-                          id="status-select"
-                          className={`transition-colors ${
-                            errors.status
-                              ? "border-red-500 focus:border-red-500"
-                              : "focus:border-purple-500"
-                          }`}
-                        >
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SUBSCRIPTION_PLAN_OPTIONS.map((status) => (
-                            <SelectItem
-                              key={status.value || "unknown"}
-                              value={String(status.value || "active")}
-                            >
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${
-                                    status.value === "active"
-                                      ? "bg-green-500"
-                                      : status.value === "pending"
-                                      ? "bg-yellow-500"
-                                      : status.value === "inactive"
-                                      ? "bg-red-500"
-                                      : "bg-gray-500"
-                                  }`}
-                                />
-                                {status.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.status && (
-                    <p className="text-sm text-red-600">
-                      {errors.status.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Description Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">
-                  Plan Description
-                </h3>
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <Label htmlFor="description">Plan Description</Label>
-                  <Controller
-                    control={control}
-                    name="description"
-                    render={({ field }) => (
-                      <Textarea
-                        {...field}
-                        id="description"
-                        placeholder="Describe what this subscription plan offers, features included, target audience, etc..."
-                        disabled={isSubmitting}
-                        className={`min-h-[120px] transition-colors ${
-                          errors.description
-                            ? "border-red-500 focus:border-red-500"
-                            : "focus:border-purple-500"
-                        }`}
-                        rows={5}
-                      />
-                    )}
-                  />
-                  {errors.description && (
-                    <p className="text-sm text-red-600">
-                      {errors.description.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Plan Preview */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">
-                  Plan Preview
-                </h3>
-                <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Crown className="h-5 w-5 text-purple-600" />
-                    <span className="font-semibold text-lg">
-                      {watchedValues.name || "Plan Name"}
-                    </span>
-                  </div>
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-2xl font-bold text-purple-600">
-                      ${watchedValues.price || 0}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      for {watchedValues.durationDays || 30} days
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {watchedValues.description || "No description provided"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Debug Info (remove in production) */}
-              {process.env.NODE_ENV === "development" && (
-                <details className="text-xs text-muted-foreground">
-                  <summary>Debug Info</summary>
-                  <pre className="mt-2 p-2 bg-muted rounded text-xs">
-                    Mode: {mode}
-                    {"\n"}isCreate: {isCreate.toString()}
-                    {"\n"}isEdit: {isEdit.toString()}
-                    {"\n"}isDirty: {isDirty.toString()}
-                    {"\n"}isValid: {isValid.toString()}
-                    {"\n"}Data: {JSON.stringify(Data, null, 2)}
-                    {"\n"}Form Values: {JSON.stringify(watchedValues, null, 2)}
-                  </pre>
-                </details>
-              )}
-            </form>
+              </form>
+            )}
           </div>
         </ScrollArea>
 
         {/* Footer */}
         <div className="flex justify-between items-center p-6 border-t bg-muted/30 flex-shrink-0">
           <div className="text-sm text-muted-foreground">
-            {isDirty
+            {isLoadingData
+              ? "Loading data..."
+              : isDirty
               ? "You have unsaved changes"
-              : isCreate
-              ? "Ready to create plan"
               : "No changes made"}
           </div>
           <div className="flex gap-3">
@@ -445,34 +410,24 @@ export default function ModalSubscriptionPlan({
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoadingData}
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit(onSubmit)}
-              disabled={isSubmitDisabled}
-              className="min-w-[140px]"
+              disabled={isSubmitting || !isDirty || isLoadingData}
+              className="min-w-[120px]"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isCreate ? "Creating..." : "Updating..."}
+                  {subscriptionPlanId ? "Updating..." : "Creating..."}
                 </>
+              ) : subscriptionPlanId ? (
+                "Update Plan"
               ) : (
-                <>
-                  {isCreate ? (
-                    <>
-                      <Crown className="mr-2 h-4 w-4" />
-                      Create Plan
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Update Plan
-                    </>
-                  )}
-                </>
+                "Create Plan"
               )}
             </Button>
           </div>

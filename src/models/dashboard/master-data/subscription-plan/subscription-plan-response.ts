@@ -21,9 +21,5 @@ export interface SubscriptionPlanModel {
   price: number;
   durationDays: number;
   status: string;
-  pricingDisplay: string;
-  isFree: boolean;
-  isPublic: boolean;
-  isPrivate: boolean;
   activeSubscriptionsCount: number;
 }
