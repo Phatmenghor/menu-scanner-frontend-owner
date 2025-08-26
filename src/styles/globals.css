@@ -124,6 +124,15 @@
     --transition-normal: 250ms;
     --transition-slow: 350ms;
 
+    /* NProgress theme colors */
+    --nprogress-color: var(--primary);
+    --nprogress-height: 2px;
+    --nprogress-active-height: 2px;
+    --nprogress-shadow: 0 0 5px hsl(var(--primary) / 0.3),
+      0 0 8px hsl(var(--primary) / 0.15);
+    --nprogress-active-shadow: 0 0 8px hsl(var(--primary) / 0.4),
+      0 0 12px hsl(var(--primary) / 0.2);
+
     /* Enhanced shadows for depth */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -181,6 +190,84 @@
     backdrop-filter: blur(2px);
   }
 }
+
+/* NProgress Bar Styling - Minimal & Original Size */
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: #a23469 !important;
+  position: fixed;
+  z-index: 1031;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px; /* Reduced from 3px to original size */
+  border-radius: 0;
+  /* Reduced shadow intensity for subtler look */
+  box-shadow: 0 0 5px rgba(162, 52, 105, 0.3), 0 0 8px rgba(162, 52, 105, 0.15);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Simplified peg (the moving glow effect at the end) */
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 80px; /* Reduced from 100px */
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(162, 52, 105, 0.6),
+    #a23469
+  ) !important;
+  /* Reduced shadow for subtler effect */
+  box-shadow: 0 0 8px rgba(162, 52, 105, 0.8), 0 0 4px #a23469;
+  transform: rotate(2deg) translate(0px, -2px); /* Reduced rotation and translation */
+  border-radius: 0;
+}
+
+/* Active route enhancement - keep it minimal */
+body.route-changing #nprogress .bar {
+  background: #a23469 !important;
+  height: 2px; /* Keep same height, don't increase */
+  /* Slightly more shadow when active but still subtle */
+  box-shadow: 0 0 8px rgba(162, 52, 105, 0.4), 0 0 12px rgba(162, 52, 105, 0.2);
+}
+
+body.route-changing #nprogress .peg {
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(162, 52, 105, 0.8),
+    #a23469
+  ) !important;
+  /* Subtle enhancement for active state */
+  box-shadow: 0 0 10px rgba(162, 52, 105, 0.9), 0 0 5px #a23469;
+}
+
+/* Remove animations for cleaner look */
+#nprogress .peg {
+  animation: none; /* Remove the pulse animation */
+}
+
+/* Hide spinner completely for minimal approach */
+#nprogress .spinner {
+  display: none !important;
+}
+
+/* Optional: Even more minimal version (uncomment if you want super thin) */
+/*
+#nprogress .bar {
+  height: 1px !important;
+}
+
+body.route-changing #nprogress .bar {
+  height: 1px !important;
+}
+*/
 
 @layer components {
   /* Modern table styling with shadcn approach */
