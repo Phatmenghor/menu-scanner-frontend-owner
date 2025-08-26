@@ -32,6 +32,7 @@ import {
 import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
 import { getBusinessByIdService } from "@/services/dashboard/master-data/business/business.service";
 import Loading from "../common/loading";
+import { CustomAvatar } from "../common/custom-avator";
 
 type Props = {
   businessId?: string;
@@ -152,9 +153,11 @@ export default function ModalBusiness({
         {/* Header */}
         <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
           <div className="flex items-center gap-4 pr-8">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <Building2 className="h-5 w-5 text-blue-600" />
-            </div>
+            <CustomAvatar
+              imageUrl={businessData?.imageUrl}
+              name={businessData?.name}
+              size="lg"
+            />
             <div className="flex-1">
               <DialogTitle className="text-xl font-semibold">
                 {businessId ? "Edit Business" : "Add New Business"}

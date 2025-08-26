@@ -25,6 +25,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
 import { getBusinessByIdService } from "@/services/dashboard/master-data/business/business.service";
 import Loading from "@/components/shared/common/loading";
+import { formatDate } from "@/utils/date/date-time-format";
+import { CustomAvatar } from "@/components/shared/common/custom-avator";
 
 interface BusinessDetailModalProps {
   businessId?: string;
@@ -75,17 +77,6 @@ export function BusinessDetailModal({
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const handleClose = () => {
     setBusinessData(null);
     onClose();
@@ -97,9 +88,11 @@ export function BusinessDetailModal({
         {/* Header */}
         <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
           <div className="flex items-center gap-4 pr-8">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <Building2 className="h-5 w-5 text-blue-600" />
-            </div>
+            <CustomAvatar
+              imageUrl={businessData?.imageUrl}
+              name={businessData?.name}
+              size="lg"
+            />
             <div className="flex-1">
               <DialogTitle className="text-xl font-semibold">
                 Business Details
