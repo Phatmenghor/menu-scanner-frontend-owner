@@ -4,7 +4,7 @@ import { TableColumn } from "@/components/shared/table/table";
 import {
   BusinessModel,
   AllBusinessResponse,
-} from "@/models/dashboard/master-data/business/business.response.model";
+} from "@/models/dashboard/master-data/business/business-response-model";
 import { indexDisplay } from "@/utils/common/common";
 import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash } from "lucide-react";

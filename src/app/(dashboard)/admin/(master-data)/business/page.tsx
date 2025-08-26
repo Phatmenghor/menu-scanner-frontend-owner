@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import {
-  BUSINESS_STATUS_OPTIONS,
+  BUSINESS_STATUS_FILTER,
   BusinessStatus,
   subscriptionOptions,
   SubscriptionStatus,
@@ -18,7 +18,7 @@ import { BusinessFormData } from "@/models/dashboard/master-data/business/busine
 import {
   AllBusinessResponse,
   BusinessModel,
-} from "@/models/dashboard/master-data/business/business.response.model";
+} from "@/models/dashboard/master-data/business/business-response-model";
 import {
   deletedBusinessService,
   getAllBusinessService,
@@ -40,12 +40,12 @@ export default function BusinessPage() {
   // Modal states - update only
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    data: BusinessFormData | null;
+    businessId: string;
     isSubmitting: boolean;
     error: string | null;
   }>({
     isOpen: false,
-    data: null,
+    businessId: "",
     isSubmitting: false,
     error: null,
   });
@@ -53,10 +53,10 @@ export default function BusinessPage() {
   // Detail modal state
   const [detailModalState, setDetailModalState] = useState<{
     isOpen: boolean;
-    business: BusinessModel | null;
+    businessId: string;
   }>({
     isOpen: false,
-    business: null,
+    businessId: "",
   });
 
   // Delete modal state
@@ -108,7 +108,6 @@ export default function BusinessPage() {
         search: debouncedSearchQuery,
         pageNo: currentPage,
       });
-      console.log("Fetched businesses:", response);
       setData(response);
     } catch (error: any) {
       console.log("Failed to fetch businesses: ", error);
@@ -131,15 +130,7 @@ export default function BusinessPage() {
   const handleEditBusiness = useCallback((business: BusinessModel) => {
     setModalState({
       isOpen: true,
-      data: {
-        id: business.id?.toString() || "",
-        email: business.email || "",
-        name: business.name || "",
-        status: business.status || "active",
-        address: business.address || "",
-        description: business.description || "",
-        phone: business.phone || "",
-      },
+      businessId: business.id || "",
       isSubmitting: false,
       error: null,
     });
@@ -148,7 +139,7 @@ export default function BusinessPage() {
   const handleViewBusinessDetail = useCallback((business: BusinessModel) => {
     setDetailModalState({
       isOpen: true,
-      business: business,
+      businessId: business.id || "",
     });
   }, []);
 
@@ -194,7 +185,7 @@ export default function BusinessPage() {
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      business: null,
+      businessId: "",
     });
   };
 
@@ -311,7 +302,7 @@ export default function BusinessPage() {
             <div className="flex flex-wrap items-center justify-between gap-4 w-full">
               <div className="flex items-center gap-3">
                 <CustomSelect
-                  options={BUSINESS_STATUS_OPTIONS}
+                  options={BUSINESS_STATUS_FILTER}
                   value={statusFilter}
                   placeholder="Select Status"
                   onValueChange={(value) =>
@@ -357,7 +348,7 @@ export default function BusinessPage() {
         onClose={closeModal}
         isSubmitting={modalState.isSubmitting}
         onSave={handleSubmit}
-        Data={modalState.data}
+        businessId={modalState.businessId}
         error={modalState.error}
       />
 
@@ -365,7 +356,7 @@ export default function BusinessPage() {
       <BusinessDetailModal
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
-        business={detailModalState.business}
+        businessId={detailModalState.businessId}
       />
 
       {/* Delete Confirmation Dialog */}

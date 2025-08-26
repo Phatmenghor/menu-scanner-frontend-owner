@@ -111,8 +111,15 @@ export enum BusinessStatus {
   PENDING = "PENDING",
 }
 
-export const BUSINESS_STATUS_OPTIONS = [
+export const BUSINESS_STATUS_FILTER = [
   { value: BusinessStatus.All, label: "All" },
+  { value: BusinessStatus.ACTIVE, label: "Active" },
+  { value: BusinessStatus.INACTIVE, label: "Inactive" },
+  { value: BusinessStatus.SUSPENDED, label: "Suspended" },
+  { value: BusinessStatus.PENDING, label: "Pending Approval" },
+];
+
+export const BUSINESS_STATUS = [
   { value: BusinessStatus.ACTIVE, label: "Active" },
   { value: BusinessStatus.INACTIVE, label: "Inactive" },
   { value: BusinessStatus.SUSPENDED, label: "Suspended" },

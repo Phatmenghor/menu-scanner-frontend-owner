@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BUSINESS_STATUS_OPTIONS,
+  BUSINESS_STATUS_FILTER,
   BusinessStatus,
   Status,
 } from "@/constants/AppResource/status/status";
@@ -45,7 +45,7 @@ import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import {
   AllBusinessResponse,
   BusinessModel,
-} from "@/models/dashboard/master-data/business/business.response.model";
+} from "@/models/dashboard/master-data/business/business-response-model";
 import {
   deletedBusinessService,
   getAllBusinessService,
@@ -408,7 +408,7 @@ export default function ManageBusinessPage() {
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {BUSINESS_STATUS_OPTIONS.map((option) => (
+                    {BUSINESS_STATUS_FILTER.map((option) => (
                       <SelectItem
                         key={option.value}
                         value={option.value}

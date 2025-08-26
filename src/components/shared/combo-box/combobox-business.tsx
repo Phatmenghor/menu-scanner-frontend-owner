@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BusinessStatus } from "@/constants/AppResource/status/status";
 import { cn } from "@/lib/utils";
-import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
+import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
 import { getAllBusinessService } from "@/services/dashboard/master-data/business/business.service";
 import { debounce } from "@/utils/debounce/debounce";
 import {

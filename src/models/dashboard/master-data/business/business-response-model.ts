@@ -35,9 +35,5 @@ export interface BusinessModel {
   daysRemaining: number;
   isExpiringSoon: boolean;
   totalStaff: number;
-  totalCustomers: number;
-  totalMenuItems: number;
-  totalTables: number;
-  hasActiveSubscription: boolean;
   currentSubscriptionPlan: string;
 }

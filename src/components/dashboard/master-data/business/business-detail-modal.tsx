@@ -1,46 +1,65 @@
 "use client";
 
 import type React from "react";
+import { useEffect, useState } from "react";
 import {
   Phone,
   Mail,
   MapPin,
-  Users,
-  Calendar,
   Building2,
-  ChefHat,
   DollarSign,
   Percent,
   Shield,
-  CheckCircle,
-  AlertTriangle,
-  X,
+  Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
-import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
+import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
+import { getBusinessByIdService } from "@/services/dashboard/master-data/business/business.service";
+import Loading from "@/components/shared/common/loading";
 
 interface BusinessDetailModalProps {
+  businessId?: string;
   isOpen: boolean;
   onClose: () => void;
-  business: BusinessModel | null;
 }
 
 export function BusinessDetailModal({
+  businessId,
   isOpen,
   onClose,
-  business,
 }: BusinessDetailModalProps) {
+  const [businessData, setBusinessData] = useState<BusinessModel | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Fetch business data when businessId is provided
+  useEffect(() => {
+    const fetchBusinessData = async () => {
+      if (!businessId || !isOpen) return;
+
+      setIsLoadingData(true);
+
+      try {
+        const data = await getBusinessByIdService(businessId);
+        setBusinessData(data);
+      } catch (error: any) {
+        console.error("Error fetching business data:", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchBusinessData();
+  }, [businessId, isOpen]);
+
   const getStatusColor = (status: string | null) => {
     switch (status?.toLowerCase()) {
       case "active":
@@ -67,352 +86,279 @@ export function BusinessDetailModal({
     });
   };
 
-  if (!business) return null;
+  const handleClose = () => {
+    setBusinessData(null);
+    onClose();
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] p-0 gap-0 flex flex-col">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">
         {/* Header */}
         <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
           <div className="flex items-center gap-4 pr-8">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={business?.imageUrl} alt={business?.name} />
-              <AvatarFallback className="text-lg">
-                {business?.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="p-2 bg-blue-100 rounded-full">
+              <Building2 className="h-5 w-5 text-blue-600" />
+            </div>
             <div className="flex-1">
-              <DialogTitle className="text-xl">
-                {business?.name || "---"}
+              <DialogTitle className="text-xl font-semibold">
+                Business Details
               </DialogTitle>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge className={getStatusColor(business?.status ?? null)}>
-                  {business?.status}
-                </Badge>
-                {business?.hasActiveSubscription && (
-                  <Badge
-                    variant="outline"
-                    className="text-green-600 border-green-200"
-                  >
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Active Subscription
-                  </Badge>
-                )}
-                {business?.isExpiringSoon && (
-                  <Badge
-                    variant="outline"
-                    className="text-orange-600 border-orange-200"
-                  >
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    Expiring Soon
-                  </Badge>
-                )}
-              </div>
+              <DialogDescription className="text-base text-muted-foreground">
+                {businessData?.name
+                  ? `Information for "${businessData.name}"`
+                  : "Loading business information..."}
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
         {/* Content */}
         <ScrollArea className="flex-1 min-h-0">
-          <div className="space-y-6 p-6">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Building2 className="h-5 w-5" />
-                  Business Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Business Type
-                    </label>
-                    <p className="flex items-center gap-2 mt-1">
-                      <ChefHat className="h-4 w-4" />
-                      {business?.businessType || "---"}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="p-6">
+            {/* Loading State */}
+            {isLoadingData ? (
+              <Loading />
+            ) : businessData ? (
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Basic Information
+                  </h3>
 
-            {/* Two Column Layout for Contact and Social */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Contact Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Phone className="h-5 w-5" />
-                    Contact Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="break-all">
-                        {business?.email || "---"}
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Business Name:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.name}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{business?.phone || "---"}</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <span className="text-sm">
-                        {business?.address || "---"}
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Email:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.email}
                       </span>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Social Media */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    Social Media & Communication
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={AppIcons.Facebook}
-                      alt="Facebook Icon"
-                      className="h-4 w-4 text-muted-foreground"
-                    />
-                    {business?.facebookUrl ? (
-                      <a
-                        href={business?.facebookUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline break-all"
-                      >
-                        Facebook Page
-                      </a>
-                    ) : (
-                      <span>---</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={AppIcons.Instagram}
-                      alt="Instagram Icon"
-                      className="h-4 w-4 text-muted-foreground"
-                    />
-                    {business?.instagramUrl ? (
-                      <a
-                        href={business?.instagramUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-pink-600 hover:underline break-all"
-                      >
-                        Instagram Profile
-                      </a>
-                    ) : (
-                      <span>---</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={AppIcons.Telegram}
-                      alt="Telegram Icon"
-                      className="h-4 w-4 text-muted-foreground"
-                    />
-                    <span className="break-all">
-                      {business?.telegramUrl || "---"}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Phone:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.phone}
+                      </span>
+                    </div>
 
-            {/* Financial Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <DollarSign className="h-5 w-5" />
-                  Financial Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      USD to KHR Rate
-                    </label>
-                    <p className="text-lg font-semibold mt-1">
-                      {business?.usdToKhrRate?.toLocaleString()} KHR
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Tax Rate
-                    </label>
-                    <p className="text-lg font-semibold mt-1 flex items-center gap-1">
-                      <Percent className="h-4 w-4" />
-                      {business?.taxRate || "---"}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Business Statistics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Users className="h-5 w-5" />
-                  Business Statistics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <p className="text-2xl font-bold text-blue-600">
-                      {business?.totalStaff || "0"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Total Staff</p>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">
-                      {business?.totalCustomers || "0"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Total Customers
-                    </p>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <p className="text-2xl font-bold text-orange-600">
-                      {business?.totalMenuItems || "0"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Menu Items</p>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-600">
-                      {business?.totalTables || "0"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Total Tables
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Two Column Layout for Subscription and System Info */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Subscription Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Shield className="h-5 w-5" />
-                    Subscription Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Current Plan</span>
-                    <Badge variant="outline">
-                      {business?.currentSubscriptionPlan || "---"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Status</span>
-                    <Badge
-                      className={
-                        business?.isSubscriptionActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }
-                    >
-                      {business?.isSubscriptionActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-                  {business?.isSubscriptionActive && (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Start Date</span>
-                        <span className="text-sm">
-                          {formatDate(business?.subscriptionStartDate)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">End Date</span>
-                        <span className="text-sm">
-                          {formatDate(business?.subscriptionEndDate)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          Days Remaining
-                        </span>
-                        <span
-                          className={`text-sm font-semibold ${
-                            business?.daysRemaining <= 7
-                              ? "text-red-600"
-                              : "text-green-600"
-                          }`}
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Status:
+                      </Label>
+                      <div className="col-span-2">
+                        <Badge
+                          className={getStatusColor(
+                            businessData.status ?? null
+                          )}
                         >
-                          {business?.daysRemaining || "---"} days
-                        </span>
+                          {businessData.status}
+                        </Badge>
                       </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+                    </div>
 
-              {/* System Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Calendar className="h-5 w-5" />
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Address:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.address}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Description:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.description}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Financial Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Financial Settings
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        USD to KHR Rate:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.usdToKhrRate?.toLocaleString()} KHR
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Tax Rate:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.taxRate}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business Statistics */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Business Statistics
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Total Staff:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.totalStaff}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subscription Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Subscription Information
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Current Plan:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.currentSubscriptionPlan}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Subscription Active:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.isSubscriptionActive ? "Yes" : "No"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Start Date:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {formatDate(businessData.subscriptionStartDate)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        End Date:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {formatDate(businessData.subscriptionEndDate)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Days Remaining:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.daysRemaining} days
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Expiring Soon:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.isExpiringSoon ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* System Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">
                     System Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Created
-                    </span>
-                    <span className="text-sm">
-                      {formatDate(business?.createdAt)}
-                    </span>
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        ID:
+                      </Label>
+                      <span className="col-span-2 text-sm font-mono">
+                        {businessData.id}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Created:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {formatDate(businessData.createdAt)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Last Updated:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {formatDate(businessData.updatedAt)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Created By:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.createdBy}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Updated By:
+                      </Label>
+                      <span className="col-span-2 text-sm">
+                        {businessData.updatedBy}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Last Updated
-                    </span>
-                    <span className="text-sm">
-                      {formatDate(business?.updatedAt)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Created By
-                    </span>
-                    <span className="text-sm">
-                      {business?.createdBy || "---"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Updated By
-                    </span>
-                    <span className="text-sm">
-                      {business?.updatedBy || "---"}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  No business data available
+                </p>
+              </div>
+            )}
           </div>
         </ScrollArea>
       </DialogContent>

@@ -1,4 +1,4 @@
-import { BusinessModel } from "../../master-data/business/business.response.model";
+import { BusinessModel } from "../../master-data/business/business-response-model";
 import { PaymentModel } from "../../payment/payment/payment.response.model";
 import { SubscriptionModel } from "../../subscription/subscription.response.model";
 import { SubDomainModel } from "../plateform-user/sub-domain/sub-domain.response.model";

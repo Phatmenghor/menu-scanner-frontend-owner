@@ -19,7 +19,7 @@ import {
 } from "@/models/dashboard/subscription/subscription.schema";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComboboxSelectBusiness } from "../combo-box/combobox-business";
-import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
+import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
 import { SubscriptionPlanModel } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
 import { ComboboxSelectPlan } from "../combo-box/combobox-plan";
 import { addDays, format } from "date-fns";

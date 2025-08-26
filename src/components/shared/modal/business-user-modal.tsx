@@ -37,7 +37,7 @@ import {
   UserFormData,
 } from "@/models/dashboard/user/plateform-user/user.schema";
 import { ComboboxSelectBusiness } from "../combo-box/combobox-business";
-import { BusinessModel } from "@/models/dashboard/master-data/business/business.response.model";
+import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
 
 type Props = {
   mode: ModalMode;
