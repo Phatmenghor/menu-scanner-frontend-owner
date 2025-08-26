@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
 
-// Enhanced NProgress configuration for better UX
 NProgress.configure({
   minimum: 0.3,
   easing: "ease",
@@ -20,13 +19,11 @@ export default function PageProgressBar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Complete progress and remove body class when route changes
     NProgress.done();
     document.body.classList.remove("route-changing");
   }, [pathname]);
 
   useEffect(() => {
-    // Enhanced click handler with body class for styling
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const anchor = target.closest("a");
@@ -64,7 +61,6 @@ export default function PageProgressBar() {
       }
     };
 
-    // Enhanced form submit handler
     const handleFormSubmit = (e: SubmitEvent) => {
       const form = e.target as HTMLFormElement;
 
