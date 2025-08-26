@@ -31,7 +31,6 @@ import { DataTable } from "@/components/shared/common/data-table";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
 import { BusinessDetailModal } from "@/components/dashboard/master-data/business/business-detail-modal";
 import { createBusinessTableColumns } from "@/constants/AppResource/table/master-data/bisiness-table";
-import { set } from "nprogress";
 
 export default function BusinessPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -258,7 +257,6 @@ export default function BusinessPage() {
       }));
 
       toast.error(errorMessage);
-      throw error; // Re-throw to prevent modal from closing
     } finally {
       setModalState((prev) => ({
         ...prev,
@@ -280,8 +278,6 @@ export default function BusinessPage() {
         AppToast({
           type: "success",
           message: `Business "${deleteState.business.name}" deleted successfully`,
-          duration: 4000,
-          position: "top-right",
         });
 
         // Check if we need to go back a page
@@ -294,15 +290,14 @@ export default function BusinessPage() {
     } catch (error) {
       console.error("Error deleting business:", error);
       toast.error("Failed to delete business");
-      throw error;
     } finally {
       setDeleteState((prev) => ({ ...prev, isDeleting: false }));
     }
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="space-y-6">
+    <div className="flex flex-1 flex-col gap-4 px-2">
+      <div className="space-y-4">
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },

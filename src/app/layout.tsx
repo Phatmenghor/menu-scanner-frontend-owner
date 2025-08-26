@@ -53,14 +53,6 @@ export const metadata = {
   },
 };
 
-// Separate viewport export (Next.js 14+ requirement to avoid warnings)
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  themeColor: "#000000",
-};
-
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: RootLayoutProps) {

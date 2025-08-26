@@ -10,7 +10,8 @@ export default function middleware(req: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.startsWith("/.well-known") ||
     pathname.includes(".") ||
-    pathname.startsWith("/favicon")
+    pathname.startsWith("/favicon") ||
+    pathname === "/login"
   ) {
     return NextResponse.next();
   }
@@ -25,9 +26,7 @@ export default function middleware(req: NextRequest) {
   if (pathname === "/") {
     if (token) {
       console.log("🏠 Root → Dashboard (authenticated)");
-      return NextResponse.redirect(
-        new URL("/dashboard/admin/platform-users", req.url)
-      );
+      return NextResponse.redirect(new URL("/admin/platform-users", req.url));
     } else {
       console.log("🏠 Root → Login (not authenticated)");
       return NextResponse.redirect(new URL("/login", req.url));
