@@ -57,7 +57,7 @@ import ModalUser from "@/components/shared/modal/user-modal";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
-import { CardHeaderSection } from "@/components/layout/main/card-header-section";
+import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 import {
   createExchangeRateService,

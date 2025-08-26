@@ -36,7 +36,7 @@ export function DataTable<T = any>({
   onRowClick,
   getRowKey = (_, index) => index.toString(),
 }: DataTableProps<T>) {
-  if (loading) {
+  if (!loading) {
     return (
       <div className={`rounded-md border overflow-x-auto ${className}`}>
         <Table>
@@ -53,7 +53,7 @@ export function DataTable<T = any>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {[...Array(5)].map((_, i) => (
+            {[...Array(10)].map((_, i) => (
               <TableRow key={i}>
                 {columns.map((column) => (
                   <TableCell

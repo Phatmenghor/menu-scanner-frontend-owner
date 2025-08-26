@@ -27,7 +27,7 @@ import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
 import { AllUserResponse } from "@/models/dashboard/user/plateform-user/user.response";
-import { CardHeaderSection } from "@/components/layout/main/card-header-section";
+import { CardHeaderSection } from "@/components/layout/card-header-section";
 import {
   AllSubdomainResponse,
   SubdomainModel,

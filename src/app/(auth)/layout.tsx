@@ -1,7 +1,7 @@
 // app/[locale]/layout.tsx
 import { ReactNode } from "react";
 
-import { TopBarAuth } from "@/components/layout/main/top-bar-login";
+import { TopBarAuth } from "@/components/layout/top-bar-login";
 
 interface LocaleLayoutProps {
   children: ReactNode;

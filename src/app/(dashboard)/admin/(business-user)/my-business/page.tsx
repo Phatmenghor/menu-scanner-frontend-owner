@@ -34,7 +34,7 @@ import {
   MyBusinessFormData,
   updateMyBusinessSchema,
 } from "@/models/dashboard/user/business-user/business-user.schema";
-import { CardHeaderSection } from "@/components/layout/main/card-header-section";
+import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { UpdateMyBusinessRequest } from "@/models/dashboard/user/business-user/business-user.request.model";

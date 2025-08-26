@@ -1,4 +1,4 @@
-import DashboardLayout from "@/components/layout/main/dashboard-layout";
+import DashboardLayout from "@/components/layout/dashboard-layout";
 import type { ReactNode } from "react";
 
 export default function DashboardGroupLayout({

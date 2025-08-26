@@ -1,50 +1,23 @@
 "use client";
 
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  BUSINESS_STATUS_OPTIONS,
-  BusinessStatus,
-  ModalMode,
   SUBSCRIPTION_PLAN_OPTIONS,
   subscriptionOptions,
   SubscriptionPlanStatus,
+  ModalMode,
 } from "@/constants/AppResource/status/status";
-import { indexDisplay } from "@/utils/common/common";
-import { DateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
-import {
-  ExcelColumn,
-  ExcelExporter,
-  ExcelSheet,
-} from "@/utils/export-file/excel";
-import {
-  Edit,
-  Eye,
-  Plus,
-  RotateCw,
-  Search,
-  Trash,
-  UserPlus,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
-import PaginationPage from "@/components/shared/common/app-pagination";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { Switch } from "@/components/ui/switch";
-import { CardHeaderSection } from "@/components/layout/main/card-header-section";
+import { CardHeaderSection } from "@/components/layout/card-header-section";
 import {
   AllSubscriptionPlan,
   SubscriptionPlanModel,
@@ -56,35 +29,60 @@ import {
   getAllSubscriptionPlanService,
   updateSubscriptionPlanService,
 } from "@/services/dashboard/master-data/subscrion-plan/subscription-plan.service";
-import { SubscriptionPlanFilters } from "@/components/dashboard/master-data/subscription-plan/subscription-plan-filter";
 import ModalSubscriptionPlan from "@/components/shared/modal/subscription-plan-modal";
-import { SubscriptionPlanDetailSheet } from "@/components/dashboard/master-data/subscription-plan/subscription-plan-detail-sheet";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { SubscriptionPlanTableHeaders } from "@/constants/AppResource/table/master-data/subscription-plan";
+import { createSubscriptionPlanTableColumns } from "@/constants/AppResource/table/master-data/subscription-plan-table";
 import { CustomSelect } from "@/components/shared/common/custom-select";
+import { SubscriptionPlanDetailModal } from "@/components/dashboard/master-data/subscription-plan/subscription-plan-detail-modal";
+import { CustomPagination } from "@/components/shared/common/custom-pagination";
+import { DataTable } from "@/components/shared/common/data-table";
 
 export default function SubscriptionPlanPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<AllSubscriptionPlan | null>(null);
-  const [initializeSubscriptionPlan, setInitializeSubscriptionPlan] =
-    useState<SubscriptionPlanFormData | null>(null);
-  const [selectedSubscriptionPlan, setSelectedSubscriptionPlan] =
-    useState<SubscriptionPlanModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubPlanDetailOpen, setIsSubPlanDetailOpen] = useState(false);
-  const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
+
+  // Modal states
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    mode: ModalMode;
+    data: SubscriptionPlanFormData | null;
+    isSubmitting: boolean;
+    error: string | null;
+  }>({
+    isOpen: false,
+    mode: ModalMode.CREATE_MODE,
+    data: null,
+    isSubmitting: false,
+    error: null,
+  });
+
+  // Detail modal state
+  const [detailModalState, setDetailModalState] = useState<{
+    isOpen: boolean;
+    plan: SubscriptionPlanModel | null;
+  }>({
+    isOpen: false,
+    plan: null,
+  });
+
+  // Delete modal state
+  const [deleteState, setDeleteState] = useState<{
+    isOpen: boolean;
+    plan: SubscriptionPlanModel | null;
+    isDeleting: boolean;
+  }>({
+    isOpen: false,
+    plan: null,
+    isDeleting: false,
+  });
+
+  // Filter states
   const [statusFilter, setStatusFilter] = useState<
     SubscriptionPlanStatus | undefined
   >(undefined);
   const [hasSubscription, setHasSubscription] = useState<boolean | undefined>(
     undefined
   );
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  //filter state
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [minDuration, setMinDuration] = useState<number | undefined>(undefined);
@@ -92,26 +90,24 @@ export default function SubscriptionPlanPage() {
   const [publicOnly, setPublicOnly] = useState(false);
   const [freeOnly, setFreeOnly] = useState(false);
 
-  // Debounced search query - Optimized api performance when search
+  // Debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
-
   const searchParams = useSearchParams();
 
-  const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
-    usePagination({
-      baseRoute: ROUTES.DASHBOARD.SUBSCRIPTION_PLAN,
-      defaultPageSize: 10,
-    });
+  const { currentPage, updateUrlWithPage, handlePageChange } = usePagination({
+    baseRoute: ROUTES.DASHBOARD.SUBSCRIPTION_PLAN,
+    defaultPageSize: 10,
+  });
 
-  // Then add this effect for initial URL setup
+  // Initial URL setup
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
     if (!pageParam) {
-      // Use replace: true to avoid adding to browser history
       updateUrlWithPage(1, true);
     }
   }, [searchParams, updateUrlWithPage]);
 
+  // Load subscription plans
   const loadSubscriptionPlan = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -127,17 +123,17 @@ export default function SubscriptionPlanPage() {
         pageNo: currentPage,
         pageSize: 10,
       });
-      console.log("Fetched subscription plan:", response);
+      console.log("Fetched subscription plans:", response);
       setData(response);
     } catch (error: any) {
-      console.log("Failed to fetch subscription plan: ", error);
+      console.log("Failed to fetch subscription plans: ", error);
+      toast.error("Failed to load subscription plans");
     } finally {
       setIsLoading(false);
     }
   }, [
     debouncedSearchQuery,
     statusFilter,
-    hasSubscription,
     currentPage,
     maxPrice,
     minPrice,
@@ -151,42 +147,135 @@ export default function SubscriptionPlanPage() {
     loadSubscriptionPlan();
   }, [loadSubscriptionPlan]);
 
-  // Simplified search change handler - just updates the state, debouncing handles the rest
+  // Search change handler
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  async function handleSubmit(formData: SubscriptionPlanFormData) {
-    console.log("Submitting form:", formData, "mode:", mode);
+  // Handler functions for table actions
+  const handleEditPlan = useCallback((plan: SubscriptionPlanModel) => {
+    setModalState({
+      isOpen: true,
+      mode: ModalMode.UPDATE_MODE,
+      data: {
+        id: plan.id?.toString() || "",
+        name: plan.name || "",
+        status: plan.status || "active",
+        price: plan.price || 0,
+        durationDays: plan.durationDays || 30,
+        description: plan.description || "",
+      },
+      isSubmitting: false,
+      error: null,
+    });
+  }, []);
 
-    setIsSubmitting(true);
+  const handleViewPlanDetail = useCallback((plan: SubscriptionPlanModel) => {
+    setDetailModalState({
+      isOpen: true,
+      plan: plan,
+    });
+  }, []);
+
+  const handleDeletePlan = useCallback((plan: SubscriptionPlanModel) => {
+    setDeleteState({
+      isOpen: true,
+      plan: plan,
+      isDeleting: false,
+    });
+  }, []);
+
+  // Memoized table handlers
+  const tableHandlers = useMemo(
+    () => ({
+      handleEditPlan,
+      handleViewPlanDetail,
+      handleDeletePlan,
+    }),
+    [handleEditPlan, handleViewPlanDetail, handleDeletePlan]
+  );
+
+  // Optimized table columns
+  const columns = useMemo(
+    () =>
+      createSubscriptionPlanTableColumns({
+        data,
+        handlers: tableHandlers,
+      }),
+    [data?.pageNo, data?.pageSize, data?.content.length, tableHandlers]
+  );
+
+  // Open create modal
+  const openCreateModal = () => {
+    setModalState({
+      isOpen: true,
+      mode: ModalMode.CREATE_MODE,
+      data: null,
+      isSubmitting: false,
+      error: null,
+    });
+  };
+
+  // Close main modal
+  const closeModal = () => {
+    setModalState((prev) => ({
+      ...prev,
+      isOpen: false,
+      data: null,
+      error: null,
+    }));
+  };
+
+  // Close detail modal
+  const closeDetailModal = () => {
+    setDetailModalState({
+      isOpen: false,
+      plan: null,
+    });
+  };
+
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setDeleteState({
+      isOpen: false,
+      plan: null,
+      isDeleting: false,
+    });
+  };
+
+  // Handle form submission
+  const handleSubmit = async (
+    formData: SubscriptionPlanFormData
+  ): Promise<void> => {
     try {
-      const isCreate = mode === ModalMode.CREATE_MODE;
+      setModalState((prev) => ({
+        ...prev,
+        isSubmitting: true,
+        error: null,
+      }));
+
+      const isCreate = modalState.mode === ModalMode.CREATE_MODE;
 
       if (
         !formData.name ||
         formData.durationDays === undefined ||
         formData.price === undefined ||
-        !formData.description ||
         !formData.status
       ) {
-        throw new Error(
-          "All fields are required to create a subscription plan"
-        );
+        throw new Error("All required fields must be filled");
       }
 
       const payload = {
         name: formData.name,
         durationDays: formData.durationDays,
         price: formData.price,
-        description: formData.description,
+        description: formData.description || "",
         status: formData.status,
       };
 
       if (isCreate) {
         const response = await createSubscriptionService(payload);
         if (response) {
-          // Update users list
           setData((prev) =>
             prev
               ? {
@@ -209,31 +298,27 @@ export default function SubscriptionPlanPage() {
 
           AppToast({
             type: "success",
-            message: `Subscription Plan ${response.username} added successfully`,
+            message: `Subscription plan "${response.name}" created successfully`,
             duration: 4000,
             position: "top-right",
           });
-
-          setIsModalOpen(false);
         }
       } else {
-        // Update mode
         if (!formData?.id) {
-          throw new Error("Subscription Plan ID is required for update");
+          throw new Error("Plan ID is required for update");
         }
 
         const response = await updateSubscriptionPlanService(
-          formData?.id,
+          formData.id,
           payload
         );
         if (response) {
-          // Update users list
           setData((prev) =>
             prev
               ? {
                   ...prev,
-                  content: prev.content.map((b) =>
-                    b.id === formData.id ? response : b
+                  content: prev.content.map((plan) =>
+                    plan.id?.toString() === formData.id ? response : plan
                   ),
                 }
               : prev
@@ -241,119 +326,78 @@ export default function SubscriptionPlanPage() {
 
           AppToast({
             type: "success",
-            message: `Subscription Plan ${
-              response.username || response.email
-            } updated successfully`,
+            message: `Subscription plan "${response.name}" updated successfully`,
             duration: 4000,
             position: "top-right",
           });
-
-          setIsModalOpen(false);
         }
       }
     } catch (error: any) {
-      console.error("Error submitting Subscription Plan form:", error);
-      toast.error(error.message || "An unexpected error occurred");
+      const errorMessage = error.message || "An unexpected error occurred";
+      setModalState((prev) => ({
+        ...prev,
+        error: errorMessage,
+      }));
+
+      toast.error(errorMessage);
+      throw error; // Re-throw to prevent modal from closing
     } finally {
-      setIsSubmitting(false);
+      setModalState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+      }));
     }
-  }
+  };
 
-  async function handleDeleteSubscriptionPlan() {
-    if (!selectedSubscriptionPlan || !selectedSubscriptionPlan?.id) return;
+  // Handle delete
+  const handleDelete = async () => {
+    if (!deleteState.plan?.id) return;
 
-    setIsSubmitting(true);
+    setDeleteState((prev) => ({ ...prev, isDeleting: true }));
+
     try {
       const response = await deletedSubscriptionPlanService(
-        selectedSubscriptionPlan.id
+        deleteState.plan.id
       );
 
       if (response) {
         AppToast({
           type: "success",
-          message: `Subscription plan ${
-            selectedSubscriptionPlan.name ?? ""
-          } deleted successfully`,
+          message: `Subscription plan "${deleteState.plan.name}" deleted successfully`,
           duration: 4000,
           position: "top-right",
         });
-        // After deletion, check if we need to go back a page
+
+        // Check if we need to go back a page
         if (data && data.content.length === 1 && currentPage > 1) {
           updateUrlWithPage(currentPage - 1);
         } else {
           await loadSubscriptionPlan();
         }
-      } else {
-        AppToast({
-          type: "error",
-          message: `Failed to delete Subscription plan`,
-          duration: 4000,
-          position: "top-right",
-        });
       }
     } catch (error) {
-      console.error("Error deleting Subscription plan:", error);
-      toast.error("An error occurred while deleting the Subscription plan");
+      console.error("Error deleting subscription plan:", error);
+      toast.error("Failed to delete subscription plan");
+      throw error;
     } finally {
-      setIsSubmitting(false);
-      setIsDeleteDialogOpen(false);
+      setDeleteState((prev) => ({ ...prev, isDeleting: false }));
     }
-  }
-
-  const handleEdit = (subPlan: SubscriptionPlanModel) => {
-    setInitializeSubscriptionPlan(subPlan);
-    setMode(ModalMode.UPDATE_MODE);
-    setIsModalOpen(!isModalOpen);
   };
 
-  // Handle status filter change - directly updates the filter value
-  const handleStatusChange = (status: SubscriptionPlanStatus) => {
-    setStatusFilter(status);
-  };
-
-  const handleView = (subPlan: SubscriptionPlanModel | null) => {
-    setSelectedSubscriptionPlan(subPlan);
-    setIsSubPlanDetailOpen(true);
-  };
-
-  const handleCloseViewSubPlanDetail = () => {
-    setSelectedSubscriptionPlan(null);
-    setIsSubPlanDetailOpen(false);
-  };
-
-  const handleDelete = (user: SubscriptionPlanModel) => {
-    setSelectedSubscriptionPlan(user);
-    setIsDeleteDialogOpen(true);
-  };
-
+  // Reset filters
   const handleResetFilters = () => {
     setStatusFilter(undefined);
     setHasSubscription(undefined);
     setSearchQuery("");
     updateUrlWithPage(1, true);
-    setData(null); // Reset users to trigger reload};
-    loadSubscriptionPlan(); // Reload users with default filters
+    setData(null);
+    loadSubscriptionPlan();
     setMinPrice(undefined);
     setMaxPrice(undefined);
     setMinDuration(undefined);
     setMaxDuration(undefined);
     setPublicOnly(false);
     setFreeOnly(false);
-  };
-
-  const handleCreateBusiness = () => {
-    setIsModalOpen(!isModalOpen);
-    setMode(ModalMode.CREATE_MODE);
-  };
-
-  const handlePriceChange = (min?: number, max?: number) => {
-    setMinPrice(min);
-    setMaxPrice(max);
-  };
-
-  const handleDurationChange = (min?: number, max?: number) => {
-    setMinDuration(min);
-    setMaxDuration(max);
   };
 
   return (
@@ -366,12 +410,12 @@ export default function SubscriptionPlanPage() {
           ]}
           title="Subscription Plans"
           searchValue={searchQuery}
-          searchPlaceholder="Search..."
+          searchPlaceholder="Search plans..."
           disableReset={!statusFilter && !hasSubscription}
           handleResetFilters={handleResetFilters}
           onSearchChange={handleSearchChange}
           children={
-            <div className="flex flex-wrap items-center justify-start gap-4 w-full">
+            <div className="flex flex-wrap items-center justify-between gap-4 w-full">
               <div className="flex items-center gap-3">
                 <CustomSelect
                   options={SUBSCRIPTION_PLAN_OPTIONS}
@@ -398,155 +442,67 @@ export default function SubscriptionPlanPage() {
                   }}
                 />
               </div>
+
+              {/* Add Plan Button */}
+              <Button
+                onClick={openCreateModal}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Plan
+              </Button>
             </div>
           }
         />
 
-        <div className="w-full">
-          <Separator className="bg-gray-300" />
-        </div>
+        <div className="space-y-4">
+          <DataTable
+            data={data?.content || []}
+            columns={columns}
+            loading={isLoading}
+            emptyMessage="No subscription plans found"
+            getRowKey={(plan) => plan.id?.toString() || plan.name}
+          />
 
-        <div>
-          <div className="rounded-md border overflow-x-auto whitespace-nowrap">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {SubscriptionPlanTableHeaders.map((header, index) => (
-                    <TableHead
-                      key={index}
-                      className="text-xs font-semibold text-muted-foreground"
-                    >
-                      <span>{header.label}</span>
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {!data || data.content.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={9}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      No subscription plans found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  data.content.map((plan, index) => (
-                    <TableRow key={plan.id} className="text-sm">
-                      {/* Index */}
-                      <TableCell className="font-medium truncate">
-                        {indexDisplay(data.pageNo, data.pageSize, index)}
-                      </TableCell>
-
-                      {/* Plan Name */}
-                      <TableCell className=" font-medium">
-                        {plan.name}
-                      </TableCell>
-
-                      {/* Price */}
-                      <TableCell>
-                        {plan.isFree
-                          ? "Free"
-                          : plan.pricingDisplay || `$${plan.price}`}
-                      </TableCell>
-
-                      {/* Duration */}
-                      <TableCell>{plan.durationDays} days</TableCell>
-
-                      {/* Status */}
-                      <TableCell className="capitalize">
-                        {plan.status}
-                      </TableCell>
-
-                      {/* Subscriptions Count */}
-                      <TableCell className="">
-                        {plan.activeSubscriptionsCount}
-                      </TableCell>
-
-                      {/* Visibility */}
-                      <TableCell className="">
-                        {plan.isPublic
-                          ? "Public"
-                          : plan.isPrivate
-                          ? "Private"
-                          : "-"}
-                      </TableCell>
-
-                      {/* Created At */}
-                      <TableCell className="text-muted-foreground">
-                        {DateTimeFormat(plan.createdAt)}
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell className="text-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(plan)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleView(plan)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(plan)}
-                        >
-                          <Trash className="w-3 h-3" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-
-            <ModalSubscriptionPlan
-              isOpen={isModalOpen}
-              onClose={() => {
-                setInitializeSubscriptionPlan(null);
-                setIsModalOpen(false);
-              }}
-              isSubmitting={isSubmitting}
-              onSave={handleSubmit}
-              Data={initializeSubscriptionPlan}
-              mode={mode}
-            />
-
-            <SubscriptionPlanDetailSheet
-              isOpen={isSubPlanDetailOpen}
-              onClose={handleCloseViewSubPlanDetail}
-              subPlan={selectedSubscriptionPlan}
-            />
-
-            <DeleteConfirmationDialog
-              isOpen={isDeleteDialogOpen}
-              onClose={() => {
-                setIsDeleteDialogOpen(false);
-                setSelectedSubscriptionPlan(null);
-              }}
-              onDelete={handleDeleteSubscriptionPlan}
-              title="Delete Subscription Plan"
-              description={`Are you sure you want to delete the subscription plan`}
-              itemName={selectedSubscriptionPlan?.name || "---"}
-              isSubmitting={isSubmitting}
-            />
-
-            <PaginationPage
+          {data && data.totalPages > 1 && (
+            <CustomPagination
               currentPage={currentPage}
-              totalPages={data?.totalPages ?? 10}
+              totalPages={data.totalPages}
               onPageChange={handlePageChange}
+              size="md"
             />
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Create/Edit Modal */}
+      <ModalSubscriptionPlan
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        isSubmitting={modalState.isSubmitting}
+        onSave={handleSubmit}
+        Data={modalState.data}
+        mode={modalState.mode}
+        error={modalState.error}
+      />
+
+      {/* Detail Modal */}
+      <SubscriptionPlanDetailModal
+        isOpen={detailModalState.isOpen}
+        onClose={closeDetailModal}
+        subPlan={detailModalState.plan}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteState.isOpen}
+        onClose={closeDeleteModal}
+        onDelete={handleDelete}
+        title="Delete Subscription Plan"
+        description="Are you sure you want to delete this subscription plan?"
+        itemName={deleteState.plan?.name || "---"}
+        isSubmitting={deleteState.isDeleting}
+      />
     </div>
   );
 }

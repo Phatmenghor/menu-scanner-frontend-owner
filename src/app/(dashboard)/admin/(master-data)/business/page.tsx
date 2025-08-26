@@ -1,24 +1,19 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import {
   BUSINESS_STATUS_OPTIONS,
   BusinessStatus,
-  ModalMode,
-  Status,
   subscriptionOptions,
 } from "@/constants/AppResource/status/status";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
-import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { BusinessFormData } from "@/models/dashboard/master-data/business/business.schema";
 import {
   AllBusinessResponse,
@@ -31,37 +26,60 @@ import {
   updateBusinessService,
 } from "@/services/dashboard/master-data/business/business.service";
 import ModalBusiness from "@/components/shared/modal/business-modal";
-import { CardHeaderSection } from "@/components/layout/main/card-header-section";
-import {
-  CustomSelect,
-  SelectOption,
-} from "@/components/shared/common/custom-select";
+import { CardHeaderSection } from "@/components/layout/card-header-section";
+import { CustomSelect } from "@/components/shared/common/custom-select";
 import { DataTable } from "@/components/shared/common/data-table";
-import { createBusinessTableColumns } from "@/constants/AppResource/table/table-constant";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
-import { set } from "nprogress";
 import { BusinessDetailModal } from "@/components/dashboard/master-data/business/business-detail-modal";
+import { createBusinessTableColumns } from "@/constants/AppResource/table/master-data/bisiness-table";
 
 export default function BusinessPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<AllBusinessResponse | null>(null);
-  const [initializeBusiness, setInitializeBusiness] =
-    useState<BusinessFormData | null>(null);
-  const [selectedBusiness, setSelectedBusiness] =
-    useState<BusinessModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isBusinessDetailOpen, setIsBusinessDetailOpen] = useState(false);
-  const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
+
+  // Modal states - update only
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    data: BusinessFormData | null;
+    isSubmitting: boolean;
+    error: string | null;
+  }>({
+    isOpen: false,
+    data: null,
+    isSubmitting: false,
+    error: null,
+  });
+
+  // Detail modal state
+  const [detailModalState, setDetailModalState] = useState<{
+    isOpen: boolean;
+    business: BusinessModel | null;
+  }>({
+    isOpen: false,
+    business: null,
+  });
+
+  // Delete modal state
+  const [deleteState, setDeleteState] = useState<{
+    isOpen: boolean;
+    business: BusinessModel | null;
+    isDeleting: boolean;
+  }>({
+    isOpen: false,
+    business: null,
+    isDeleting: false,
+  });
+
+  // Filter states
   const [statusFilter, setStatusFilter] = useState<BusinessStatus | undefined>(
-    BusinessStatus.All
+    undefined
   );
   const [hasSubscription, setHasSubscription] = useState<boolean | undefined>(
     undefined
   );
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  // Debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
   const searchParams = useSearchParams();
 
@@ -70,6 +88,7 @@ export default function BusinessPage() {
     defaultPageSize: 10,
   });
 
+  // Initial URL setup
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
     if (!pageParam) {
@@ -77,18 +96,21 @@ export default function BusinessPage() {
     }
   }, [searchParams, updateUrlWithPage]);
 
+  // Load businesses
   const loadBusiness = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await getAllBusinessService({
-        status: statusFilter == BusinessStatus.All ? undefined : statusFilter,
+        status: statusFilter === BusinessStatus.All ? undefined : statusFilter,
         hasActiveSubscription: hasSubscription,
         search: debouncedSearchQuery,
         pageNo: currentPage,
       });
+      console.log("Fetched businesses:", response);
       setData(response);
     } catch (error: any) {
       console.log("Failed to fetch businesses: ", error);
+      toast.error("Failed to load businesses");
     } finally {
       setIsLoading(false);
     }
@@ -98,150 +120,184 @@ export default function BusinessPage() {
     loadBusiness();
   }, [loadBusiness]);
 
+  // Search change handler
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  async function handleSubmit(formData: BusinessFormData) {
-    setIsSubmitting(true);
+  // Handler functions for table actions
+  const handleEditBusiness = useCallback((business: BusinessModel) => {
+    setModalState({
+      isOpen: true,
+      data: {
+        id: business.id?.toString() || "",
+        email: business.email || "",
+        name: business.name || "",
+        status: business.status || "active",
+        address: business.address || "",
+        description: business.description || "",
+        phone: business.phone || "",
+      },
+      isSubmitting: false,
+      error: null,
+    });
+  }, []);
+
+  const handleViewBusinessDetail = useCallback((business: BusinessModel) => {
+    setDetailModalState({
+      isOpen: true,
+      business: business,
+    });
+  }, []);
+
+  const handleDeleteBusiness = useCallback((business: BusinessModel) => {
+    setDeleteState({
+      isOpen: true,
+      business: business,
+      isDeleting: false,
+    });
+  }, []);
+
+  // Memoized table handlers
+  const tableHandlers = useMemo(
+    () => ({
+      handleEditBusiness,
+      handleViewBusinessDetail,
+      handleDelete: handleDeleteBusiness,
+    }),
+    [handleEditBusiness, handleViewBusinessDetail, handleDeleteBusiness]
+  );
+
+  // Optimized table columns
+  const columns = useMemo(
+    () =>
+      createBusinessTableColumns({
+        data,
+        handlers: tableHandlers,
+      }),
+    [data?.pageNo, data?.pageSize, data?.content?.length, tableHandlers]
+  );
+
+  // Close main modal
+  const closeModal = () => {
+    setModalState((prev) => ({
+      ...prev,
+      isOpen: false,
+      data: null,
+      error: null,
+    }));
+  };
+
+  // Close detail modal
+  const closeDetailModal = () => {
+    setDetailModalState({
+      isOpen: false,
+      business: null,
+    });
+  };
+
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setDeleteState({
+      isOpen: false,
+      business: null,
+      isDeleting: false,
+    });
+  };
+
+  // Handle form submission - update only
+  const handleSubmit = async (formData: BusinessFormData): Promise<void> => {
     try {
-      const isCreate = mode === ModalMode.CREATE_MODE;
+      setModalState((prev) => ({
+        ...prev,
+        isSubmitting: true,
+        error: null,
+      }));
+
+      if (!formData.email || !formData.name || !formData.id) {
+        throw new Error("Business ID, email and name are required for update");
+      }
+
       const payload = {
-        email: formData.email!,
-        name: formData.name!,
-        status: formData.status,
-        address: formData.address,
-        description: formData.description,
-        phone: formData.phone,
+        email: formData.email,
+        name: formData.name,
+        status: formData.status || "active",
+        address: formData.address || "",
+        description: formData.description || "",
+        phone: formData.phone || "",
       };
 
-      if (isCreate) {
-        const response = await createBusinessService(payload);
-        if (response) {
-          setData((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  content: [response, ...prev.content],
-                  totalElements: prev.totalElements + 1,
-                }
-              : {
-                  content: [response],
-                  pageNo: 1,
-                  pageSize: 10,
-                  totalElements: 1,
-                  totalPages: 1,
-                  hasNext: false,
-                  hasPrevious: false,
-                  first: true,
-                  last: true,
-                }
-          );
+      const response = await updateBusinessService(formData.id, payload);
+      if (response) {
+        setData((prev) =>
+          prev
+            ? {
+                ...prev,
+                content: prev.content.map((business) =>
+                  business.id?.toString() === formData.id ? response : business
+                ),
+              }
+            : prev
+        );
 
-          AppToast({
-            type: "success",
-            message: `Business ${
-              response.username || formData.email
-            } added successfully`,
-            duration: 4000,
-            position: "top-right",
-          });
-
-          setIsModalOpen(false);
-        }
-      } else {
-        if (!formData?.id) {
-          throw new Error("Business ID is required for update");
-        }
-
-        const response = await updateBusinessService(formData?.id, payload);
-        if (response) {
-          setData((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  content: prev.content.map((b) =>
-                    b.id === formData.id ? response : b
-                  ),
-                }
-              : prev
-          );
-
-          AppToast({
-            type: "success",
-            message: `Business ${
-              response.username || response.email
-            } updated successfully`,
-            duration: 4000,
-            position: "top-right",
-          });
-
-          setIsModalOpen(false);
-        }
+        AppToast({
+          type: "success",
+          message: `Business "${response.name}" updated successfully`,
+          duration: 4000,
+          position: "top-right",
+        });
       }
     } catch (error: any) {
-      console.error("Error submitting business form:", error);
-      toast.error(error.message || "An unexpected error occurred");
+      const errorMessage = error.message || "An unexpected error occurred";
+      setModalState((prev) => ({
+        ...prev,
+        error: errorMessage,
+      }));
+
+      toast.error(errorMessage);
+      throw error; // Re-throw to prevent modal from closing
     } finally {
-      setIsSubmitting(false);
+      setModalState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+      }));
     }
-  }
+  };
 
-  async function handleDeleteBusiness() {
-    if (!selectedBusiness || !selectedBusiness.id) return;
+  // Handle delete
+  const handleDelete = async () => {
+    if (!deleteState.business?.id) return;
 
-    setIsSubmitting(true);
+    setDeleteState((prev) => ({ ...prev, isDeleting: true }));
+
     try {
-      const response = await deletedBusinessService(selectedBusiness.id);
+      const response = await deletedBusinessService(deleteState.business.id);
 
       if (response) {
         AppToast({
           type: "success",
-          message: `Business ${
-            selectedBusiness.name ?? ""
-          } deleted successfully`,
+          message: `Business "${deleteState.business.name}" deleted successfully`,
           duration: 4000,
           position: "top-right",
         });
 
+        // Check if we need to go back a page
         if (data && data.content.length === 1 && currentPage > 1) {
           updateUrlWithPage(currentPage - 1);
         } else {
           await loadBusiness();
         }
-      } else {
-        AppToast({
-          type: "error",
-          message: `Failed to delete business`,
-          duration: 4000,
-          position: "top-right",
-        });
       }
     } catch (error) {
       console.error("Error deleting business:", error);
-      toast.error("An error occurred while deleting the business");
+      toast.error("Failed to delete business");
+      throw error;
     } finally {
-      setIsSubmitting(false);
-      setIsDeleteDialogOpen(false);
+      setDeleteState((prev) => ({ ...prev, isDeleting: false }));
     }
-  }
-
-  const handleEditBusiness = (business: BusinessFormData) => {
-    setInitializeBusiness(business);
-    setMode(ModalMode.UPDATE_MODE);
-    setIsModalOpen(true);
   };
 
-  const handleViewBusinessDetail = (business: BusinessModel) => {
-    setSelectedBusiness(business);
-    setIsBusinessDetailOpen(true);
-  };
-
-  const handleDelete = (business: BusinessModel) => {
-    setSelectedBusiness(business);
-    setIsDeleteDialogOpen(true);
-  };
-
+  // Reset filters
   const handleResetFilters = () => {
     setStatusFilter(undefined);
     setHasSubscription(undefined);
@@ -257,16 +313,16 @@ export default function BusinessPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Business List", href: "" },
+            { label: "Business Management", href: "" },
           ]}
-          title="Business"
+          title="Business Management"
           searchValue={searchQuery}
-          searchPlaceholder="Search..."
+          searchPlaceholder="Search businesses..."
           disableReset={!statusFilter && !hasSubscription}
           handleResetFilters={handleResetFilters}
           onSearchChange={handleSearchChange}
           children={
-            <div className="flex flex-wrap items-center justify-start gap-4 w-full">
+            <div className="flex flex-wrap items-center justify-between gap-4 w-full">
               <div className="flex items-center gap-3">
                 <CustomSelect
                   options={BUSINESS_STATUS_OPTIONS}
@@ -300,60 +356,52 @@ export default function BusinessPage() {
         <div className="space-y-4">
           <DataTable
             data={data?.content || []}
-            columns={createBusinessTableColumns({
-              data,
-              handlers: {
-                handleEditBusiness,
-                handleViewBusinessDetail,
-                handleDelete,
-              },
-            })}
+            columns={columns}
             loading={isLoading}
             emptyMessage="No businesses found"
-            getRowKey={(business) => business.id}
+            getRowKey={(business) => business.id?.toString() || business.name}
           />
 
-          <CustomPagination
-            currentPage={currentPage}
-            totalPages={data?.totalPages || 1}
-            onPageChange={handlePageChange}
-            size="md"
-          />
+          {data && data.totalPages > 1 && (
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={data.totalPages}
+              onPageChange={handlePageChange}
+              size="md"
+            />
+          )}
         </div>
-
-        <ModalBusiness
-          isOpen={isModalOpen}
-          onClose={() => {
-            setInitializeBusiness(null);
-            setIsModalOpen(false);
-          }}
-          isSubmitting={isSubmitting}
-          onSave={handleSubmit}
-          data={initializeBusiness}
-        />
-
-        <BusinessDetailModal
-          isOpen={isBusinessDetailOpen}
-          onClose={() => {
-            setSelectedBusiness(null);
-            setIsBusinessDetailOpen(false);
-          }}
-          business={selectedBusiness}
-        />
-
-        <DeleteConfirmationDialog
-          isOpen={isDeleteDialogOpen}
-          onClose={() => {
-            setIsDeleteDialogOpen(false);
-            setSelectedBusiness(null);
-          }}
-          onDelete={handleDeleteBusiness}
-          title="Delete Business"
-          description="Are you sure you want to delete this business?"
-          itemName={selectedBusiness?.name || selectedBusiness?.email}
-          isSubmitting={isSubmitting}
-        />
       </div>
+
+      {/* Update Modal */}
+      <ModalBusiness
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        isSubmitting={modalState.isSubmitting}
+        onSave={handleSubmit}
+        Data={modalState.data}
+        error={modalState.error}
+      />
+
+      {/* Detail Modal */}
+      <BusinessDetailModal
+        isOpen={detailModalState.isOpen}
+        onClose={closeDetailModal}
+        business={detailModalState.business}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteState.isOpen}
+        onClose={closeDeleteModal}
+        onDelete={handleDelete}
+        title="Delete Business"
+        description="Are you sure you want to delete this business?"
+        itemName={
+          deleteState.business?.name || deleteState.business?.email || "---"
+        }
+        isSubmitting={deleteState.isDeleting}
+      />
     </div>
   );
 }

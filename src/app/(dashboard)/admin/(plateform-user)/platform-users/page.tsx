@@ -78,7 +78,7 @@ import { AppToast } from "@/components/shared/toast/app-toast";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
-import { CardHeaderSection } from "@/components/layout/main/card-header-section";
+import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { UserDetailSheet } from "@/components/dashboard/plate-form-user/manage-user/user-detail-sheet";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 import { getUserInfo } from "@/utils/local-storage/userInfo";

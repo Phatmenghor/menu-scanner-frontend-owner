@@ -16,34 +16,32 @@ import {
   Gift,
   Clock,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { SubscriptionPlanModel } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
 
-interface SubscriptionPlanDetailSheetProps {
+interface SubscriptionPlanDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   subPlan: SubscriptionPlanModel | null;
-  trigger?: React.ReactNode;
 }
 
-export function SubscriptionPlanDetailSheet({
+export function SubscriptionPlanDetailModal({
   isOpen,
   onClose,
   subPlan,
-  trigger,
-}: SubscriptionPlanDetailSheetProps) {
+}: SubscriptionPlanDetailModalProps) {
   const getStatusColor = (status: string | null) => {
     switch (status?.toLowerCase()) {
       case "active":
@@ -94,17 +92,18 @@ export function SubscriptionPlanDetailSheet({
   if (!subPlan) return null;
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-[600px] sm:w-[700px] sm:max-w-none">
-        <SheetHeader className="space-y-4">
-          <div className="flex items-center gap-4">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl h-[90vh] p-0 gap-0 flex flex-col">
+        {/* Header */}
+        <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
+          <div className="flex items-center gap-4 pr-8">
             <Avatar className="h-16 w-16">
               <AvatarFallback className="text-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {getPlanIcon()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <SheetTitle className="text-xl flex items-center gap-2">
+              <DialogTitle className="text-xl flex items-center gap-2">
                 {subPlan.name}
                 {subPlan.isFree && (
                   <Badge
@@ -115,11 +114,11 @@ export function SubscriptionPlanDetailSheet({
                     Free
                   </Badge>
                 )}
-              </SheetTitle>
-              <SheetDescription className="text-base">
+              </DialogTitle>
+              <p className="text-muted-foreground text-base">
                 {subPlan.description || "No description available"}
-              </SheetDescription>
-              <div className="flex items-center gap-2 mt-2">
+              </p>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <Badge className={getStatusColor(subPlan.status)}>
                   {subPlan.status}
                 </Badge>
@@ -153,20 +152,29 @@ export function SubscriptionPlanDetailSheet({
               </div>
             </div>
           </div>
-        </SheetHeader>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute right-4 top-4"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </DialogHeader>
 
-        <ScrollArea className="h-[calc(100vh-200px)] mt-6">
-          <div className="space-y-6">
+        {/* Content */}
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="space-y-6 p-6">
             {/* Plan Overview */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Crown className="h-5 w-5" />
                   Plan Overview
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Status
@@ -175,6 +183,26 @@ export function SubscriptionPlanDetailSheet({
                       <Badge className={getStatusColor(subPlan.status)}>
                         {subPlan.status}
                       </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Plan Type
+                    </label>
+                    <div className="mt-1 flex items-center gap-2">
+                      {subPlan.isFree ? (
+                        <>
+                          <Gift className="h-4 w-4 text-green-600" />
+                          <span className="font-medium text-green-600">
+                            Free Plan
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium">Paid Plan</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -189,16 +217,17 @@ export function SubscriptionPlanDetailSheet({
               </CardContent>
             </Card>
 
-            {/* Pricing Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Pricing Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+            {/* Two Column Layout for Pricing and Duration */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Pricing Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <DollarSign className="h-5 w-5" />
+                    Pricing Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Price
@@ -220,6 +249,26 @@ export function SubscriptionPlanDetailSheet({
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
+                      Pricing Display
+                    </label>
+                    <p className="mt-1 text-lg font-medium text-blue-600">
+                      {subPlan.pricingDisplay || "Standard pricing"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Duration Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Clock className="h-5 w-5" />
+                    Duration Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
                       Duration
                     </label>
                     <p className="text-lg font-semibold mt-1 flex items-center gap-2">
@@ -227,48 +276,30 @@ export function SubscriptionPlanDetailSheet({
                       {formatDuration(subPlan.durationDays)}
                     </p>
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Pricing Display
-                  </label>
-                  <p className="mt-1 text-lg font-medium text-blue-600">
-                    {subPlan.pricingDisplay}
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    {subPlan.isFree ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <span className="text-sm">Free Plan</span>
-                  </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Duration (Days)
                     </label>
-                    <p className="text-sm font-semibold">
+                    <p className="text-lg font-semibold text-blue-600">
                       {subPlan.durationDays === 0
                         ? "Unlimited"
-                        : subPlan.durationDays}
+                        : `${subPlan.durationDays} days`}
                     </p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Visibility & Access */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Eye className="h-5 w-5" />
                   Visibility & Access
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     {subPlan.isPublic ? (
                       <CheckCircle className="h-4 w-4 text-green-600" />
@@ -315,7 +346,7 @@ export function SubscriptionPlanDetailSheet({
             {/* Usage Statistics */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Users className="h-5 w-5" />
                   Usage Statistics
                 </CardTitle>
@@ -349,52 +380,92 @@ export function SubscriptionPlanDetailSheet({
               </CardContent>
             </Card>
 
-            {/* System Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  System Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Created
-                  </span>
-                  <span className="text-sm">
-                    {formatDate(subPlan.createdAt)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Last Updated
-                  </span>
-                  <span className="text-sm">
-                    {formatDate(subPlan.updatedAt)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Created By
-                  </span>
-                  <span className="text-sm font-medium">
-                    {subPlan.createdBy || "System"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Updated By
-                  </span>
-                  <span className="text-sm font-medium">
-                    {subPlan.updatedBy || "System"}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Two Column Layout for System Info */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* System Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Calendar className="h-5 w-5" />
+                    System Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Created
+                    </span>
+                    <span className="text-sm">
+                      {formatDate(subPlan.createdAt)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Last Updated
+                    </span>
+                    <span className="text-sm">
+                      {formatDate(subPlan.updatedAt)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Created By
+                    </span>
+                    <span className="text-sm font-medium">
+                      {subPlan.createdBy || "System"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Updated By
+                    </span>
+                    <span className="text-sm font-medium">
+                      {subPlan.updatedBy || "System"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Additional Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <TrendingUp className="h-5 w-5" />
+                    Plan Analytics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <p className="text-lg font-bold text-green-600">
+                        {subPlan.activeSubscriptionsCount || 0}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Active Users
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <p className="text-lg font-bold text-blue-600">
+                        {subPlan.isFree ? "Free" : "Paid"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Plan Type</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      This {subPlan.isFree ? "free" : "premium"} plan has been{" "}
+                      {subPlan.status?.toLowerCase()}
+                      {subPlan.activeSubscriptionsCount > 0
+                        ? ` and is currently used by ${subPlan.activeSubscriptionsCount} users.`
+                        : " but has no active users yet."}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </ScrollArea>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

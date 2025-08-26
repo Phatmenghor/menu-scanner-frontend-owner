@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Building2, X } from "lucide-react";
-import { BUSINESS_STATUS_OPTIONS } from "@/constants/AppResource/status/status";
 import {
   BusinessFormData,
   updateBusinessSchema,
@@ -27,20 +26,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Import the status options properly
+const BUSINESS_STATUS_OPTIONS = [
+  { label: "Active", value: "active" },
+  { label: "Pending", value: "pending" },
+  { label: "Suspended", value: "suspended" },
+  { label: "Inactive", value: "inactive" },
+] as const;
+
 type Props = {
-  data?: BusinessFormData | null;
+  Data?: BusinessFormData | null;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
-  onSave: (data: BusinessFormData) => void;
+  onSave: (data: BusinessFormData) => Promise<void>;
+  error?: string | null;
 };
 
 export default function ModalBusiness({
   isOpen,
   onClose,
-  data: Data,
+  Data,
   onSave,
   isSubmitting = false,
+  error = null,
 }: Props) {
   const {
     control,
@@ -56,42 +65,60 @@ export default function ModalBusiness({
       email: "",
       name: "",
       phone: "",
-      status: "active", // Default to active to fix the type issue
+      status: "active",
     },
     mode: "onChange",
   });
 
   // Reset form when modal opens or data changes
   useEffect(() => {
-    if (isOpen && Data) {
-      const formData = {
-        id: Data.id || "",
-        email: Data.email || "",
-        name: Data.name || "",
-        status: Data.status || "active", // Provide fallback to fix undefined issue
-        address: Data.address || "",
-        description: Data.description || "",
-        phone: Data.phone || "",
-      };
-      reset(formData);
+    if (isOpen) {
+      if (Data) {
+        const formData = {
+          id: Data.id || "",
+          email: Data.email || "",
+          name: Data.name || "",
+          status: Data.status || "active",
+          address: Data.address || "",
+          description: Data.description || "",
+          phone: Data.phone || "",
+        };
+        reset(formData);
+      } else {
+        reset({
+          id: "",
+          address: "",
+          description: "",
+          email: "",
+          name: "",
+          phone: "",
+          status: "active",
+        });
+      }
     }
   }, [isOpen, Data, reset]);
 
-  const onSubmit = (data: BusinessFormData) => {
-    console.log("Form submitted - Update Mode, Data:", data);
+  const onSubmit = async (data: BusinessFormData) => {
+    try {
+      console.log("Form submitted - Update Mode, Data:", data);
 
-    const payload = {
-      id: data.id || "",
-      email: data.email?.trim() || "",
-      name: data.name?.trim() || "",
-      status: data.status || "active",
-      address: data.address?.trim() || "",
-      description: data.description?.trim() || "",
-      phone: data.phone?.trim() || "",
-    };
+      const payload = {
+        id: data.id || "",
+        email: data.email?.trim() || "",
+        name: data.name?.trim() || "",
+        status: data.status || "active",
+        address: data.address?.trim() || "",
+        description: data.description?.trim() || "",
+        phone: data.phone?.trim() || "",
+      };
 
-    console.log("Update Payload:", payload);
-    onSave(payload);
+      console.log("Update Payload:", payload);
+      await onSave(payload);
+
+      handleClose();
+    } catch (error) {
+      console.error("Error saving business:", error);
+    }
   };
 
   const handleClose = () => {
@@ -132,8 +159,24 @@ export default function ModalBusiness({
         <ScrollArea className="flex-1 min-h-0">
           <div className="p-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Error Display */}
+              {error && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                  <p className="text-sm text-destructive font-medium">
+                    {error}
+                  </p>
+                </div>
+              )}
+
               {/* Basic Information Section */}
               <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Basic Information
+                  </h3>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Business Name */}
                   <div className="space-y-2">
@@ -160,7 +203,7 @@ export default function ModalBusiness({
                       )}
                     />
                     {errors.name && (
-                      <p className="text-sm text-red-600 flex items-center gap-1">
+                      <p className="text-sm text-red-600">
                         {errors.name.message}
                       </p>
                     )}
@@ -260,17 +303,17 @@ export default function ModalBusiness({
                           <SelectContent>
                             {BUSINESS_STATUS_OPTIONS.map((status) => (
                               <SelectItem
-                                key={status.value || "unknown"}
-                                value={String(status.value || "active")}
+                                key={status.value}
+                                value={status.value}
                               >
                                 <div className="flex items-center gap-2">
                                   <div
                                     className={`w-2 h-2 rounded-full ${
-                                      String(status.value) === "active"
+                                      status.value === "active"
                                         ? "bg-green-500"
-                                        : String(status.value) === "pending"
+                                        : status.value === "pending"
                                         ? "bg-yellow-500"
-                                        : String(status.value) === "suspended"
+                                        : status.value === "suspended"
                                         ? "bg-red-500"
                                         : "bg-gray-500"
                                     }`}

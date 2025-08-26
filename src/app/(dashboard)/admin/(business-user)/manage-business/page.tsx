@@ -52,7 +52,7 @@ import {
   updateBusinessService,
 } from "@/services/dashboard/master-data/business/business.service";
 import { BusinessStatusBadge } from "@/components/shared/badge/business-status-badge";
-import { CardHeaderSection } from "@/components/layout/main/card-header-section";
+import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { AppIcons } from "@/constants/AppResource/icons/AppIcon";
 import { BusinessDetailSheet } from "@/components/dashboard/master-data/business/business-detail-modal";
 import { BusinessTableHeaders } from "@/constants/AppResource/table/master-data/business";

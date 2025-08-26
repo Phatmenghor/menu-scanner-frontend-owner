@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "../styles/globals.css";
 import { ReactNode } from "react";
 import { ClientProviders } from "@/context/provider/client-provider";
-import { ClientLayoutWrapper } from "@/components/layout/main/local-layout";
+import { ClientLayoutWrapper } from "@/components/layout/local-layout";
 import PageProgressBar from "@/components/shared/progressbar/Nprogressbar/global-n-progress";
 import { ToastProvider } from "@/components/shared/toast/app-toast";
 

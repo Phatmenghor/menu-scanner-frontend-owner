@@ -7,51 +7,47 @@ import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES, sidebarItems } from "@/constants/AppRoutes/routes";
-import { getUserInfo } from "@/utils/local-storage/userInfo";
 import { UserAuthResponse } from "@/models/auth/auth.response";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileResponseModel } from "@/models/auth/profile-response-model";
+import { getProfileService } from "@/services/auth/login.service";
+import { toast } from "sonner";
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
+  onLoadUserProfile?: () => Promise<UserAuthResponse | null>;
+  fallbackUserInfo?: () => UserAuthResponse | null;
 }
 
 export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const isMobile = useIsMobile();
-  const [authUser, setAuthUser] = useState<UserAuthResponse | null>(null);
+  const [authUser, setAuthUser] = useState<ProfileResponseModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [collapsed, setCollapsed] = useState(false);
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      setIsLoading(true);
-      try {
-        const user = getUserInfo();
-        setAuthUser({
-          email: user?.email || "",
-          fullName: user?.fullName || "",
-          userId: user?.userId || "",
-          businessId: user?.businessId || "",
-          userType: user?.userType || "",
-          userIdentifier: user?.userIdentifier || "",
-          profileImageUrl: user?.profileImageUrl || "",
-        });
-        // const response = await getUsersProfileService();
-        // setAuthUser(response || null);
-      } catch (error) {
-        return;
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadUserProfile();
+  const loadprofileUser = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await getProfileService();
+      setAuthUser(response);
+    } catch (error: any) {
+      console.error("Failed to load user profile:", error);
+      toast.error("Failed to load user profile.");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadprofileUser();
+  }, [loadprofileUser]);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({
@@ -63,7 +59,6 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const toggleCollapsed = () => {
     setCollapsed((prev) => !prev);
     onToggle();
-    // Close all sections when collapsing
     if (!collapsed) {
       setOpenSections({});
     }
@@ -260,23 +255,35 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
                 <div className="relative">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${authUser?.profileImageUrl}`}
+                      src={authUser?.profileImageUrl}
+                      alt={authUser?.fullName || "User"}
                     />
                     <AvatarFallback className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                      {authUser?.fullName?.charAt(0) || "U"}
+                      {authUser?.fullName?.charAt(0) ||
+                        authUser?.firstName?.charAt(0) ||
+                        "U"}
                     </AvatarFallback>
                   </Avatar>
+                  {/* Online indicator */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 shadow-sm shadow-green-500/50 border-2 border-background"></div>
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">
-                    {authUser.fullName || "GUEST USER"}
+                    {authUser.displayName ||
+                      authUser.fullName ||
+                      `${authUser.firstName} ${authUser.lastName}`.trim() ||
+                      "GUEST USER"}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {authUser.email || "user@example.com"}
                   </p>
                 </div>
-                <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50"></div>
+
+                {/* Loading indicator */}
+                {isLoading && (
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shadow-sm shadow-yellow-500/50"></div>
+                )}
               </div>
             </Link>
           </div>
@@ -286,8 +293,20 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
         {collapsed && authUser && (
           <div className="border-t border-border/50 p-2">
             <div className="flex justify-center">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                {authUser.fullName?.charAt(0) || "U"}
+              <div className="relative">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src={authUser?.profileImageUrl}
+                    alt={authUser?.fullName || "User"}
+                  />
+                  <AvatarFallback className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                    {authUser.fullName?.charAt(0) ||
+                      authUser.firstName?.charAt(0) ||
+                      "U"}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Online indicator for collapsed state */}
+                <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50 border border-background"></div>
               </div>
             </div>
           </div>

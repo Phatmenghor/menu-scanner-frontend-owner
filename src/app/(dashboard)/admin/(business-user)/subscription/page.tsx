@@ -40,7 +40,7 @@ import PaginationPage from "@/components/shared/common/app-pagination";
 import { AllUserResponse } from "@/models/dashboard/user/plateform-user/user.response";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { CardHeaderSection } from "@/components/layout/main/card-header-section";
+import { CardHeaderSection } from "@/components/layout/card-header-section";
 import {
   cancelSubscriptionService,
   createSubscriptionService,
