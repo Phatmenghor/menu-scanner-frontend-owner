@@ -1,4 +1,4 @@
-export function DateTimeFormat(timestamp: string | null | undefined): string {
+export function dateTimeFormat(timestamp: string | null | undefined): string {
   if (timestamp) {
     const date = new Date(timestamp);
 

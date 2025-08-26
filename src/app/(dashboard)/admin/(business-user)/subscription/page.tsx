@@ -23,7 +23,7 @@ import {
   STATUS_FILTER,
 } from "@/constants/AppResource/status/status";
 import { indexDisplay } from "@/utils/common/common";
-import { DateTimeFormat, formatDate } from "@/utils/date/date-time-format";
+import { dateTimeFormat, formatDate } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
 import {
   ExcelColumn,
@@ -653,7 +653,7 @@ export default function SubscriptionPage() {
 
                         {/* Created At */}
                         <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(sub?.createdAt) || "---"}
+                          {dateTimeFormat(sub?.createdAt) || "---"}
                         </TableCell>
 
                         <TableCell className="text-center">

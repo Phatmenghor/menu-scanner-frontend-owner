@@ -6,7 +6,7 @@ import {
   AllBusinessResponse,
 } from "@/models/dashboard/master-data/business/business-response-model";
 import { indexDisplay } from "@/utils/common/common";
-import { DateTimeFormat } from "@/utils/date/date-time-format";
+import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash } from "lucide-react";
 import { ActionButton } from "@/components/shared/common/action-button";
 
@@ -127,7 +127,7 @@ export const createBusinessTableColumns = ({
       className: "max-w-[180px]",
       render: (business) => (
         <span className="text-muted-foreground">
-          {DateTimeFormat(business.createdAt)}
+          {dateTimeFormat(business.createdAt)}
         </span>
       ),
     },

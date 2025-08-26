@@ -24,7 +24,7 @@ import {
   Status,
 } from "@/constants/AppResource/status/status";
 import { indexDisplay } from "@/utils/common/common";
-import { DateTimeFormat } from "@/utils/date/date-time-format";
+import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
 import {
   ExcelColumn,
@@ -596,7 +596,7 @@ export default function ManageBusinessPage() {
 
                         {/* Created At */}
                         <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(business?.createdAt)}
+                          {dateTimeFormat(business?.createdAt)}
                         </TableCell>
 
                         {/* Actions */}

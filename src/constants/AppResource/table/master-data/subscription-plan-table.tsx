@@ -4,7 +4,7 @@ import {
   SubscriptionPlanModel,
 } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
 import { indexDisplay } from "@/utils/common/common";
-import { DateTimeFormat } from "@/utils/date/date-time-format";
+import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash, Crown, Gift, Globe, Lock } from "lucide-react";
 import { ActionButton } from "@/components/shared/common/action-button";
 import { Badge } from "@/components/ui/badge";
@@ -75,32 +75,18 @@ export const createSubscriptionPlanTableColumns = ({
       key: "name",
       label: "Plan Name",
       className: "max-w-[200px]",
-      render: (plan) => (
-        <div className="flex items-center gap-2">
-          {plan.isFree ? (
-            <Gift className="h-4 w-4 text-green-600" />
-          ) : (
-            <Crown className="h-4 w-4 text-purple-600" />
-          )}
-          <span className="font-medium truncate" title={plan.name}>
-            {plan.name || "---"}
-          </span>
-        </div>
-      ),
+      render: (plan) => plan.name || "---",
     },
     {
       key: "price",
       label: "Price",
       className: "max-w-[120px]",
-      render: (plan) => (
-        <div className="font-medium">
-          {plan.isFree ? (
-            <span className="text-green-600 font-semibold">FREE</span>
-          ) : (
-            <span>{plan.pricingDisplay || formatCurrency(plan.price)}</span>
-          )}
-        </div>
-      ),
+      render: (plan) =>
+        plan.isFree ? (
+          <span className="text-green-600 font-semibold">FREE</span>
+        ) : (
+          <span>{formatCurrency(plan.price)}</span>
+        ),
     },
     {
       key: "duration",
@@ -116,53 +102,13 @@ export const createSubscriptionPlanTableColumns = ({
       key: "status",
       label: "Status",
       className: "max-w-[120px]",
-      render: (plan) => (
-        <Badge variant="outline" className={getStatusColor(plan.status)}>
-          {plan.status}
-        </Badge>
-      ),
+      render: (plan) => plan.status || "---",
     },
     {
       key: "subscriptions",
       label: "Subscriptions",
       className: "max-w-[120px]",
-      render: (plan) => (
-        <div className="flex items-center gap-1">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              plan.activeSubscriptionsCount > 0
-                ? "bg-blue-100 text-blue-800"
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            {plan.activeSubscriptionsCount || 0}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "visibility",
-      label: "Visibility",
-      className: "max-w-[100px]",
-      render: (plan) => (
-        <div className="flex items-center gap-1">
-          {plan.isPublic && (
-            <div className="flex items-center gap-1 text-blue-600">
-              <Globe className="h-3 w-3" />
-              <span className="text-xs">Public</span>
-            </div>
-          )}
-          {plan.isPrivate && (
-            <div className="flex items-center gap-1 text-orange-600">
-              <Lock className="h-3 w-3" />
-              <span className="text-xs">Private</span>
-            </div>
-          )}
-          {!plan.isPublic && !plan.isPrivate && (
-            <span className="text-xs text-gray-500">---</span>
-          )}
-        </div>
-      ),
+      render: (plan) => `${plan.activeSubscriptionsCount || 0} active`,
     },
     {
       key: "createdAt",
@@ -170,7 +116,7 @@ export const createSubscriptionPlanTableColumns = ({
       className: "max-w-[150px]",
       render: (plan) => (
         <span className="text-muted-foreground text-sm">
-          {DateTimeFormat(plan.createdAt)}
+          {dateTimeFormat(plan.createdAt)}
         </span>
       ),
     },

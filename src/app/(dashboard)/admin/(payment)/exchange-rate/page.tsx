@@ -26,7 +26,7 @@ import {
 } from "@/constants/AppResource/status/status";
 import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
-import { DateTimeFormat } from "@/utils/date/date-time-format";
+import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
 import {
   ExcelColumn,
@@ -521,12 +521,12 @@ export default function ExchangeRatePage() {
 
                         {/* Created At */}
                         <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(e?.createdAt)}
+                          {dateTimeFormat(e?.createdAt)}
                         </TableCell>
 
                         {/* Updated At */}
                         <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(e?.updatedAt)}
+                          {dateTimeFormat(e?.updatedAt)}
                         </TableCell>
 
                         {/* Actions */}

@@ -30,7 +30,7 @@ import {
 } from "@/constants/AppResource/status/status";
 import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
-import { DateTimeFormat } from "@/utils/date/date-time-format";
+import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { useDebounce } from "@/utils/debounce/debounce";
 import {
   ExcelColumn,
@@ -613,7 +613,7 @@ export default function CustomerUserPage() {
 
                         {/* Created At */}
                         <TableCell className="text-sm text-muted-foreground">
-                          {DateTimeFormat(user?.createdAt)}
+                          {dateTimeFormat(user?.createdAt)}
                         </TableCell>
 
                         {/* Actions */}

@@ -2,16 +2,6 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import {
-  Phone,
-  Mail,
-  MapPin,
-  Building2,
-  DollarSign,
-  Percent,
-  Shield,
-  Users,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,8 +15,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
 import { getBusinessByIdService } from "@/services/dashboard/master-data/business/business.service";
 import Loading from "@/components/shared/common/loading";
-import { formatDate } from "@/utils/date/date-time-format";
 import { CustomAvatar } from "@/components/shared/common/custom-avator";
+import { dateTimeFormat } from "@/utils/date/date-time-format";
 
 interface BusinessDetailModalProps {
   businessId?: string;
@@ -258,7 +248,7 @@ export function BusinessDetailModal({
                         Start Date:
                       </Label>
                       <span className="col-span-2 text-sm">
-                        {formatDate(businessData.subscriptionStartDate)}
+                        {dateTimeFormat(businessData.subscriptionStartDate)}
                       </span>
                     </div>
 
@@ -267,7 +257,7 @@ export function BusinessDetailModal({
                         End Date:
                       </Label>
                       <span className="col-span-2 text-sm">
-                        {formatDate(businessData.subscriptionEndDate)}
+                        {dateTimeFormat(businessData.subscriptionEndDate)}
                       </span>
                     </div>
 
@@ -312,7 +302,7 @@ export function BusinessDetailModal({
                         Created:
                       </Label>
                       <span className="col-span-2 text-sm">
-                        {formatDate(businessData.createdAt)}
+                        {dateTimeFormat(businessData.createdAt)}
                       </span>
                     </div>
 
@@ -321,7 +311,7 @@ export function BusinessDetailModal({
                         Last Updated:
                       </Label>
                       <span className="col-span-2 text-sm">
-                        {formatDate(businessData.updatedAt)}
+                        {dateTimeFormat(businessData.updatedAt)}
                       </span>
                     </div>
 
