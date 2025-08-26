@@ -29,7 +29,10 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const isMobile = useIsMobile();
   const [authUser, setAuthUser] = useState<ProfileResponseModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  // Initialize all sections as closed by default
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    "Master Data": true,
+  });
   const [collapsed, setCollapsed] = useState(false);
 
   const loadprofileUser = useCallback(async () => {
@@ -108,29 +111,35 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
 
               {!isCollapsed && isOpen && (
                 <div className="relative ml-6 mt-1 space-y-1">
-                  {/* Vertical connecting line */}
-                  <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
+                  {/* Main vertical connecting line */}
+                  <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300 z-0"></div>
 
                   {route.subroutes.map((subroute, index) => (
                     <div key={subroute.title} className="relative">
                       {/* Horizontal connecting line */}
-                      <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-300"></div>
+                      <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-300 z-0"></div>
+
+                      {/* Small connecting dot */}
+                      <div className="absolute left-0 top-1/2 w-1.5 h-1.5 bg-gray-400 rounded-full transform -translate-x-0.5 -translate-y-0.5 z-10"></div>
 
                       {/* Corner connector for last item - stops vertical line */}
                       {index === route.subroutes!.length - 1 && (
                         <div
-                          className="absolute left-0 top-1/2 w-px bg-white"
+                          className="absolute left-0 top-1/2 w-px bg-background z-10"
                           style={{ height: "50%" }}
                         ></div>
                       )}
+
+                      {/* Extended horizontal line for better visual connection */}
+                      <div className="absolute left-4 top-1/2 w-2 h-px bg-gray-200 z-0"></div>
 
                       <Button
                         variant="ghost"
                         asChild
                         className={cn(
-                          "w-full justify-start hover:bg-primary/10 hover:text-primary pl-6 rounded",
+                          "relative w-full justify-start hover:bg-primary/10 hover:text-primary pl-6 rounded z-20 border-l border-transparent hover:border-l-primary/30 transition-all duration-200",
                           pathname === subroute.href &&
-                            "bg-primary/15 text-primary font-medium border-l-2 border-primary"
+                            "bg-primary/15 text-primary font-medium border-l-2 border-primary shadow-sm"
                         )}
                       >
                         <Link
@@ -229,16 +238,11 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
             size="icon"
             onClick={toggleCollapsed}
             className={cn(
-              "relative h-9 w-9 rounded-xl transition-all duration-300 hover:bg-accent/50 hover:scale-110 group",
-              collapsed && "rotate-180"
+              "relative h-9 w-9 rounded-xl transition-all duration-300 hover:bg-accent/50 hover:scale-110 group"
             )}
           >
             <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            {!collapsed ? (
-              <ChevronLeft className="h-4 w-4 relative z-10" />
-            ) : (
-              <ChevronRight className="h-4 w-4 relative z-10" />
-            )}
+            <ChevronLeft className="h-4 w-4 relative z-10" />
           </Button>
         </div>
 
