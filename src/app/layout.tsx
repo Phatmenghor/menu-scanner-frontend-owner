@@ -30,7 +30,7 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-// Enhanced metadata
+// Enhanced metadata (removed viewport - now separate export)
 export const metadata = {
   title: {
     template: "%s | Menu Scanner",
@@ -51,11 +51,14 @@ export const metadata = {
     index: false, // Since this is a private dashboard
     follow: false,
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
+};
+
+// Separate viewport export (Next.js 14+ requirement to avoid warnings)
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#000000",
 };
 
 export const dynamic = "force-dynamic";
@@ -72,8 +75,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <link rel="preconnect" href="http://152.42.219.13:8080" />
         <link rel="dns-prefetch" href="http://152.42.219.13:8080" />
 
-        {/* Optimize for mobile */}
-        <meta name="theme-color" content="#000000" />
+        {/* Mobile optimization */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta

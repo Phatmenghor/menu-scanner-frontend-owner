@@ -1,16 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    esmExternals: false,
-    serverComponentsExternalPackages: ["@prisma/client", "prisma"],
-  },
+
   images: {
     unoptimized: false,
     remotePatterns: [
@@ -24,27 +23,38 @@ const nextConfig = {
       },
     ],
   },
-  async redirects() {
+
+  // Remove trailing slashes
+  trailingSlash: false,
+
+  // Improve performance
+  swcMinify: true,
+
+  // Configure headers for better performance
+  async headers() {
     return [
       {
-        source: "/:path*/",
-        has: [],
-        destination: "/:path*",
-        permanent: true,
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
+          },
+        ],
       },
     ];
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    config.stats = "errors-only";
-    config.ignoreWarnings = [
-      /Module not found/,
-      /Can't resolve/,
-      /Critical dependency/,
-      /the request of a dependency is an expression/,
-    ];
-    return config;
-  },
-  // No headers = No CSP restrictions for full-stack flexibility
+
+  // Server Actions are available by default in Next.js 14+
+  // experimental.serverActions is no longer needed
 };
 
 export default nextConfig;

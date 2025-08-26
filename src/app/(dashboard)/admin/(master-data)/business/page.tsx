@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { Separator } from "@/components/ui/separator";
 import {
   BUSINESS_STATUS_OPTIONS,
   BusinessStatus,
@@ -21,7 +20,6 @@ import {
   BusinessModel,
 } from "@/models/dashboard/master-data/business/business.response.model";
 import {
-  createBusinessService,
   deletedBusinessService,
   getAllBusinessService,
   updateBusinessService,
@@ -73,7 +71,6 @@ export default function BusinessPage() {
     isDeleting: false,
   });
 
-  // Filter states
   const [statusFilter, setStatusFilter] = useState<BusinessStatus>(
     BusinessStatus.All
   );
@@ -90,7 +87,6 @@ export default function BusinessPage() {
     defaultPageSize: 10,
   });
 
-  // Initial URL setup
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
     if (!pageParam) {

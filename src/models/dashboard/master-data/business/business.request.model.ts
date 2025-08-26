@@ -1,7 +1,7 @@
 export interface AllBusinessRequest {
   search?: string;
   status?: string;
-  hasActiveSubscription?: boolean;
+  hasActiveSubscription?: boolean | undefined;
   pageNo?: number;
   pageSize?: number;
   sortBy?: string;
