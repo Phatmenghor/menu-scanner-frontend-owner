@@ -1,10 +1,25 @@
+// src/app/(dashboard)/layout.tsx
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import type { ReactNode } from "react";
 
+interface DashboardGroupLayoutProps {
+  children: ReactNode;
+}
+
+export const metadata = {
+  title: {
+    template: "%s | Dashboard",
+    default: "Dashboard",
+  },
+  description: "Menu Scanner Dashboard - Manage your restaurant operations",
+};
+
 export default function DashboardGroupLayout({
   children,
-}: {
-  children: ReactNode;
-}) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+}: DashboardGroupLayoutProps) {
+  return (
+    <DashboardLayout>
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">{children}</div>
+    </DashboardLayout>
+  );
 }
