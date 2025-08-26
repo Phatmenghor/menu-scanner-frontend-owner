@@ -88,14 +88,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         `}
       >
         <ClientProviders>
-          <ClientLayoutWrapper>
-            <PageProgressBar />
-            <ToastProvider>
-              <div className="relative flex min-h-screen flex-col">
-                <div className="flex-1">{children}</div>
-              </div>
-            </ToastProvider>
-          </ClientLayoutWrapper>
+          <PageProgressBar />
+          <ToastProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <div className="flex-1">{children}</div>
+            </div>
+          </ToastProvider>
         </ClientProviders>
       </body>
     </html>

@@ -617,8 +617,6 @@ export function viewRequestBodyLogs(): void {
 }
 
 // Export axios instances
-export const axiosServerWithAuth = createAxiosInstance(true);
-export const axiosServer = createAxiosInstance(false);
 export const axiosClientWithAuth = createAxiosInstance(true);
 export const axiosClient = createAxiosInstance(false);
 
