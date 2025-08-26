@@ -6,6 +6,7 @@ import {
   BUSINESS_STATUS_OPTIONS,
   BusinessStatus,
   subscriptionOptions,
+  SubscriptionStatus,
 } from "@/constants/AppResource/status/status";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { useSearchParams } from "next/navigation";
@@ -32,11 +33,12 @@ import { DataTable } from "@/components/shared/common/data-table";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
 import { BusinessDetailModal } from "@/components/dashboard/master-data/business/business-detail-modal";
 import { createBusinessTableColumns } from "@/constants/AppResource/table/master-data/bisiness-table";
+import { set } from "nprogress";
 
 export default function BusinessPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<AllBusinessResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Modal states - update only
   const [modalState, setModalState] = useState<{
@@ -72,11 +74,11 @@ export default function BusinessPage() {
   });
 
   // Filter states
-  const [statusFilter, setStatusFilter] = useState<BusinessStatus | undefined>(
-    undefined
+  const [statusFilter, setStatusFilter] = useState<BusinessStatus>(
+    BusinessStatus.All
   );
-  const [hasSubscription, setHasSubscription] = useState<boolean | undefined>(
-    undefined
+  const [hasSubscription, setHasSubscription] = useState<SubscriptionStatus>(
+    SubscriptionStatus.All
   );
 
   // Debounced search query
@@ -102,7 +104,12 @@ export default function BusinessPage() {
     try {
       const response = await getAllBusinessService({
         status: statusFilter === BusinessStatus.All ? undefined : statusFilter,
-        hasActiveSubscription: hasSubscription,
+        hasActiveSubscription:
+          hasSubscription === SubscriptionStatus.All
+            ? undefined
+            : hasSubscription === SubscriptionStatus.SUBSCRIBED
+            ? true
+            : false,
         search: debouncedSearchQuery,
         pageNo: currentPage,
       });
@@ -297,16 +304,6 @@ export default function BusinessPage() {
     }
   };
 
-  // Reset filters
-  const handleResetFilters = () => {
-    setStatusFilter(undefined);
-    setHasSubscription(undefined);
-    setSearchQuery("");
-    updateUrlWithPage(1, true);
-    setData(null);
-    loadBusiness();
-  };
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="space-y-6">
@@ -318,8 +315,6 @@ export default function BusinessPage() {
           title="Business Management"
           searchValue={searchQuery}
           searchPlaceholder="Search businesses..."
-          disableReset={!statusFilter && !hasSubscription}
-          handleResetFilters={handleResetFilters}
           onSearchChange={handleSearchChange}
           children={
             <div className="flex flex-wrap items-center justify-between gap-4 w-full">
@@ -334,18 +329,10 @@ export default function BusinessPage() {
                 />
                 <CustomSelect
                   options={subscriptionOptions}
-                  value={
-                    hasSubscription === undefined
-                      ? "All"
-                      : hasSubscription
-                      ? "true"
-                      : "false"
-                  }
-                  placeholder="All"
+                  value={hasSubscription}
+                  placeholder="Select Subscription"
                   onValueChange={(value) => {
-                    if (value === "true") setHasSubscription(true);
-                    else if (value === "false") setHasSubscription(false);
-                    else setHasSubscription(undefined);
+                    setHasSubscription(value as SubscriptionStatus);
                   }}
                 />
               </div>

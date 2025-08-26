@@ -112,18 +112,24 @@ export enum BusinessStatus {
 }
 
 export const BUSINESS_STATUS_OPTIONS = [
-  { value: undefined, label: "All" },
+  { value: BusinessStatus.All, label: "All" },
   { value: BusinessStatus.ACTIVE, label: "Active" },
   { value: BusinessStatus.INACTIVE, label: "Inactive" },
   { value: BusinessStatus.SUSPENDED, label: "Suspended" },
   { value: BusinessStatus.PENDING, label: "Pending Approval" },
 ];
 
+export enum SubscriptionStatus {
+  All = "ALL",
+  SUBSCRIBED = "SUBSCRIBED",
+  NOT_SUBSCRIBE = "NOT_SUBSCRIBE",
+}
+
 // Subscription options for select
 export const subscriptionOptions: SelectOption[] = [
-  { value: undefined, label: "All" },
-  { value: "true", label: "Subscribed" },
-  { value: "false", label: "Not Subscribed" },
+  { value: SubscriptionStatus.All, label: "All" },
+  { value: SubscriptionStatus.SUBSCRIBED, label: "Subscribed" },
+  { value: SubscriptionStatus.NOT_SUBSCRIBE, label: "Not Subscribed" },
 ];
 
 export const PAYMENT_STATUS_OPTIONS = [

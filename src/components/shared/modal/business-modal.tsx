@@ -144,15 +144,6 @@ export default function ModalBusiness({
               </DialogDescription>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-4 top-4"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
 
         {/* Content */}

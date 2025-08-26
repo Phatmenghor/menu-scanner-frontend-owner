@@ -39,7 +39,7 @@ import { DataTable } from "@/components/shared/common/data-table";
 export default function SubscriptionPlanPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState<AllSubscriptionPlan | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Modal states
   const [modalState, setModalState] = useState<{
@@ -384,22 +384,6 @@ export default function SubscriptionPlanPage() {
     }
   };
 
-  // Reset filters
-  const handleResetFilters = () => {
-    setStatusFilter(undefined);
-    setHasSubscription(undefined);
-    setSearchQuery("");
-    updateUrlWithPage(1, true);
-    setData(null);
-    loadSubscriptionPlan();
-    setMinPrice(undefined);
-    setMaxPrice(undefined);
-    setMinDuration(undefined);
-    setMaxDuration(undefined);
-    setPublicOnly(false);
-    setFreeOnly(false);
-  };
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="space-y-6">
@@ -411,8 +395,6 @@ export default function SubscriptionPlanPage() {
           title="Subscription Plans"
           searchValue={searchQuery}
           searchPlaceholder="Search plans..."
-          disableReset={!statusFilter && !hasSubscription}
-          handleResetFilters={handleResetFilters}
           onSearchChange={handleSearchChange}
           children={
             <div className="flex flex-wrap items-center justify-between gap-4 w-full">

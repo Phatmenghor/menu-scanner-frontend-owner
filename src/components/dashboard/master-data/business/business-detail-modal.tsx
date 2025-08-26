@@ -67,13 +67,6 @@ export function BusinessDetailModal({
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
-
   if (!business) return null;
 
   return (
@@ -96,9 +89,6 @@ export function BusinessDetailModal({
               <DialogTitle className="text-xl">
                 {business?.name || "---"}
               </DialogTitle>
-              <p className="text-muted-foreground text-base">
-                {business?.description || "---"}
-              </p>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <Badge className={getStatusColor(business?.status ?? null)}>
                   {business?.status}

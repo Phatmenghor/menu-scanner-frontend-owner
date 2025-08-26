@@ -30,13 +30,13 @@ interface DataTableProps<T = any> {
 export function DataTable<T = any>({
   data,
   columns,
-  loading = false,
+  loading = true,
   emptyMessage = "No data found",
   className = "",
   onRowClick,
   getRowKey = (_, index) => index.toString(),
 }: DataTableProps<T>) {
-  if (!loading) {
+  if (loading) {
     return (
       <div className={`rounded-md border overflow-x-auto ${className}`}>
         <Table>

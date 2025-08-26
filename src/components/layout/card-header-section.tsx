@@ -26,14 +26,11 @@ interface CardHeaderSectionProps {
   breadcrumbs?: BreadcrumbItemType[];
   title?: string;
   searchPlaceholder?: string;
-  backHref?: string;
   searchValue?: string;
   onSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   buttonText?: string;
   buttonIcon?: React.ReactNode;
   customAddNewButton?: React.ReactNode;
-  handleResetFilters?: () => void;
-  disableReset?: boolean;
   buttonHref?: string;
   back?: boolean;
   openModal?: () => void;
@@ -54,10 +51,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
   children1,
   buttonIcon,
   children,
-  backHref,
   back,
-  handleResetFilters,
-  disableReset,
   buttonHref,
   openModal,
   customSelect,
