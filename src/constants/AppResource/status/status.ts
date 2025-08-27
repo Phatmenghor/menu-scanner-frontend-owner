@@ -28,6 +28,7 @@ export enum ModalMode {
 }
 
 export enum UserRole {
+  All = "ALL",
   PLATFORM_OWNER = "PLATFORM_OWNER",
   PLATFORM_ADMIN = "PLATFORM_ADMIN",
   PLATFORM_MANAGER = "PLATFORM_MANAGER",
@@ -38,6 +39,13 @@ export enum UserRole {
   BUSINESS_STAFF = "BUSINESS_STAFF",
 
   CUSTOMER = "CUSTOMER",
+}
+
+export enum UserPlatformRole {
+  PLATFORM_OWNER = "PLATFORM_OWNER",
+  PLATFORM_ADMIN = "PLATFORM_ADMIN",
+  PLATFORM_MANAGER = "PLATFORM_MANAGER",
+  PLATFORM_SUPPORT = "PLATFORM_SUPPORT",
 }
 
 export enum BusinessUserRole {
@@ -74,6 +82,14 @@ export const USER_ROLE_OPTIONS = [
 
   // Customer Role
   { value: UserRole.CUSTOMER, label: "Customer" },
+];
+
+export const USER_PLATFORM_ROLE_OPTIONS = [
+  { value: UserRole.All, label: "All Roles" },
+  { value: UserRole.PLATFORM_OWNER, label: "Platform Owner" },
+  { value: UserRole.PLATFORM_ADMIN, label: "Platform Admin" },
+  { value: UserRole.PLATFORM_MANAGER, label: "Platform Manager" },
+  { value: UserRole.PLATFORM_SUPPORT, label: "Platform Support" },
 ];
 
 export const BUSINESS_USER_ROLE_OPTIONS = [

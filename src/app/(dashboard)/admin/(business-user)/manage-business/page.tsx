@@ -38,7 +38,7 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import PaginationPage from "@/components/shared/common/app-pagination";
-import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
+import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";

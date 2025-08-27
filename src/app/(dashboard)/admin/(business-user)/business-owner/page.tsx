@@ -43,14 +43,14 @@ import {
   getAllUserService,
   updateUserService,
 } from "@/services/dashboard/user/plateform-user/plateform-user.service";
-import ResetPasswordModal from "@/components/shared/dialog/dialog-reset-password";
+import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
-import { UserDetailSheet } from "@/components/dashboard/plate-form-user/manage-user/user-detail-sheet";
+import { UserDetailModal } from "@/components/dashboard/plate-form-user/user-detail-modal";
 import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 import { CreateBusinessUserRequest } from "@/models/dashboard/user/business-user/business-user.request.model";
@@ -631,7 +631,7 @@ export default function BusinessUserPage() {
               userId={selectedUser?.id}
             />
 
-            <UserDetailSheet
+            <UserDetailModal
               onClose={handleCloseViewUserDetail}
               open={isUserDetailOpen}
               user={selectedUser}
