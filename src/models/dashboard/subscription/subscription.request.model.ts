@@ -38,13 +38,10 @@ export interface AllSubscriptionRequest {
   search?: string;
   businessId?: string;
   planId?: string;
-  businessIds?: string[];
-  planIds?: string[];
   isActive?: boolean;
   autoRenew?: boolean;
   startDate?: string;
   toDate?: string;
-  expiringSoon?: boolean;
   expiringSoonDays?: number;
   pageNo?: number;
   pageSize?: number;

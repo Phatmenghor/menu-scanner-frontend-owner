@@ -1,7 +1,3 @@
-import { RoleBadge } from "@/components/shared/badge/role-badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { TableColumn } from "@/components/shared/table/table";
 import { ActionButton } from "@/components/shared/common/action-button";
 import {
   AllUserResponse,
@@ -9,9 +5,9 @@ import {
 } from "@/models/dashboard/user/plateform-user/user.response";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
-import { cn } from "@/lib/utils";
-import { Check, Edit, Eye, RotateCw, Trash } from "lucide-react";
+import { Edit, Eye, RotateCw, Trash } from "lucide-react";
 import { CustomAvatar } from "@/components/shared/common/custom-avator";
+import { TableColumn } from "@/components/shared/common/data-table";
 
 interface UserTableHandlers {
   handleEditUser: (user: UserModel) => void;
@@ -35,7 +31,6 @@ export const createUserPlatformTableColumns = ({
     handleViewUserDetail,
     handleResetPassword,
     handleDeleteUser,
-    handleToggleStatus,
   } = handlers;
 
   return [
@@ -91,10 +86,7 @@ export const createUserPlatformTableColumns = ({
       label: "Full Name",
       className: "max-w-[200px]",
       render: (user) => (
-        <span
-          className="text-xs text-muted-foreground font-medium"
-          title={user?.fullName}
-        >
+        <span className="text-xs text-muted-foreground" title={user?.fullName}>
           {user?.fullName || `${user.firstName} ${user.lastName}`}
         </span>
       ),
@@ -104,13 +96,15 @@ export const createUserPlatformTableColumns = ({
       label: "Role",
       className: "max-w-[200px]",
       render: (user) => (
-        <div className="text-xs text-muted-foreground space-x-1">
+        <>
           {user.roles?.length > 0
             ? user.roles.map((role: string) => (
-                <RoleBadge key={role} role={role} />
+                <span key={role} className="text-xs text-muted-foreground">
+                  {role}
+                </span>
               ))
             : "---"}
-        </div>
+        </>
       ),
     },
     {

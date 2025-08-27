@@ -74,6 +74,10 @@ export const sidebarItems: SidebarItem[] = [
         title: "Subscription Plan",
         href: ROUTES.DASHBOARD.SUBSCRIPTION_PLAN,
       },
+      {
+        title: "Subscriptions",
+        href: ROUTES.DASHBOARD.SUBSCRIPTION,
+      },
     ],
   },
   {
@@ -84,10 +88,6 @@ export const sidebarItems: SidebarItem[] = [
       {
         title: "Users",
         href: ROUTES.DASHBOARD.USERS,
-      },
-      {
-        title: "Subscriptions",
-        href: ROUTES.DASHBOARD.SUBSCRIPTION,
       },
     ],
   },

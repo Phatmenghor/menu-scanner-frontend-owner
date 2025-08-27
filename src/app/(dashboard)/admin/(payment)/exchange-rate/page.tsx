@@ -22,7 +22,7 @@ import {
   ModalMode,
   Status,
   UserRole,
-  UserType,
+  UserGropeType,
 } from "@/constants/AppResource/status/status";
 import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
@@ -53,7 +53,7 @@ import {
   CreateUserRequest,
   UpdateUserRequest,
 } from "@/models/dashboard/user/plateform-user/user.request";
-import ModalUser from "@/components/shared/modal/user-modal";
+import UserPlatformModal from "@/components/shared/modal/user-platform-modal";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
@@ -88,8 +88,8 @@ export default function ExchangeRatePage() {
   const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
   const [isExportingToExcel, setIsExportingToExcel] = useState(false);
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
-  const [userTypeFilter, setUserTypeFilter] = useState<UserType>(
-    UserType.PLATFORM_USER
+  const [userTypeFilter, setUserTypeFilter] = useState<UserGropeType>(
+    UserGropeType.PLATFORM_USER
   );
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
 
@@ -410,7 +410,7 @@ export default function ExchangeRatePage() {
   };
 
   const handleResetFilters = () => {
-    setUserTypeFilter(UserType.PLATFORM_USER);
+    setUserTypeFilter(UserGropeType.PLATFORM_USER);
     setRoleFilter(UserRole.PLATFORM_OWNER);
     setStatusFilter(Status.ACTIVE);
     setSearchQuery("");

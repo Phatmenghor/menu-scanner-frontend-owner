@@ -1,6 +1,5 @@
 import { BusinessStatusBadge } from "@/components/shared/badge/business-status-badge";
 import { CustomAvatar } from "@/components/shared/common/custom-avator";
-import { TableColumn } from "@/components/shared/table/table";
 import {
   BusinessModel,
   AllBusinessResponse,
@@ -9,6 +8,7 @@ import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash } from "lucide-react";
 import { ActionButton } from "@/components/shared/common/action-button";
+import { TableColumn } from "@/components/shared/common/data-table";
 
 interface BusinessTableHandlers {
   handleEditBusiness: (business: BusinessModel) => void;

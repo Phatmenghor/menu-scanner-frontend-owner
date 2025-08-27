@@ -1,4 +1,3 @@
-import { TableColumn } from "@/components/shared/table/table";
 import {
   AllSubscriptionPlan,
   SubscriptionPlanModel,
@@ -8,6 +7,7 @@ import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash, Crown, Gift, Globe, Lock } from "lucide-react";
 import { ActionButton } from "@/components/shared/common/action-button";
 import { Badge } from "@/components/ui/badge";
+import { TableColumn } from "@/components/shared/common/data-table";
 
 export const SubscriptionPlanTableHeaders = [
   { label: "#", className: "max-w-[80px]" },

@@ -26,7 +26,7 @@ import {
   USER_ROLE_OPTIONS,
   USER_TYPE_OPTIONS,
   UserRole,
-  UserType,
+  UserGropeType,
 } from "@/constants/AppResource/status/status";
 import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
 import { indexDisplay } from "@/utils/common/common";
@@ -71,7 +71,7 @@ import {
   CreateUserRequest,
   UpdateUserRequest,
 } from "@/models/dashboard/user/plateform-user/user.request";
-import ModalUser from "@/components/shared/modal/user-modal";
+import UserPlatformModal from "@/components/shared/modal/user-platform-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
@@ -132,7 +132,7 @@ export default function CustomerUserPage() {
         search: debouncedSearchQuery,
         pageNo: currentPage,
         pageSize: 10,
-        userType: UserType.CUSTOMER,
+        userType: UserGropeType.CUSTOMER,
         accountStatus: statusFilter,
       });
       console.log("Fetched users:", response);

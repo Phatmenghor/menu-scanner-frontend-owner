@@ -9,14 +9,11 @@ import { usePagination } from "@/hooks/use-pagination";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
+  AccountStatus,
   ModalMode,
   Status,
-  STATUS_FILTER,
-  USER_PLATFORM_ROLE_OPTIONS,
-  USER_ROLE_OPTIONS,
-  USER_TYPE_OPTIONS,
   UserRole,
-  UserType,
+  UserGropeType,
 } from "@/constants/AppResource/status/status";
 import {
   AllUserResponse,
@@ -38,12 +35,16 @@ import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import { DataTable } from "@/components/shared/common/data-table";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
-import ModalUser from "@/components/shared/modal/user-modal";
+import UserPlatformModal from "@/components/shared/modal/user-platform-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { createUserPlatformTableColumns } from "@/constants/AppResource/table/user/user-platform-table";
 import { UserDetailModal } from "@/components/dashboard/plate-form-user/user-detail-modal";
+import {
+  STATUS_FILTER,
+  USER_PLATFORM_ROLE_FILTER,
+} from "@/constants/AppResource/status/filter-status";
 
 export default function UserPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,13 +55,13 @@ export default function UserPage() {
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     mode: ModalMode;
-    userData: UserFormData | null;
+    userId: string;
     isSubmitting: boolean;
     error: string | null;
   }>({
     isOpen: false,
     mode: ModalMode.CREATE_MODE,
-    userData: null,
+    userId: "",
     isSubmitting: false,
     error: null,
   });
@@ -97,9 +98,8 @@ export default function UserPage() {
   });
 
   // Filters
-  const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
-  const [userTypeFilter, setUserTypeFilter] = useState<UserType>(
-    UserType.PLATFORM_USER
+  const [accountStatusFilter, setAccountStatusFilter] = useState<AccountStatus>(
+    AccountStatus.All
   );
   const [roleFilter, setRoleFilter] = useState<UserRole>(UserRole.All);
 
@@ -128,8 +128,11 @@ export default function UserPage() {
         search: debouncedSearchQuery,
         pageNo: currentPage,
         roles: roleFilter === UserRole.All ? [] : [roleFilter],
-        userType: userTypeFilter,
-        accountStatus: statusFilter,
+        userType: UserGropeType.PLATFORM_USER,
+        accountStatus:
+          accountStatusFilter === AccountStatus.All
+            ? undefined
+            : accountStatusFilter,
       });
       setData(response);
     } catch (error: any) {
@@ -138,13 +141,7 @@ export default function UserPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    debouncedSearchQuery,
-    statusFilter,
-    userTypeFilter,
-    roleFilter,
-    currentPage,
-  ]);
+  }, [debouncedSearchQuery, accountStatusFilter, roleFilter, currentPage]);
 
   useEffect(() => {
     loadUsers();
@@ -155,7 +152,7 @@ export default function UserPage() {
     setModalState({
       isOpen: true,
       mode: ModalMode.CREATE_MODE,
-      userData: null,
+      userId: "",
       isSubmitting: false,
       error: null,
     });
@@ -165,7 +162,7 @@ export default function UserPage() {
     setModalState({
       isOpen: true,
       mode: ModalMode.UPDATE_MODE,
-      userData: user as UserFormData,
+      userId: user?.id || "",
       isSubmitting: false,
       error: null,
     });
@@ -274,12 +271,8 @@ export default function UserPage() {
   };
 
   // Filter handlers
-  const handleStatusChange = (status: Status) => {
-    setStatusFilter(status);
-  };
-
-  const handleUserTypeChange = (userType: UserType) => {
-    setUserTypeFilter(userType);
+  const handleStatusChange = (status: AccountStatus) => {
+    setAccountStatusFilter(status);
   };
 
   const handleRoleFilterChange = (userRole: UserRole) => {
@@ -291,7 +284,7 @@ export default function UserPage() {
     setModalState({
       isOpen: false,
       mode: ModalMode.CREATE_MODE,
-      userData: null,
+      userId: "",
       isSubmitting: false,
       error: null,
     });
@@ -337,18 +330,18 @@ export default function UserPage() {
         }
 
         const createPayload: CreateUserRequest = {
+          userIdentifier: formData?.userIdentifier || "",
+          password: formData.password!,
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
           userType: formData.userType!,
           businessId: formData.businessId,
-          password: formData.password!,
           phoneNumber: formData.phoneNumber,
           accountStatus: formData.accountStatus,
           profileImageUrl: formData.profileImageUrl,
           address: formData.address,
-          roles: formData.roles || [UserRole.PLATFORM_OWNER],
-          userIdentifier: formData?.userIdentifier || "",
+          roles: formData.roles,
           notes: formData.notes,
           position: formData.position,
         };
@@ -482,7 +475,7 @@ export default function UserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Platform Users List", href: "" },
+            { label: "Platform Users Platform", href: "" },
           ]}
           title="Platform Users"
           searchValue={searchQuery}
@@ -495,12 +488,14 @@ export default function UserPage() {
           <div className="flex items-center gap-3">
             <CustomSelect
               options={STATUS_FILTER}
-              value={statusFilter}
+              value={accountStatusFilter}
               placeholder="Select Status"
-              onValueChange={(value) => handleStatusChange(value as Status)}
+              onValueChange={(value) =>
+                handleStatusChange(value as AccountStatus)
+              }
             />
             <CustomSelect
-              options={USER_PLATFORM_ROLE_OPTIONS}
+              options={USER_PLATFORM_ROLE_FILTER}
               value={roleFilter}
               placeholder="Select User Role"
               onValueChange={(value) =>
@@ -531,12 +526,12 @@ export default function UserPage() {
       </div>
 
       {/* Create/Update Modal */}
-      <ModalUser
+      <UserPlatformModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
         isSubmitting={modalState.isSubmitting}
         onSave={handleSubmit}
-        Data={modalState.userData}
+        userId={modalState.userId}
         mode={modalState.mode}
         error={modalState.error}
       />

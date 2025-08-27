@@ -7,9 +7,7 @@ import {
   Phone,
   Mail,
   MapPin,
-  Shield,
   Calendar,
-  FileText,
   UserCheck,
   Users,
   Briefcase,
@@ -48,13 +46,11 @@ export function UserDetailModal({
   const [userData, setUserData] = useState<UserModel | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // Fetch user data when userId is provided
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId || !isOpen) return;
 
       setIsLoadingData(true);
-
       try {
         const data = await getUserByIdService(userId);
         setUserData(data);
@@ -113,8 +109,6 @@ export function UserDetailModal({
       year: "numeric",
       month: "long",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
@@ -195,82 +189,53 @@ export function UserDetailModal({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-foreground">
+                    <h3 className="text-lg font-semibold">
                       Personal Information
                     </h3>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="grid grid-cols-3">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        User Identifier:
-                      </Label>
-                      <span className="col-span-2 text-sm">
-                        {userData?.userIdentifier || "---"}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Email:
                       </Label>
-                      <span className="col-span-2 text-sm">
+                      <span className="text-sm">
                         {userData?.email || "---"}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        First Name:
-                      </Label>
-                      <span className="col-span-2 text-sm">
-                        {userData?.firstName}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Last Name:
-                      </Label>
-                      <span className="col-span-2 text-sm">
-                        {userData?.lastName}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Full Name:
                       </Label>
-                      <span className="col-span-2 text-sm">
-                        {userData?.fullName}
-                      </span>
+                      <span className="text-sm">{userData?.fullName}</span>
                     </div>
 
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Phone Number:
                       </Label>
-                      <span className="col-span-2 text-sm flex items-center gap-2">
+                      <span className="text-sm flex items-center gap-2">
                         <Phone className="h-4 w-4" />
                         {userData?.phoneNumber}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Position:
                       </Label>
-                      <span className="col-span-2 text-sm flex items-center gap-2">
+                      <span className="text-sm flex items-center gap-2">
                         <Briefcase className="h-4 w-4" />
                         {userData?.position || "---"}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Address:
                       </Label>
-                      <span className="col-span-2 text-sm flex items-start gap-2">
+                      <span className="text-sm flex items-start gap-2 max-w-[300px] text-right">
                         <MapPin className="h-4 w-4 mt-0.5" />
                         {userData?.address || "No address provided"}
                       </span>
@@ -282,27 +247,27 @@ export function UserDetailModal({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-6 bg-green-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-foreground">
+                    <h3 className="text-lg font-semibold">
                       Account Information
                     </h3>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         User Type:
                       </Label>
-                      <div className="col-span-2 flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         {getUserTypeIcon(userData?.userType ?? null)}
                         <span className="text-sm">{userData?.userType}</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Account Status:
                       </Label>
-                      <div className="col-span-2 flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         {userData?.accountStatus.toLowerCase() === "active" ? (
                           <CheckCircle className="h-4 w-4 text-green-600" />
                         ) : userData?.accountStatus.toLowerCase() ===
@@ -316,24 +281,12 @@ export function UserDetailModal({
                         </span>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Business Association */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-orange-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      Business Association
-                    </h3>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Business Name:
                       </Label>
-                      <span className="col-span-2 text-sm flex items-center gap-2">
+                      <span className="text-sm flex items-center gap-2">
                         <Building2 className="h-4 w-4" />
                         {userData?.businessName || "---"}
                       </span>
@@ -341,128 +294,63 @@ export function UserDetailModal({
                   </div>
                 </div>
 
-                {/* Roles & Permissions */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      Roles & Permissions
-                    </h3>
-                  </div>
+                {/* Roles */}
+                {userData?.roles && userData?.roles.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
+                      <h3 className="text-lg font-semibold">Roles</h3>
+                    </div>
 
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Assigned Roles:
-                      </Label>
-                      <div className="col-span-2">
-                        <div className="flex flex-wrap gap-2">
-                          {userData?.roles?.map((role, index) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className={getRoleColor(role)}
-                            >
-                              <Users className="w-3 h-3 mr-1" />
-                              {role}
-                            </Badge>
-                          ))}
-                        </div>
-                        {userData?.roles?.length === 0 && (
-                          <span className="text-sm text-muted-foreground italic">
-                            No roles assigned
-                          </span>
-                        )}
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      {userData?.roles?.map((role, index) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className={getRoleColor(role)}
+                        >
+                          <Users className="w-3 h-3 mr-1" />
+                          {role}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
-                </div>
-
-                {/* Notes */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-gray-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      Notes
-                    </h3>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Additional Notes:
-                      </Label>
-                      <div className="col-span-2">
-                        <div className="min-h-[100px] p-3 border rounded-md bg-gray-50">
-                          {userData?.notes ? (
-                            <p className="text-sm whitespace-pre-wrap">
-                              {userData?.notes}
-                            </p>
-                          ) : (
-                            <p className="text-sm text-muted-foreground italic">
-                              No notes available
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
 
                 {/* System Information */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-6 bg-red-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-foreground">
+                    <h3 className="text-lg font-semibold">
                       System Information
                     </h3>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         User ID:
                       </Label>
-                      <span className="col-span-2 text-sm font-mono">
-                        {userData?.id}
-                      </span>
+                      <span className="text-sm font-mono">{userData?.id}</span>
                     </div>
 
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Created:
                       </Label>
-                      <span className="col-span-2 text-sm flex items-center gap-2">
+                      <span className="text-sm flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         {formatDate(userData?.createdAt ?? "")}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3">
+                    <div className="flex justify-between">
                       <Label className="text-sm font-medium text-muted-foreground">
                         Last Updated:
                       </Label>
-                      <span className="col-span-2 text-sm flex items-center gap-2">
+                      <span className="text-sm flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         {formatDate(userData?.updatedAt ?? "")}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Created By:
-                      </Label>
-                      <span className="col-span-2 text-sm">
-                        {userData?.createdBy || "---"}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Updated By:
-                      </Label>
-                      <span className="col-span-2 text-sm">
-                        {userData?.updatedBy || "---"}
                       </span>
                     </div>
                   </div>

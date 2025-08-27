@@ -24,7 +24,7 @@ import {
   Status,
   STATUS_USER_OPTIONS,
   UserRole,
-  UserType,
+  UserGropeType,
 } from "@/constants/AppResource/status/status";
 import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { uploadImageService } from "@/services/dashboard/image/image.service";
@@ -51,7 +51,7 @@ const getDefaultRoleValue = () => {
 };
 
 const getDefaultUserTypeValue = () => {
-  return UserType.CUSTOMER;
+  return UserGropeType.CUSTOMER;
 };
 
 export default function ModalCustomerUser({
