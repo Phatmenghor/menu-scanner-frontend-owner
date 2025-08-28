@@ -1,130 +1,134 @@
 "use client";
 
-import { RoleBadge } from "@/components/shared/badge/role-badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { Plus, Users, UserCheck, UserX, Download, Filter } from "lucide-react";
+
+import { usePagination } from "@/hooks/use-pagination";
+import { useDebounce } from "@/utils/debounce/debounce";
+import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
+  AccountStatus,
   ModalMode,
   Status,
-  STATUS_FILTER,
-  USER_ROLE_OPTIONS,
-  USER_TYPE_OPTIONS,
   UserRole,
   UserGropeType,
 } from "@/constants/AppResource/status/status";
-import { UserTableHeaders } from "@/constants/AppResource/table/user/plateform-user";
-import { indexDisplay } from "@/utils/common/common";
-import { dateTimeFormat } from "@/utils/date/date-time-format";
-import { useDebounce } from "@/utils/debounce/debounce";
-import {
-  ExcelColumn,
-  ExcelExporter,
-  ExcelSheet,
-} from "@/utils/export-file/excel";
-import { Check, Eye, Pen, Plus, RotateCw, Trash, User } from "lucide-react";
-import {
-  Command,
-  CommandInput,
-  CommandItem,
-  CommandEmpty,
-  CommandList,
-  CommandGroup,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import { usePagination } from "@/hooks/use-pagination";
-import { ROUTES } from "@/constants/AppRoutes/routes";
-import PaginationPage from "@/components/shared/common/app-pagination";
 import {
   AllUserResponse,
   UserModel,
 } from "@/models/dashboard/user/plateform-user/user.response";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "@/models/dashboard/user/plateform-user/user.request";
 import {
   createUserService,
   deletedUserService,
   getAllUserService,
   updateUserService,
 } from "@/services/dashboard/user/plateform-user/plateform-user.service";
-import {
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/models/dashboard/user/plateform-user/user.request";
-import UserPlatformModal from "@/components/shared/modal/user-platform-modal";
+import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
+
+import { CardHeaderSection } from "@/components/layout/card-header-section";
+import { CustomSelect } from "@/components/shared/common/custom-select";
+import { DataTable } from "@/components/shared/common/data-table";
+import { CustomPagination } from "@/components/shared/common/custom-pagination";
+import ModalCustomerUser from "@/components/shared/modal/cusomer-user-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
-import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
-import { CardHeaderSection } from "@/components/layout/card-header-section";
+import { createCustomerUserTableColumns } from "@/constants/AppResource/table/customer-user/customer-user-table";
 import { UserDetailModal } from "@/components/dashboard/plate-form-user/user-detail-modal";
-import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
-import ModalCustomerUser from "@/components/shared/modal/cusomer-user-modal";
+import {
+  STATUS_FILTER,
+  USER_CUSTOMER_ROLE_FILTER,
+} from "@/constants/AppResource/status/filter-status";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  ExcelColumn,
+  ExcelExporter,
+  ExcelSheet,
+} from "@/utils/export-file/excel";
 
 export default function CustomerUserPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<AllUserResponse | null>(null);
-  const [initializeUser, setInitializeUser] = useState<UserFormData | null>(
-    null
+  const [data, setData] = useState<AllUserResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Modal states
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    mode: ModalMode;
+    userId: string;
+    isSubmitting: boolean;
+    error: string | null;
+  }>({
+    isOpen: false,
+    mode: ModalMode.CREATE_MODE,
+    userId: "",
+    isSubmitting: false,
+    error: null,
+  });
+
+  // Detail modal state - only store userId
+  const [detailModalState, setDetailModalState] = useState<{
+    isOpen: boolean;
+    userId: string;
+  }>({
+    isOpen: false,
+    userId: "",
+  });
+
+  // Reset password modal state
+  const [resetPasswordState, setResetPasswordState] = useState<{
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+  }>({
+    isOpen: false,
+    userId: "",
+    userName: "",
+  });
+
+  // Delete modal state
+  const [deleteState, setDeleteState] = useState<{
+    isOpen: boolean;
+    user: UserModel | null;
+    isDeleting: boolean;
+  }>({
+    isOpen: false,
+    user: null,
+    isDeleting: false,
+  });
+
+  // Filters
+  const [accountStatusFilter, setAccountStatusFilter] = useState<AccountStatus>(
+    AccountStatus.All
   );
-  const [selectedUser, setSelectedUser] = useState<UserModel | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mode, setMode] = useState<ModalMode>(ModalMode.CREATE_MODE);
-  const [isExportingToExcel, setIsExportingToExcel] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
-  const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] =
-    useState(false);
-  const [selectedUserToggle, setSelectedUserToggle] =
-    useState<UserModel | null>(null);
-  const [isToggleStatusDialogOpen, setIsToggleStatusDialogOpen] =
-    useState(false);
+  const [roleFilter, setRoleFilter] = useState<UserRole>(UserRole.All);
+  const [isExporting, setIsExporting] = useState(false);
 
-  // Debounced search query - Optimized api performance when search
+  // Debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
-
   const searchParams = useSearchParams();
 
-  const { currentPage, updateUrlWithPage, handlePageChange, getDisplayIndex } =
-    usePagination({
-      baseRoute: ROUTES.DASHBOARD.CUSTOMER_USER,
-      defaultPageSize: 10,
-    });
+  const { currentPage, updateUrlWithPage, handlePageChange } = usePagination({
+    baseRoute: ROUTES.DASHBOARD.CUSTOMER_USER,
+    defaultPageSize: 10,
+  });
 
-  // Then add this effect for initial URL setup
+  // Initialize URL with page parameter
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
     if (!pageParam) {
-      // Use replace: true to avoid adding to browser history
       updateUrlWithPage(1, true);
     }
   }, [searchParams, updateUrlWithPage]);
 
+  // Load users
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -132,119 +136,244 @@ export default function CustomerUserPage() {
         search: debouncedSearchQuery,
         pageNo: currentPage,
         pageSize: 10,
+        roles: roleFilter === UserRole.All ? [] : [roleFilter],
         userType: UserGropeType.CUSTOMER,
-        accountStatus: statusFilter,
+        accountStatus:
+          accountStatusFilter === AccountStatus.All
+            ? undefined
+            : accountStatusFilter,
       });
-      console.log("Fetched users:", response);
-      setUsers(response);
+      setData(response);
     } catch (error: any) {
-      console.log("Failed to fetch users: ", error);
+      console.log("Failed to fetch customer users: ", error);
+      toast.error("Failed to load customer users");
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchQuery, statusFilter, currentPage]);
+  }, [debouncedSearchQuery, accountStatusFilter, roleFilter, currentPage]);
 
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
 
-  // Simplified search change handler - just updates the state, debouncing handles the rest
+  // Statistics calculation
+  const userStats = useMemo(() => {
+    if (!data) return { total: 0, active: 0, inactive: 0 };
+
+    return {
+      total: data.totalElements || 0,
+      active:
+        data.content?.filter((user) => user.accountStatus === Status.ACTIVE)
+          .length || 0,
+      inactive:
+        data.content?.filter((user) => user.accountStatus === Status.INACTIVE)
+          .length || 0,
+    };
+  }, [data]);
+
+  // Handler functions for table actions
+  const handleCreateUser = useCallback(() => {
+    setModalState({
+      isOpen: true,
+      mode: ModalMode.CREATE_MODE,
+      userId: "",
+      isSubmitting: false,
+      error: null,
+    });
+  }, []);
+
+  const handleEditUser = useCallback((user: UserModel) => {
+    setModalState({
+      isOpen: true,
+      mode: ModalMode.UPDATE_MODE,
+      userId: user?.id || "",
+      isSubmitting: false,
+      error: null,
+    });
+  }, []);
+
+  const handleViewUserDetail = useCallback((user: UserModel) => {
+    setDetailModalState({
+      isOpen: true,
+      userId: user.id || "",
+    });
+  }, []);
+
+  const handleResetPassword = useCallback((user: UserModel) => {
+    setResetPasswordState({
+      isOpen: true,
+      userId: user.id || "",
+      userName: user.fullName || user.email || "",
+    });
+  }, []);
+
+  const handleDeleteUser = useCallback((user: UserModel) => {
+    setDeleteState({
+      isOpen: true,
+      user: user,
+      isDeleting: false,
+    });
+  }, []);
+
+  // Direct status toggle without confirmation dialog
+  const handleToggleStatus = useCallback(async (user: UserModel) => {
+    if (!user?.id) return;
+
+    try {
+      const newStatus =
+        user?.accountStatus === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
+
+      const response = await updateUserService(user.id, {
+        accountStatus: newStatus,
+      });
+
+      if (response) {
+        // Optimistic update
+        setData((prev) =>
+          prev
+            ? {
+                ...prev,
+                content: prev.content.map((u) =>
+                  u.id === user.id ? response : u
+                ),
+              }
+            : prev
+        );
+
+        AppToast({
+          type: "success",
+          message: `Customer status updated successfully`,
+          duration: 4000,
+          position: "top-right",
+        });
+      } else {
+        AppToast({
+          type: "error",
+          message: `Failed to update customer status`,
+          duration: 4000,
+          position: "top-right",
+        });
+      }
+    } catch (error: any) {
+      toast.error(
+        error?.message || "An error occurred while updating customer status"
+      );
+    }
+  }, []);
+
+  // Memoized table handlers
+  const tableHandlers = useMemo(
+    () => ({
+      handleEditUser,
+      handleViewUserDetail,
+      handleResetPassword,
+      handleDeleteUser,
+      handleToggleStatus,
+    }),
+    [
+      handleEditUser,
+      handleViewUserDetail,
+      handleResetPassword,
+      handleDeleteUser,
+      handleToggleStatus,
+    ]
+  );
+
+  // Optimized table columns
+  const columns = useMemo(
+    () =>
+      createCustomerUserTableColumns({
+        data,
+        handlers: tableHandlers,
+      }),
+    [data?.pageNo, data?.pageSize, data?.content?.length, tableHandlers]
+  );
+
+  // Search change handler
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  const handleExportToPdf = async (data: AllUserResponse | null) => {
-    setIsExportingToExcel(true);
-    try {
-      const columns: ExcelColumn[] = [
-        {
-          header: "Id",
-          key: "id",
-          width: 15,
-          style: { alignment: { horizontal: "right" } },
-        },
-        { header: "Name", key: "name", width: 15 },
-        { header: "Email", key: "email", width: 30 },
-        { header: "Role", key: "role", width: 15 },
-        { header: "Status", key: "status", width: 15 },
-        {
-          header: "Join Date",
-          key: "createdAt",
-          width: 25,
-          type: "date",
-          format: "mm/dd/yyyy",
-        },
-      ];
-
-      // await quickExport(data?.content ?? [], {
-      //   filename: "users.xlsx",
-      //   title: "User List",
-      //   autoFilter: true,
-      //   columns: columns,
-      //   sortBy: [{ key: "createdAt", order: "desc" }],
-      // });
-
-      const exporter = new ExcelExporter({
-        filename: "user.xlsx",
-        title: "User Report",
-        author: "IT Department",
-        useAlternateRows: true,
-        protection: {
-          password: "Mak12pa12",
-          deleteRows: false,
-        },
-      });
-
-      const sheetConfig: ExcelSheet = {
-        name: "User",
-        data: data?.content ?? [],
-        columns,
-        autoFilter: true,
-        freezeRows: 1,
-        sortBy: [{ key: "createAt", order: "desc" }],
-      };
-
-      exporter.addSheet(sheetConfig);
-      await exporter.export();
-
-      toast.success("Successfully export to excel");
-    } catch (err: any) {
-      toast.success("Failed to export to excel");
-      console.log("Error exporting to excel: ", err);
-    } finally {
-      setIsExportingToExcel(false);
-    }
+  // Filter handlers
+  const handleStatusChange = (status: AccountStatus) => {
+    setAccountStatusFilter(status);
   };
 
-  async function handleSubmit(formData: UserFormData) {
-    console.log("Submitting form:", formData, "mode:", mode);
+  const handleRoleFilterChange = (userRole: UserRole) => {
+    setRoleFilter(userRole);
+  };
 
-    setIsSubmitting(true);
+  // Close modal handlers
+  const closeModal = () => {
+    setModalState({
+      isOpen: false,
+      mode: ModalMode.CREATE_MODE,
+      userId: "",
+      isSubmitting: false,
+      error: null,
+    });
+  };
+
+  const closeDetailModal = () => {
+    setDetailModalState({
+      isOpen: false,
+      userId: "",
+    });
+  };
+
+  const closeResetPasswordModal = () => {
+    setResetPasswordState({
+      isOpen: false,
+      userId: "",
+      userName: "",
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteState({
+      isOpen: false,
+      user: null,
+      isDeleting: false,
+    });
+  };
+
+  // Handle form submission with optimistic updates
+  const handleSubmit = async (formData: UserFormData): Promise<void> => {
     try {
-      const isCreate = mode === ModalMode.CREATE_MODE;
+      setModalState((prev) => ({
+        ...prev,
+        isSubmitting: true,
+        error: null,
+      }));
+
+      const isCreate = modalState.mode === ModalMode.CREATE_MODE;
 
       if (isCreate) {
+        if (!formData.email || !formData.firstName || !formData.lastName) {
+          throw new Error("Email, first name and last name are required");
+        }
+
         const createPayload: CreateUserRequest = {
+          userIdentifier: formData?.userIdentifier || "",
+          password: formData.password!,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          email: formData.email!,
+          email: formData.email,
           userType: formData.userType!,
           businessId: formData.businessId,
-          password: formData.password!,
           phoneNumber: formData.phoneNumber,
           accountStatus: formData.accountStatus,
           profileImageUrl: formData.profileImageUrl,
           address: formData.address,
-          roles: formData.roles || [UserRole.PLATFORM_OWNER],
-          userIdentifier: formData?.userIdentifier || "",
+          roles: formData.roles || [UserRole.CUSTOMER],
           notes: formData.notes,
           position: formData.position,
         };
 
         const response = await createUserService(createPayload);
         if (response) {
-          // Update users list
-          setUsers((prev) =>
+          // Optimistic update
+          setData((prev) =>
             prev
               ? {
                   ...prev,
@@ -266,14 +395,12 @@ export default function CustomerUserPage() {
 
           AppToast({
             type: "success",
-            message: `User ${
+            message: `Customer "${
               response.username || formData.email
-            } added successfully`,
+            }" created successfully`,
             duration: 4000,
             position: "top-right",
           });
-
-          setIsModalOpen(false);
         }
       } else {
         // Update mode
@@ -296,8 +423,8 @@ export default function CustomerUserPage() {
 
         const response = await updateUserService(formData.id, updatePayload);
         if (response) {
-          // Update users list
-          setUsers((prev) =>
+          // Optimistic update
+          setData((prev) =>
             prev
               ? {
                   ...prev,
@@ -310,426 +437,271 @@ export default function CustomerUserPage() {
 
           AppToast({
             type: "success",
-            message: `User ${
+            message: `Customer "${
               response.username || response.email
-            } updated successfully`,
+            }" updated successfully`,
             duration: 4000,
             position: "top-right",
           });
-
-          setIsModalOpen(false);
         }
       }
     } catch (error: any) {
-      console.error("Error submitting user form:", error);
-      toast.error(error.message || "An unexpected error occurred");
+      const errorMessage = error.message || "An unexpected error occurred";
+      setModalState((prev) => ({
+        ...prev,
+        error: errorMessage,
+      }));
+
+      toast.error(errorMessage);
+      throw error; // Re-throw to prevent modal from closing
     } finally {
-      setIsSubmitting(false);
+      setModalState((prev) => ({ ...prev, isSubmitting: false }));
     }
-  }
+  };
 
-  async function handleDeleteUser() {
-    if (!selectedUser || !selectedUser.id) return;
+  // Handle delete
+  const handleDelete = async () => {
+    if (!deleteState.user?.id) return;
 
-    setIsSubmitting(true);
+    setDeleteState((prev) => ({ ...prev, isDeleting: true }));
+
     try {
-      const response = await deletedUserService(selectedUser.id);
+      const response = await deletedUserService(deleteState.user.id);
 
       if (response) {
         AppToast({
           type: "success",
-          message: `User ${selectedUser.fullName ?? ""} deleted successfully`,
+          message: `Customer "${
+            deleteState.user.fullName ?? ""
+          }" deleted successfully`,
           duration: 4000,
           position: "top-right",
         });
-        // After deletion, check if we need to go back a page
-        if (users && users.content.length === 1 && currentPage > 1) {
+
+        // Check if we need to go back a page
+        if (data && data.content.length === 1 && currentPage > 1) {
           updateUrlWithPage(currentPage - 1);
         } else {
           await loadUsers();
         }
-      } else {
-        AppToast({
-          type: "error",
-          message: `Failed to delete user`,
-          duration: 4000,
-          position: "top-right",
-        });
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error("An error occurred while deleting the user");
+      console.error("Error deleting customer:", error);
+      toast.error("Failed to delete customer");
     } finally {
-      setIsSubmitting(false);
-      setIsDeleteDialogOpen(false);
+      setDeleteState((prev) => ({ ...prev, isDeleting: false }));
+      closeDeleteModal();
     }
-  }
-
-  const handleEditUser = (user: UserFormData) => {
-    setInitializeUser(user);
-    setMode(ModalMode.UPDATE_MODE);
-    setIsModalOpen(!isModalOpen);
   };
 
-  // Status toggle handler
-  const handleStatusToggle = async (user: UserModel | null) => {
-    if (!user?.id) return;
-
-    setIsSubmitting(true);
+  // Handle export
+  const handleExportToExcel = async () => {
+    setIsExporting(true);
     try {
-      const newStatus =
-        user?.accountStatus === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
+      const columns: ExcelColumn[] = [
+        { header: "Customer ID", key: "userIdentifier", width: 20 },
+        { header: "Full Name", key: "fullName", width: 25 },
+        { header: "Email", key: "email", width: 30 },
+        { header: "Phone", key: "phoneNumber", width: 20 },
+        { header: "Business", key: "businessName", width: 25 },
+        { header: "Status", key: "accountStatus", width: 15 },
+        { header: "Join Date", key: "createdAt", width: 20, type: "date" },
+      ];
 
-      const response = await updateUserService(user?.id, {
-        accountStatus: newStatus,
+      const exporter = new ExcelExporter({
+        filename: "customer-users.xlsx",
+        title: "Customer Users Report",
+        author: "System",
       });
 
-      if (response) {
-        // Optimistic update
-        setUsers((prev) =>
-          prev
-            ? {
-                ...prev,
-                content: prev.content.map((user) =>
-                  user.id === selectedUserToggle?.id ? response : user
-                ),
-              }
-            : prev
-        );
+      const sheetConfig: ExcelSheet = {
+        name: "Customers",
+        data: data?.content ?? [],
+        columns,
+        autoFilter: true,
+        freezeRows: 1,
+      };
 
-        AppToast({
-          type: "success",
-          message: `User status updated successfully`,
-          duration: 4000,
-          position: "top-right",
-        });
-        setSelectedUserToggle(null);
-        setIsToggleStatusDialogOpen(false);
-      } else {
-        AppToast({
-          type: "error",
-          message: `Failed to update user status`,
-          duration: 4000,
-          position: "top-right",
-        });
-        loadUsers(); // reload in case of failure
-      }
-    } catch (error: any) {
-      toast.error(
-        error?.message || "An error occurred while updating user status"
-      );
-      loadUsers(); // reload in case of failure
+      exporter.addSheet(sheetConfig);
+      await exporter.export();
+
+      toast.success("Export completed successfully");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export data");
     } finally {
-      setIsSubmitting(false);
+      setIsExporting(false);
     }
   };
 
-  const handleToggleStatus = (user: UserModel) => {
-    setSelectedUserToggle(user);
-    setIsToggleStatusDialogOpen(true);
-  };
-
-  // Handle status filter change - directly updates the filter value
-  const handleStatusChange = (status: Status) => {
-    setStatusFilter(status);
-  };
-
-  const handleResetPassword = (user: UserModel) => {
-    setSelectedUser(user);
-    setIsResetPasswordDialogOpen(true);
-  };
-
-  const handleDelete = (user: UserModel) => {
-    setSelectedUser(user);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleViewUserDetail = (user: UserModel | null) => {
-    setSelectedUser(user);
-    setIsUserDetailOpen(true);
-  };
-
-  const handleCloseViewUserDetail = () => {
-    setSelectedUser(null);
-    setIsUserDetailOpen(false);
-  };
-
+  // Reset filters
   const handleResetFilters = () => {
-    setStatusFilter(Status.ACTIVE);
+    setAccountStatusFilter(AccountStatus.All);
+    setRoleFilter(UserRole.All);
     setSearchQuery("");
     updateUrlWithPage(1, true);
-    setUsers(null); // Reset users to trigger reload};
-    loadUsers(); // Reload users with default filters
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="space-y-6">
+    <div className="flex flex-1 flex-col gap-4 px-2">
+      <div className="space-y-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Customers
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{userStats.total}</div>
+              <p className="text-xs text-muted-foreground">
+                Registered customers
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active</CardTitle>
+              <UserCheck className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {userStats.active}
+              </div>
+              <p className="text-xs text-muted-foreground">Active customers</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Inactive</CardTitle>
+              <UserX className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {userStats.inactive}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Inactive customers
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "PlateForm Users List", href: "" },
+            { label: "Customer Management", href: "" },
           ]}
-          title="PlateForm Users"
+          title="Customer Users"
           searchValue={searchQuery}
-          searchPlaceholder="Search..."
+          searchPlaceholder="Search customers..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="Add new"
+          buttonText="New Customer"
           onSearchChange={handleSearchChange}
-          openModal={() => {
-            setIsModalOpen(!isModalOpen);
-            setMode(ModalMode.CREATE_MODE);
-          }}
-          handleResetFilters={handleResetFilters}
-          disableReset={!statusFilter}
+          openModal={handleCreateUser}
         >
           <div className="flex items-center gap-3">
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={handleStatusChange}>
-              <SelectTrigger className="min-w-[150px] text-black h-9 text-sm">
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_FILTER.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-sm"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CustomSelect
+              options={STATUS_FILTER}
+              value={accountStatusFilter}
+              placeholder="Select Status"
+              onValueChange={(value) =>
+                handleStatusChange(value as AccountStatus)
+              }
+            />
+            <CustomSelect
+              options={USER_CUSTOMER_ROLE_FILTER}
+              value={roleFilter}
+              placeholder="Select User Role"
+              onValueChange={(value) =>
+                handleRoleFilterChange(value as UserRole)
+              }
+            />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportToExcel}
+              disabled={isExporting || !data?.content?.length}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {isExporting ? "Exporting..." : "Export"}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetFilters}
+              disabled={
+                accountStatusFilter === AccountStatus.All &&
+                roleFilter === UserRole.All &&
+                !searchQuery
+              }
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
           </div>
         </CardHeaderSection>
 
-        <div className="w-full">
-          <Separator className="bg-gray-300" />
-        </div>
+        <div className="space-y-4">
+          <DataTable
+            data={data?.content || []}
+            columns={columns}
+            loading={isLoading}
+            emptyMessage="No customers found"
+            getRowKey={(user) => user.id?.toString() || user.email}
+          />
 
-        <div>
-          <div className="rounded-md border overflow-x-auto whitespace-nowrap">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {UserTableHeaders.map((header, index) => (
-                    <TableHead
-                      key={index}
-                      className="text-xs font-semibold text-muted-foreground"
-                    >
-                      <div
-                        className={`flex items-center gap-1 ${header.className}`}
-                      >
-                        <span>{header.label}</span>
-                      </div>
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {!users || users.content.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={UserTableHeaders.length}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  users.content.map((user, index) => {
-                    const profileImageUrl =
-                      user?.profileImageUrl &&
-                      process.env.NEXT_PUBLIC_API_BASE_URL
-                        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${user.profileImageUrl}`
-                        : undefined;
-
-                    return (
-                      <TableRow key={user.id} className="text-sm">
-                        {/* Index */}
-                        <TableCell className="font-medium truncate">
-                          {indexDisplay(users.pageNo, users.pageSize, index)}
-                        </TableCell>
-
-                        {/* Avatar */}
-                        <TableCell>
-                          <div className="flex items-center gap-3 min-w-[180px]">
-                            <Avatar className="h-10 w-10 border-2 border-background dark:border-card shadow-sm group-hover:border-primary/30 transition-all">
-                              <AvatarImage
-                                src={
-                                  user.profileImageUrl ? profileImageUrl : ""
-                                }
-                                alt="Profile"
-                              />
-                              <AvatarFallback className="bg-primary/10 dark:bg-primary/20 text-primary font-semibold">
-                                {user?.email?.charAt(0).toUpperCase() || "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
-                        </TableCell>
-
-                        <TableCell className="text-xs text-muted-foreground">
-                          {user?.userIdentifier || "---"}
-                        </TableCell>
-
-                        <TableCell className="text-xs text-muted-foreground">
-                          {user?.email || "---"}
-                        </TableCell>
-
-                        {/* FullName */}
-                        <TableCell className="text-xs text-muted-foreground">
-                          {user?.fullName ||
-                            `${user.firstName} ${user.lastName}`}
-                        </TableCell>
-
-                        {/* Status Switch */}
-                        <TableCell>
-                          <Switch
-                            checked={user?.accountStatus === "ACTIVE"}
-                            onCheckedChange={() => handleToggleStatus(user)}
-                            disabled={isSubmitting}
-                            aria-label="Toggle user status"
-                            className={cn(
-                              "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                              // canModify
-                              1
-                                ? "bg-gray-300 dark:bg-gray-600 data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary"
-                                : "bg-gray-300 dark:bg-primary opacity-50 cursor-not-allowed"
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                "inline-block h-6 w-6 transform rounded-full bg-white dark:bg-gray-100 shadow-md transition-transform",
-                                "translate-x-1 data-[state=checked]:translate-x-5"
-                              )}
-                            >
-                              {user.accountStatus === "ACTIVE" && (
-                                <Check className="h-6 w-6 m-auto text-orange-600 dark:text-orange-300" />
-                              )}
-                            </div>
-                          </Switch>
-                        </TableCell>
-
-                        {/* Created At */}
-                        <TableCell className="text-sm text-muted-foreground">
-                          {dateTimeFormat(user?.createdAt)}
-                        </TableCell>
-
-                        {/* Actions */}
-                        <TableCell className="text-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewUserDetail(user)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <Pen className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleResetPassword(user)}
-                          >
-                            {" "}
-                            <RotateCw className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(user)}
-                          >
-                            <Trash className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-
-            <ModalCustomerUser
-              isOpen={isModalOpen}
-              onClose={() => {
-                setInitializeUser(null);
-                setIsModalOpen(false);
-              }}
-              isSubmitting={isSubmitting}
-              onSave={handleSubmit}
-              Data={initializeUser}
-              mode={mode}
-            />
-
-            <ResetPasswordModal
-              isOpen={isResetPasswordDialogOpen}
-              userName={selectedUser?.fullName || selectedUser?.email}
-              onClose={() => {
-                setIsResetPasswordDialogOpen(false);
-                setSelectedUser(null);
-              }}
-              userId={selectedUser?.id}
-            />
-
-            <UserDetailModal
-              onClose={handleCloseViewUserDetail}
-              open={isUserDetailOpen}
-              user={selectedUser}
-            />
-
-            <DeleteConfirmationDialog
-              isOpen={isDeleteDialogOpen}
-              onClose={() => {
-                setIsDeleteDialogOpen(false);
-                setSelectedUser(null);
-              }}
-              onDelete={handleDeleteUser}
-              title="Delete Admin"
-              description={`Are you sure you want to delete the admin`}
-              itemName={selectedUser?.fullName || selectedUser?.email}
-              isSubmitting={isSubmitting}
-            />
-
-            <ConfirmDialog
-              open={isToggleStatusDialogOpen}
-              onOpenChange={() => {
-                setIsToggleStatusDialogOpen(false);
-                setSelectedUserToggle(null);
-              }}
-              centered={true}
-              title="Change User Status"
-              description={`Are you sure you want to ${
-                selectedUserToggle?.accountStatus === "ACTIVE"
-                  ? "disable"
-                  : "enable"
-              } this user: ${selectedUserToggle?.email}?`}
-              confirmButton={{
-                text: `${
-                  selectedUserToggle?.accountStatus === "ACTIVE"
-                    ? "Disable"
-                    : "Enable"
-                }`,
-                onClick: () => handleStatusToggle(selectedUserToggle),
-                variant: "warning",
-              }}
-              cancelButton={{ text: "Cancel", variant: "secondary" }}
-              onConfirm={() => handleStatusToggle(selectedUserToggle)}
-            />
-
-            <PaginationPage
+          {data && data.totalPages > 1 && (
+            <CustomPagination
               currentPage={currentPage}
-              totalPages={users?.totalPages ?? 10}
+              totalPages={data.totalPages}
               onPageChange={handlePageChange}
+              size="md"
             />
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Create/Update Modal - Only pass userId */}
+      <ModalCustomerUser
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        isSubmitting={modalState.isSubmitting}
+        onSave={handleSubmit}
+        userId={modalState.userId}
+        mode={modalState.mode}
+        error={modalState.error}
+      />
+
+      {/* User Detail Modal - Only pass userId */}
+      <UserDetailModal
+        userId={detailModalState.userId}
+        isOpen={detailModalState.isOpen}
+        onClose={closeDetailModal}
+      />
+
+      {/* Reset Password Modal - Only pass userId */}
+      <ResetPasswordModal
+        isOpen={resetPasswordState.isOpen}
+        userName={resetPasswordState.userName}
+        onClose={closeResetPasswordModal}
+        userId={resetPasswordState.userId}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteState.isOpen}
+        onClose={closeDeleteModal}
+        onDelete={handleDelete}
+        title="Delete Customer"
+        description="Are you sure you want to delete this customer? This action cannot be undone."
+        itemName={deleteState.user?.fullName || deleteState.user?.email}
+        isSubmitting={deleteState.isDeleting}
+      />
     </div>
   );
 }
