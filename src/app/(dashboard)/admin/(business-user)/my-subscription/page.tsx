@@ -57,7 +57,7 @@ import {
   CreateSubscriptionRequest,
   UpdateSubscriptionRequest,
 } from "@/models/dashboard/master-data/subscription/subscription.request.model";
-import ModalSubscription from "@/components/shared/modal/subscription-modal";
+import SubscriptionModal from "@/components/shared/modal/subscription-modal";
 
 export default function SubscriptionPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -596,7 +596,7 @@ export default function SubscriptionPage() {
               </TableBody>
             </Table>
 
-            <ModalSubscription
+            <SubscriptionModal
               isOpen={isModalOpen}
               onClose={() => {
                 setInitializeSubscription(null);

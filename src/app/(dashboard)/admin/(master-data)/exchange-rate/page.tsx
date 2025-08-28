@@ -44,12 +44,12 @@ export default function ExchangeRatePage() {
   // Modal states
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    exchangeRate: ExchangeRateModel | null;
+    exchangeRateId: string;
     isSubmitting: boolean;
     mode: ModalMode;
   }>({
     isOpen: false,
-    exchangeRate: null,
+    exchangeRateId: "",
     isSubmitting: false,
     mode: ModalMode.CREATE_MODE,
   });
@@ -130,7 +130,7 @@ export default function ExchangeRatePage() {
     (exchangeRate: ExchangeRateModel) => {
       setModalState({
         isOpen: true,
-        exchangeRate: exchangeRate,
+        exchangeRateId: exchangeRate.id || "",
         isSubmitting: false,
         mode: ModalMode.UPDATE_MODE,
       });
@@ -187,7 +187,7 @@ export default function ExchangeRatePage() {
   const closeModal = () => {
     setModalState({
       isOpen: false,
-      exchangeRate: null,
+      exchangeRateId: "",
       isSubmitting: false,
       mode: ModalMode.CREATE_MODE,
     });
@@ -257,12 +257,12 @@ export default function ExchangeRatePage() {
           closeModal();
         }
       } else {
-        if (!modalState.exchangeRate?.id) {
+        if (!modalState.exchangeRateId) {
           throw new Error("Exchange rate ID is required for update");
         }
 
         const response = await updateExchangeRateService(
-          modalState.exchangeRate.id,
+          modalState.exchangeRateId,
           payload
         );
         if (response) {
@@ -271,7 +271,7 @@ export default function ExchangeRatePage() {
               ? {
                   ...prev,
                   content: prev.content.map((rate) =>
-                    rate.id === modalState.exchangeRate?.id ? response : rate
+                    rate.id === modalState.exchangeRateId ? response : rate
                   ),
                 }
               : prev
@@ -333,13 +333,6 @@ export default function ExchangeRatePage() {
     }
   };
 
-  // Reset filters
-  const handleResetFilters = () => {
-    setStatusFilter(Status.ALL);
-    setSearchQuery("");
-    updateUrlWithPage(1, true);
-  };
-
   return (
     <div className="flex flex-1 flex-col gap-4 px-2">
       <div className="space-y-4">
@@ -357,7 +350,7 @@ export default function ExchangeRatePage() {
           openModal={() => {
             setModalState({
               isOpen: true,
-              exchangeRate: null,
+              exchangeRateId: "",
               isSubmitting: false,
               mode: ModalMode.CREATE_MODE,
             });
@@ -404,7 +397,7 @@ export default function ExchangeRatePage() {
         onClose={closeModal}
         isSubmitting={modalState.isSubmitting}
         onSave={handleSubmit}
-        Data={modalState.exchangeRate}
+        exchangeRateId={modalState.exchangeRateId}
         mode={modalState.mode}
       />
 

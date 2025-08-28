@@ -60,12 +60,12 @@ export default function PaymentPage() {
   // Modal states
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    payment: PaymentModel | null;
+    paymentId: string;
     isSubmitting: boolean;
     mode: ModalMode;
   }>({
     isOpen: false,
-    payment: null,
+    paymentId: "",
     isSubmitting: false,
     mode: ModalMode.CREATE_MODE,
   });
@@ -143,7 +143,7 @@ export default function PaymentPage() {
   const handleEditPayment = useCallback((payment: PaymentModel) => {
     setModalState({
       isOpen: true,
-      payment: payment,
+      paymentId: payment.id || "",
       isSubmitting: false,
       mode: ModalMode.UPDATE_MODE,
     });
@@ -188,7 +188,7 @@ export default function PaymentPage() {
   const closeModal = () => {
     setModalState({
       isOpen: false,
-      payment: null,
+      paymentId: "",
       isSubmitting: false,
       mode: ModalMode.CREATE_MODE,
     });
@@ -264,7 +264,7 @@ export default function PaymentPage() {
           closeModal();
         }
       } else {
-        if (!modalState.payment?.id) {
+        if (!modalState.paymentId) {
           throw new Error("Payment ID is required for update");
         }
 
@@ -279,7 +279,7 @@ export default function PaymentPage() {
         };
 
         const response = await updatePaymentService(
-          modalState.payment.id,
+          modalState.paymentId,
           payload
         );
         if (response) {
@@ -288,7 +288,7 @@ export default function PaymentPage() {
               ? {
                   ...prev,
                   content: prev.content.map((payment) =>
-                    payment.id === modalState.payment?.id ? response : payment
+                    payment.id === modalState.paymentId ? response : payment
                   ),
                 }
               : prev
@@ -373,7 +373,7 @@ export default function PaymentPage() {
           openModal={() => {
             setModalState({
               isOpen: true,
-              payment: null,
+              paymentId: "",
               isSubmitting: false,
               mode: ModalMode.CREATE_MODE,
             });
@@ -427,7 +427,7 @@ export default function PaymentPage() {
         onClose={closeModal}
         isSubmitting={modalState.isSubmitting}
         onSave={handleSubmit}
-        Data={modalState.payment}
+        paymentId={modalState.paymentId}
         mode={modalState.mode}
       />
 

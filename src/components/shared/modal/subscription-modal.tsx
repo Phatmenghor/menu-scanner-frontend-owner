@@ -50,7 +50,7 @@ type Props = {
   error?: string | null;
 };
 
-export default function ModalSubscription({
+export default function SubscriptionModal({
   isOpen,
   onClose,
   subscriptionId,

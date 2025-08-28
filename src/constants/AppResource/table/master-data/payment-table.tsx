@@ -31,126 +31,76 @@ export const createPaymentTableColumns = ({
     {
       key: "index",
       label: "#",
-      className: "w-16 text-center",
-      render: (_, index) => (
-        <span className="font-medium">
-          {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index)}
-        </span>
-      ),
+      className: "w-16",
+      render: (_, index) =>
+        indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index),
     },
     {
       key: "businessName",
       label: "Business",
       className: "max-w-[180px]",
-      render: (item) => (
-        <div className="flex items-center gap-2">
-          <Building2 className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium truncate" title={item.businessName}>
-            {item.businessName || "---"}
-          </span>
-        </div>
-      ),
+      render: (item) => item.businessName || "---",
     },
     {
       key: "status",
       label: "Status",
-      className: "text-center max-w-[120px]",
-      render: (item) => <PaymentStatusBadge status={item.status} />,
+      className: "max-w-[120px]",
+      render: (item) => item.status || "---",
     },
     {
       key: "planName",
       label: "Plan",
       className: "max-w-[150px]",
-      render: (item) => (
-        <span className="truncate" title={item.planName}>
-          {item.planName || "---"}
-        </span>
-      ),
+      render: (item) => item.planName || "---",
     },
     {
       key: "subscriptionDisplayName",
       label: "Subscription",
       className: "max-w-[180px]",
-      render: (item) => (
-        <span className="truncate" title={item.subscriptionDisplayName}>
-          {item.subscriptionDisplayName || "---"}
-        </span>
-      ),
+      render: (item) => item.subscriptionDisplayName || "---",
     },
     {
       key: "formattedAmount",
       label: "Amount (USD)",
-      className: "text-right max-w-[120px]",
-      render: (item) => (
-        <div className="text-right">
-          <span className="font-semibold text-green-700">
-            {item.formattedAmount || "$0.00"}
-          </span>
-        </div>
-      ),
+      className: "max-w-[120px]",
+      render: (item) => item.formattedAmount || "$0.00",
     },
     {
       key: "formattedAmountKhr",
       label: "Amount (KHR)",
-      className: "text-right max-w-[120px]",
-      render: (item) => (
-        <div className="text-right">
-          <span className="font-medium text-muted-foreground">
-            {item.formattedAmountKhr || "0 ៛"}
-          </span>
-        </div>
-      ),
+      className: "max-w-[120px]",
+      render: (item) => item.formattedAmountKhr || "0 ៛",
     },
     {
       key: "paymentMethod",
       label: "Payment Method",
       className: "max-w-[140px]",
-      render: (item) => (
-        <div className="flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-muted-foreground" />
-          <Badge variant="outline" className="text-xs">
-            {item.paymentMethod || "---"}
-          </Badge>
-        </div>
-      ),
+      render: (item) => item.paymentMethod || "---",
     },
     {
       key: "statusDescription",
       label: "Description",
-      className: "max-w-[150px] text-muted-foreground",
-      render: (item) => (
-        <span className="truncate" title={item.statusDescription}>
-          {item.statusDescription || "---"}
-        </span>
-      ),
+      className: "max-w-[150px]",
+      render: (item) => item.statusDescription || "---",
     },
     {
       key: "referenceNumber",
       label: "Reference #",
       className: "max-w-[140px]",
-      render: (item) => (
-        <span
-          className="font-mono text-sm truncate"
-          title={item.referenceNumber}
-        >
-          {item.referenceNumber || "---"}
-        </span>
-      ),
+      render: (item) => item.referenceNumber || "---",
     },
     {
       key: "createdAt",
       label: "Created At",
-      className: "text-muted-foreground max-w-[160px]",
-      render: (item) => (
-        <span className="text-sm">{dateTimeFormat(item.createdAt)}</span>
-      ),
+      className: "max-w-[160px]",
+      render: (item) => dateTimeFormat(item.createdAt),
     },
     {
       key: "actions",
       label: "Actions",
-      className: "w-[160px] text-center",
+      className: "w-[160px]",
       render: (item) => (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center gap-2">
           <ActionButton
             icon={<Eye className="h-4 w-4" />}
             tooltip="View Details"

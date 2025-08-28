@@ -29,7 +29,7 @@ import {
   renewSubscriptionService,
   updateSubscriptionService,
 } from "@/services/dashboard/subscription/subscription.service";
-import ModalSubscription from "@/components/shared/modal/subscription-modal";
+import SubscriptionModal from "@/components/shared/modal/subscription-modal";
 import { RenewSubscriptionModal } from "@/components/shared/modal/subscription-renew-modal";
 import { CancelSubscriptionModal } from "@/components/shared/modal/subscription-cancel-modal";
 import { SubscriptionDetailModal } from "@/components/shared/modal/subscription-detail-modal";
@@ -525,7 +525,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Edit Modal */}
-      <ModalSubscription
+      <SubscriptionModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
         isSubmitting={modalState.isSubmitting}
