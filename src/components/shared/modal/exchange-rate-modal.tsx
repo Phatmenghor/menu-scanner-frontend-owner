@@ -9,6 +9,7 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ModalMode } from "@/constants/AppResource/status/status";
@@ -16,10 +17,11 @@ import {
   ExchangeRateFormData,
   SaveExchangeRateRequestSchema,
 } from "@/models/dashboard/payment/exchange-rate/exchange-rate.schema";
+import { ExchangeRateModel } from "@/models/dashboard/payment/exchange-rate/exchange-rate.response.model";
 
 type Props = {
   mode: ModalMode;
-  Data?: ExchangeRateFormData | null;
+  Data?: ExchangeRateModel | null;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
@@ -42,7 +44,7 @@ export default function ModalExchangeRate({
     reset,
     formState: { errors },
   } = useForm<ExchangeRateFormData>({
-    resolver: zodResolver(SaveExchangeRateRequestSchema), // Always use the form schema
+    resolver: zodResolver(SaveExchangeRateRequestSchema),
     defaultValues: {
       usdToKhrRate: 0,
       notes: "",
@@ -54,6 +56,7 @@ export default function ModalExchangeRate({
   useEffect(() => {
     if (isOpen) {
       const formData = {
+        id: Data?.id,
         usdToKhrRate: Data?.usdToKhrRate || 0,
         notes: Data?.notes || "",
       };
@@ -63,16 +66,13 @@ export default function ModalExchangeRate({
   }, [isOpen, Data, reset]);
 
   const onSubmit = (data: ExchangeRateFormData) => {
-    console.log("Form submitted with mode:", mode, "Data:", data); // Debug log
-
     const payload = {
       id: Data?.id,
-      usdToKhrRate: data?.usdToKhrRate || 0,
-      notes: data?.notes?.trim() || "",
+      usdToKhrRate: data.usdToKhrRate || 0,
+      notes: data.notes?.trim() || "",
     };
-    console.log(" Payload:", payload);
+
     onSave(payload);
-    onClose();
   };
 
   const handleClose = () => {
@@ -85,20 +85,20 @@ export default function ModalExchangeRate({
       <DialogContent className="w-full max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isCreate ? "Create Subscription Plan" : "Edit Subscription Plan"}
+            {isCreate ? "Create Exchange Rate" : "Edit Exchange Rate"}
           </DialogTitle>
           <DialogDescription>
             {isCreate
-              ? "Fill out the form to create a new Subscription Plan."
-              : "Update Subscription Plan information below."}
+              ? "Fill out the form to create a new exchange rate."
+              : "Update exchange rate information below."}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 pt-4">
-          {/* name Field */}
-          <div className="space-y-1">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
+          {/* USD to KHR Rate Field */}
+          <div className="space-y-2">
             <Label htmlFor="usdToKhrRate">
-              Usd to Khmer Rate<span className="text-red-500">*</span>
+              USD to KHR Rate <span className="text-red-500">*</span>
             </Label>
             <Controller
               control={control}
@@ -107,11 +107,13 @@ export default function ModalExchangeRate({
                 <Input
                   {...field}
                   id="usdToKhrRate"
-                  type="text"
+                  type="number"
+                  step="1"
+                  min="0"
                   onChange={(e) => field.onChange(Number(e.target.value))}
                   placeholder="Enter exchange rate (e.g., 4100)"
                   disabled={isSubmitting}
-                  autoComplete="usdToKhrRate"
+                  autoComplete="off"
                   className={errors.usdToKhrRate ? "border-red-500" : ""}
                 />
               )}
@@ -121,22 +123,24 @@ export default function ModalExchangeRate({
                 {errors.usdToKhrRate.message}
               </p>
             )}
+            <p className="text-xs text-muted-foreground">
+              Enter the exchange rate from USD to Khmer Riel (KHR)
+            </p>
           </div>
 
-          {/* Price Field */}
-          <div className="space-y-1">
+          {/* Notes Field */}
+          <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Controller
               control={control}
               name="notes"
               render={({ field }) => (
-                <Input
+                <Textarea
                   {...field}
                   id="notes"
-                  type="text"
-                  placeholder="Enter notes"
+                  rows={3}
+                  placeholder="Enter additional notes or comments..."
                   disabled={isSubmitting}
-                  autoComplete="off"
                   className={errors.notes ? "border-red-500" : ""}
                 />
               )}
@@ -144,10 +148,14 @@ export default function ModalExchangeRate({
             {errors.notes && (
               <p className="text-sm text-destructive">{errors.notes.message}</p>
             )}
+            <p className="text-xs text-muted-foreground">
+              Optional: Add any relevant notes or comments about this exchange
+              rate
+            </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-3 pt-6">
             <Button
               type="button"
               variant="outline"
@@ -157,7 +165,16 @@ export default function ModalExchangeRate({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : isCreate ? "Create" : "Save"}
+              {isSubmitting ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Processing...
+                </>
+              ) : isCreate ? (
+                "Create Exchange Rate"
+              ) : (
+                "Save Changes"
+              )}
             </Button>
           </div>
         </form>

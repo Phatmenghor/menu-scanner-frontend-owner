@@ -1,11 +1,13 @@
 export interface CreatePaymentRequest {
+  businessId?: string;
   imageUrl?: string;
-  subscriptionId: string;
+  subscriptionId?: string;
   status?: string;
   amount: number;
   paymentMethod: string;
   referenceNumber?: string;
   notes?: string;
+  paymentType?: string;
 }
 
 export interface UpdatePaymentRequest {

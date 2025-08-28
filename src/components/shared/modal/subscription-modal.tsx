@@ -24,8 +24,8 @@ import { Loader2, CalendarDays } from "lucide-react";
 import {
   UpdateSubscriptionSchema,
   SubscriptionFormData,
-} from "@/models/dashboard/subscription/subscription.schema";
-import { SubscriptionModel } from "@/models/dashboard/subscription/subscription.response.model";
+} from "@/models/dashboard/master-data/subscription/subscription.schema";
+import { SubscriptionModel } from "@/models/dashboard/master-data/subscription/subscription.response.model";
 import { getSubscriptionByIdService } from "@/services/dashboard/subscription/subscription.service";
 import { ComboboxSelectPlan } from "../combo-box/combobox-plan";
 import { SubscriptionPlanModel } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";

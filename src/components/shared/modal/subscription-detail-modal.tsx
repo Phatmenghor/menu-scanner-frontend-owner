@@ -23,7 +23,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SubscriptionModel } from "@/models/dashboard/subscription/subscription.response.model";
+import { SubscriptionModel } from "@/models/dashboard/master-data/subscription/subscription.response.model";
 import { getSubscriptionByIdService } from "@/services/dashboard/subscription/subscription.service";
 import Loading from "@/components/shared/common/loading";
 

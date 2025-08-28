@@ -4,7 +4,7 @@ import {
   CreateSubscriptionRequest,
   RenewSubscriptionRequest,
   UpdateSubscriptionRequest,
-} from "@/models/dashboard/subscription/subscription.request.model";
+} from "@/models/dashboard/master-data/subscription/subscription.request.model";
 import { axiosClientWithAuth } from "@/utils/axios";
 
 export async function getAllSubscriptionService(data: AllSubscriptionRequest) {

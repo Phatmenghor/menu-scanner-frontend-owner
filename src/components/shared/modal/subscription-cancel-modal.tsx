@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,48 +21,57 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { SubscriptionModel } from "@/models/dashboard/subscription/subscription.response.model";
-
-// Updated request interface to match Java DTO
-export interface CancelSubscriptionRequest {
-  reason?: string | null;
-  notes?: string | null;
-  refundAmount?: number | null;
-  refundNotes?: string | null;
-}
+import { SubscriptionModel } from "@/models/dashboard/master-data/subscription/subscription.response.model";
+import { getSubscriptionByIdService } from "@/services/dashboard/subscription/subscription.service";
+import Loading from "@/components/shared/common/loading";
+import { CancelSubscriptionRequest } from "@/models/dashboard/master-data/subscription/subscription.request.model";
+import { CANCELLATION_REASONS_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
 
 interface CancelSubscriptionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  subscription: SubscriptionModel | null;
+  subscriptionId?: string;
   onSubmit: (data: CancelSubscriptionRequest) => void;
   isSubmitting?: boolean;
 }
 
-const CANCELLATION_REASONS = [
-  { value: "too-expensive", label: "Too expensive" },
-  { value: "not-using", label: "Not using enough" },
-  { value: "missing-features", label: "Missing features" },
-  { value: "found-alternative", label: "Found alternative" },
-  { value: "technical-issues", label: "Technical issues" },
-  { value: "business-closed", label: "Business closed" },
-  { value: "other", label: "Other" },
-];
-
 export function CancelSubscriptionModal({
   open,
   onOpenChange,
-  subscription,
+  subscriptionId,
   onSubmit,
   isSubmitting = false,
 }: CancelSubscriptionModalProps) {
+  const [subscriptionData, setSubscriptionData] =
+    useState<SubscriptionModel | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [formData, setFormData] = useState<CancelSubscriptionRequest>({
     reason: null,
     notes: null,
     refundAmount: null,
     refundNotes: null,
   });
+
+  useEffect(() => {
+    const fetchSubscriptionData = async () => {
+      if (!subscriptionId || !open) return;
+
+      setIsLoadingData(true);
+      try {
+        const data = await getSubscriptionByIdService(subscriptionId);
+        setSubscriptionData(data);
+      } catch (error: any) {
+        console.error("Error fetching subscription data:", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchSubscriptionData();
+  }, [subscriptionId, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,146 +99,203 @@ export function CancelSubscriptionModal({
         refundAmount: null,
         refundNotes: null,
       });
+      setSubscriptionData(null);
     }
   };
 
   const hasRefundAmount =
-    formData.refundAmount !== null && formData.refundAmount > 0;
+    (formData.refundAmount ?? null) !== null &&
+    (formData.refundAmount ?? 0) > 0;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">
         {/* Header */}
-        <DialogHeader className="text-center space-y-4">
-          <div className="mx-auto p-3 bg-red-100 rounded-full w-fit">
-            <AlertTriangle className="h-6 w-6 text-red-600" />
-          </div>
-          <div>
-            <DialogTitle className="text-xl font-semibold text-destructive">
-              Cancel Subscription
-            </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground mt-2">
-              {subscription?.businessName && (
-                <span>
-                  Canceling subscription for{" "}
-                  <strong>{subscription.businessName}</strong>
-                  <br />
-                  Current plan: <strong>{subscription.planName}</strong>
-                </span>
-              )}
-            </DialogDescription>
+        <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
+          <div className="flex items-center gap-4 pr-8">
+            <div className="p-2 bg-red-100 rounded-full">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <DialogTitle className="text-xl font-semibold text-destructive">
+                Cancel Subscription
+              </DialogTitle>
+              <DialogDescription className="text-base text-muted-foreground">
+                {subscriptionData?.businessName ? (
+                  <>
+                    Canceling subscription for{" "}
+                    <strong>{subscriptionData.businessName}</strong>
+                    <br />
+                    Current plan: <strong>{subscriptionData.planName}</strong>
+                  </>
+                ) : (
+                  "Loading subscription information..."
+                )}
+              </DialogDescription>
+            </div>
           </div>
         </DialogHeader>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          {/* Cancellation Reason */}
-          <div className="space-y-2">
-            <Label htmlFor="reason" className="text-sm font-medium">
-              Reason for Cancellation
-            </Label>
-            <Select
-              value={formData.reason || ""}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, reason: value }))
-              }
-              disabled={isSubmitting}
-            >
-              <SelectTrigger id="reason">
-                <SelectValue placeholder="Select a reason (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {CANCELLATION_REASONS.map((reason) => (
-                  <SelectItem key={reason.value} value={reason.value}>
-                    {reason.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="p-6">
+            {/* Loading State */}
+            {isLoadingData ? (
+              <Loading />
+            ) : subscriptionData ? (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Cancellation Details */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-6 bg-red-600 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-foreground">
+                      Cancellation Details
+                    </h3>
+                  </div>
 
-          {/* Additional Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="text-sm font-medium">
-              Additional Notes
-            </Label>
-            <Textarea
-              id="notes"
-              placeholder="Tell us more about your experience or how we could improve..."
-              value={formData.notes || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, notes: e.target.value }))
-              }
-              rows={3}
-              disabled={isSubmitting}
-            />
-          </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reason" className="text-sm font-medium">
+                        Reason for Cancellation
+                      </Label>
+                      <Select
+                        value={formData.reason || ""}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({ ...prev, reason: value }))
+                        }
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger id="reason">
+                          <SelectValue placeholder="Select a reason (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CANCELLATION_REASONS_CREATE_UPDATE.map((reason) => (
+                            <SelectItem key={reason.value} value={reason.value}>
+                              {reason.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-          {/* Refund Section */}
-          <div className="space-y-3 p-4 bg-muted/50 rounded-lg border">
-            <h4 className="text-sm font-medium">Refund Information</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="notes" className="text-sm font-medium">
+                        Additional Notes
+                      </Label>
+                      <Textarea
+                        id="notes"
+                        placeholder="Tell us more about your experience or how we could improve..."
+                        value={formData.notes || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            notes: e.target.value,
+                          }))
+                        }
+                        rows={3}
+                        disabled={isSubmitting}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Help us understand your decision and improve our service
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="refundAmount" className="text-sm font-medium">
-                Refund Amount ($)
-              </Label>
-              <Input
-                id="refundAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.refundAmount || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    refundAmount: parseFloat(e.target.value) || null,
-                  }))
-                }
-                disabled={isSubmitting}
-              />
-              <p className="text-xs text-muted-foreground">
-                Optional: Specify refund amount if applicable
-              </p>
-            </div>
+                <Separator />
 
-            {hasRefundAmount && (
-              <div className="space-y-2">
-                <Label htmlFor="refundNotes" className="text-sm font-medium">
-                  Refund Notes
-                </Label>
-                <Textarea
-                  id="refundNotes"
-                  placeholder="Add notes about the refund..."
-                  value={formData.refundNotes || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      refundNotes: e.target.value,
-                    }))
-                  }
-                  rows={2}
-                  disabled={isSubmitting}
-                />
+                {/* Refund Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-6 bg-green-600 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-foreground">
+                      Refund Information
+                    </h3>
+                  </div>
+
+                  <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="refundAmount"
+                        className="text-sm font-medium"
+                      >
+                        Refund Amount ($)
+                      </Label>
+                      <Input
+                        id="refundAmount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={formData.refundAmount || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            refundAmount: parseFloat(e.target.value) || null,
+                          }))
+                        }
+                        disabled={isSubmitting}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Optional: Specify refund amount if applicable
+                      </p>
+                    </div>
+
+                    {hasRefundAmount && (
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="refundNotes"
+                          className="text-sm font-medium"
+                        >
+                          Refund Notes
+                        </Label>
+                        <Textarea
+                          id="refundNotes"
+                          placeholder="Add notes about the refund..."
+                          value={formData.refundNotes || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              refundNotes: e.target.value,
+                            }))
+                          }
+                          rows={2}
+                          disabled={isSubmitting}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Provide details about the refund process or reason
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  No subscription data available
+                </p>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Footer */}
-          <div className="flex gap-3 pt-4">
+        {/* Footer */}
+        <DialogFooter className="p-6 border-t bg-muted/30 flex-shrink-0">
+          <div className="flex gap-3 w-full">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoadingData}
               className="flex-1"
             >
               Keep Subscription
             </Button>
             <Button
-              type="submit"
+              onClick={handleSubmit}
               variant="destructive"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoadingData || !subscriptionData}
               className="flex-1"
             >
               {isSubmitting ? (
@@ -242,7 +308,7 @@ export function CancelSubscriptionModal({
               )}
             </Button>
           </div>
-        </form>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

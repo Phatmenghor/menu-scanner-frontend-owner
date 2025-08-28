@@ -78,6 +78,14 @@ export const sidebarItems: SidebarItem[] = [
         title: "Subscriptions",
         href: ROUTES.DASHBOARD.SUBSCRIPTION,
       },
+      {
+        title: "Exchange Rates ",
+        href: ROUTES.DASHBOARD.EXCHANGE_RATE,
+      },
+      {
+        title: "Payment",
+        href: ROUTES.DASHBOARD.PAYMENT,
+      },
     ],
   },
   {
@@ -91,17 +99,7 @@ export const sidebarItems: SidebarItem[] = [
       },
     ],
   },
-  {
-    title: "Customer User",
-    section: "Customer Users",
-    icon: Users,
-    subroutes: [
-      {
-        title: "customers",
-        href: ROUTES.DASHBOARD.CUSTOMER_USER,
-      },
-    ],
-  },
+
   {
     title: "Business User",
     section: "Business User",
@@ -138,17 +136,13 @@ export const sidebarItems: SidebarItem[] = [
     ],
   },
   {
-    title: "Payment",
-    section: "Payment",
-    icon: DollarSign,
+    title: "Customer User",
+    section: "Customer Users",
+    icon: Users,
     subroutes: [
       {
-        title: "Exchange Rates ",
-        href: ROUTES.DASHBOARD.EXCHANGE_RATE,
-      },
-      {
-        title: "Payment",
-        href: ROUTES.DASHBOARD.PAYMENT,
+        title: "customers",
+        href: ROUTES.DASHBOARD.CUSTOMER_USER,
       },
     ],
   },

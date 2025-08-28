@@ -11,26 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  ModalMode,
-  PAYMENT_STATUS_OPTIONS,
-} from "@/constants/AppResource/status/status";
-import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
-import { uploadImageService } from "@/services/dashboard/image/image.service";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  CreatePaymentFormData,
-  CreatePaymentSchema,
-  UpdatePaymentFormData,
-  UpdatePaymentSchema,
-} from "@/models/dashboard/payment/payment/payment.schema";
 import { Textarea } from "@/components/ui/textarea";
-import { ComboboxSelectPlan } from "../combo-box/combobox-plan";
-import {
-  CreatePaymentRequest,
-  UpdatePaymentRequest,
-} from "@/models/dashboard/payment/payment/payment.request.model";
-import { SubscriptionPlanModel } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
 import {
   Select,
   SelectContent,
@@ -38,12 +19,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { paymentMethodOptions } from "@/constants/AppResource/status/payment";
-import { AlertCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle, Upload, X, Loader2 } from "lucide-react";
+import { ModalMode } from "@/constants/AppResource/status/status";
+import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
+import { uploadImageService } from "@/services/dashboard/image/image.service";
+import {
+  CreatePaymentFormData,
+  CreatePaymentSchema,
+  UpdatePaymentFormData,
+  UpdatePaymentSchema,
+} from "@/models/dashboard/payment/payment/payment.schema";
+import { PaymentModel } from "@/models/dashboard/payment/payment/payment.response.model";
+import { ComboboxSelectBusiness } from "../combo-box/combobox-business";
+import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
+
+const PAYMENT_METHOD_OPTIONS = [
+  { label: "Cash", value: "CASH" },
+  { label: "Bank Transfer", value: "BANK_TRANSFER" },
+  { label: "Credit Card", value: "CREDIT_CARD" },
+  { label: "Digital Wallet", value: "DIGITAL_WALLET" },
+];
+
+const PAYMENT_STATUS_OPTIONS = [
+  { label: "Pending", value: "PENDING" },
+  { label: "Completed", value: "COMPLETED" },
+  { label: "Failed", value: "FAILED" },
+  { label: "Cancelled", value: "CANCELLED" },
+];
+
+const PAYMENT_TYPE_OPTIONS = [
+  { label: "Subscription", value: "SUBSCRIPTION" },
+  { label: "One-time", value: "ONE_TIME" },
+  { label: "Refund", value: "REFUND" },
+];
 
 type Props = {
   mode: ModalMode;
-  Data?: UpdatePaymentFormData | null;
+  Data?: PaymentModel | null;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
@@ -60,10 +73,10 @@ export default function ModalPayment({
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
   const schema = isCreate ? CreatePaymentSchema : UpdatePaymentSchema;
-  const [showPassword, setShowPassword] = useState(false);
+
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] =
-    useState<SubscriptionPlanModel | null>(null);
+  const [selectedBusiness, setSelectedBusiness] =
+    useState<BusinessModel | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,48 +89,73 @@ export default function ModalPayment({
     watch,
     formState: { errors },
   } = useForm<CreatePaymentFormData | UpdatePaymentFormData>({
-    resolver: zodResolver(schema), // Use dynamic schema instead of hardcoded UserFormSchema
-    defaultValues: {
-      amount: 0,
-      id: "",
-      imageUrl: "",
-      notes: "",
-      paymentMethod: "",
-      referenceNumber: "",
-      status: "",
-      subscriptionId: "",
-    },
+    resolver: zodResolver(schema),
+    defaultValues: isCreate
+      ? {
+          businessId: "",
+          amount: 0,
+          paymentMethod: "",
+          status: "PENDING",
+          referenceNumber: "",
+          notes: "",
+          imageUrl: "",
+          paymentType: "SUBSCRIPTION",
+        }
+      : {
+          amount: 0,
+          paymentMethod: "",
+          status: "PENDING",
+          referenceNumber: "",
+          notes: "",
+          imageUrl: "",
+        },
     mode: "onChange",
   });
 
-  const profileUrl = watch("imageUrl");
-
-  useEffect(() => {
-    if (profileUrl) {
-      setLogoPreview(profileUrl);
-    }
-  }, [profileUrl]);
+  const imageUrl = watch("imageUrl");
 
   // Reset form when modal opens or data changes
   useEffect(() => {
     if (isOpen) {
-      const formData = {
-        amount: Data?.amount || 0,
-        id: Data?.id || "",
-        imageUrl: Data?.imageUrl || "",
-        notes: Data?.notes || "",
-        paymentMethod: Data?.paymentMethod || "",
-        referenceNumber: Data?.referenceNumber || "",
-        status: Data?.status || "",
-        subscriptionId: "",
-      };
-
-      reset(formData);
-      setLogoPreview(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}${Data?.imageUrl}` || null
-      );
+      if (isCreate) {
+        const formData: CreatePaymentFormData = {
+          businessId: "",
+          amount: 0,
+          paymentMethod: "",
+          status: "PENDING",
+          referenceNumber: "",
+          notes: "",
+          imageUrl: "",
+          paymentType: "SUBSCRIPTION",
+        };
+        reset(formData);
+        setLogoPreview(null);
+        setSelectedBusiness(null);
+      } else {
+        const formData: UpdatePaymentFormData = {
+          amount: Data?.amount || 0,
+          paymentMethod: Data?.paymentMethod || "",
+          status: Data?.status || "PENDING",
+          referenceNumber: Data?.referenceNumber || "",
+          notes: Data?.notes || "",
+          imageUrl: Data?.imageUrl || "",
+        };
+        reset(formData);
+        setLogoPreview(
+          Data?.imageUrl
+            ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${Data.imageUrl}`
+            : null
+        );
+      }
     }
-  }, [isOpen, Data, reset]);
+  }, [isOpen, Data, reset, isCreate]);
+
+  // Update logo preview when imageUrl changes
+  useEffect(() => {
+    if (imageUrl && imageUrl !== logoPreview) {
+      setLogoPreview(imageUrl);
+    }
+  }, [imageUrl]);
 
   // Clean up blob URLs
   useEffect(() => {
@@ -146,21 +184,9 @@ export default function ModalPayment({
 
         const response = await uploadImageService(payload);
         if (response?.imageUrl) {
-          setValue(
-            "imageUrl",
-            process.env.NEXT_PUBLIC_API_BASE_URL + response?.imageUrl,
-            {
-              shouldValidate: true,
-            }
-          );
-          console.log(
-            "Image Preview URL:",
-            process.env.NEXT_PUBLIC_API_BASE_URL + response.imageUrl
-          );
-
-          setLogoPreview(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}${response?.imageUrl}`
-          );
+          const fullImageUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${response.imageUrl}`;
+          setValue("imageUrl", fullImageUrl, { shouldValidate: true });
+          setLogoPreview(fullImageUrl);
         }
       };
       reader.readAsDataURL(file);
@@ -176,61 +202,28 @@ export default function ModalPayment({
     setValue("imageUrl", "", { shouldDirty: true });
   };
 
-  const getImageSource = () => {
-    return logoPreview?.startsWith("http") ? logoPreview : logoPreview;
-  };
+  const handleBusinessChange = useCallback(
+    (business: BusinessModel | null) => {
+      setSelectedBusiness(business);
+      setValue("businessId", business?.id || "", {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      trigger("businessId");
+    },
+    [setValue, trigger]
+  );
 
   const onSubmit = (
     formData: CreatePaymentFormData | UpdatePaymentFormData
   ) => {
-    console.log("Form submitted with mode:", mode, "Data:", formData); // Debug log
-
-    if (isCreate) {
-      const data = formData as CreatePaymentFormData;
-      const payload = {
-        amount: data.amount,
-        paymentMethod: data.paymentMethod,
-        subscriptionId: data.subscriptionId,
-        imageUrl: data.imageUrl,
-        notes: data.notes,
-        referenceNumber: data.referenceNumber,
-        status: data.status,
-      };
-      console.log("Create Payload:", payload); // Debug log
-      onSave(payload);
-    } else {
-      const data = formData as UpdatePaymentRequest;
-      const payload = {
-        id: Data?.id,
-        amount: data.amount,
-        paymentMethod: data.paymentMethod,
-        imageUrl: data.imageUrl,
-        notes: data.notes,
-        referenceNumber: data.referenceNumber,
-        status: data.status,
-      };
-      console.log("Update Payload:", payload);
-      onSave(payload);
-    }
-    onClose();
+    onSave(formData);
   };
 
-  const handlePlanChange = useCallback(
-    (plan: SubscriptionPlanModel | null) => {
-      console.log("Plan changed:", plan);
-      setSelectedPlan(plan);
-      setValue("subscriptionId", plan?.id ?? "", {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      trigger("subscriptionId");
-    },
-    [selectedPlan]
-  );
-
   const handleClose = () => {
-    reset(); // Reset form when closing
+    reset();
     setLogoPreview(null);
+    setSelectedBusiness(null);
     onClose();
   };
 
@@ -238,136 +231,144 @@ export default function ModalPayment({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="w-full max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isCreate ? "Create User" : "Edit User"}</DialogTitle>
+          <DialogTitle>
+            {isCreate ? "Create Payment" : "Edit Payment"}
+          </DialogTitle>
           <DialogDescription>
             {isCreate
-              ? "Fill out the form to create a new user."
-              : "Update user information below."}
+              ? "Fill out the form to create a new payment record."
+              : "Update payment information below."}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-          {/* userIdentifier Field */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
+          {/* Business Selection - Create only */}
           {isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="amount">
-                Amount <span className="text-red-500">*</span>
+            <div className="space-y-2">
+              <Label htmlFor="businessId">
+                Business <span className="text-red-500">*</span>
               </Label>
               <Controller
+                name="businessId"
                 control={control}
-                name="amount"
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="amount"
-                    type="text"
-                    placeholder="12.00$"
+                  <ComboboxSelectBusiness
+                    dataSelect={selectedBusiness}
+                    onChangeSelected={handleBusinessChange}
                     disabled={isSubmitting}
-                    autoComplete="userIdentifier"
-                    className={errors.amount ? "border-red-500" : ""}
                   />
                 )}
               />
-              {errors.amount && (
-                <p className="text-sm text-destructive">
-                  {errors.amount.message}
+              {isCreate && "businessId" in errors && errors.businessId && (
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {errors.businessId.message}
                 </p>
               )}
             </div>
           )}
 
-          {/* Plan ID */}
+          {/* Amount */}
+          <div className="space-y-2">
+            <Label htmlFor="amount">
+              Amount (USD) <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              control={control}
+              name="amount"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  placeholder="0.00"
+                  disabled={isSubmitting}
+                  className={errors.amount ? "border-red-500" : ""}
+                />
+              )}
+            />
+            {errors.amount && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {errors.amount.message}
+              </p>
+            )}
+          </div>
+
+          {/* Payment Method */}
+          <div className="space-y-2">
+            <Label htmlFor="paymentMethod">
+              Payment Method <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              name="paymentMethod"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger
+                    className={errors.paymentMethod ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="Choose payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map((method) => (
+                      <SelectItem key={method.value} value={method.value}>
+                        {method.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.paymentMethod && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {errors.paymentMethod.message}
+              </p>
+            )}
+          </div>
+
+          {/* Payment Type - Create only */}
           {isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="planId">
-                Plan <span className="text-red-500">*</span>
+            <div className="space-y-2">
+              <Label htmlFor="paymentType">
+                Payment Type <span className="text-red-500">*</span>
               </Label>
               <Controller
-                name="subscriptionId"
+                name="paymentType"
                 control={control}
                 render={({ field }) => (
-                  <ComboboxSelectPlan
-                    dataSelect={selectedPlan}
-                    onChangeSelected={handlePlanChange}
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
                     disabled={isSubmitting}
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_TYPE_OPTIONS.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
               />
             </div>
           )}
 
-          <div className="space-y-2">
-            <Controller
-              name="paymentMethod"
-              control={control}
-              defaultValue=""
-              render={({ field: { value, onChange } }) => (
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="paymentMethod"
-                    className="text-sm font-medium"
-                  >
-                    Payment Method <span className="text-red-500">*</span>
-                  </Label>
-
-                  <Select value={value} onValueChange={onChange}>
-                    <SelectTrigger
-                      className={`w-full ${
-                        errors.paymentMethod ? "border-red-500" : ""
-                      }`}
-                    >
-                      <SelectValue placeholder="Choose payment method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {paymentMethodOptions.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          💳 {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {errors.paymentMethod && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      {errors.paymentMethod.message || "This field is required"}
-                    </p>
-                  )}
-                </div>
-              )}
-            />
-          </div>
-
-          {/* First Name Field */}
-          <div className="space-y-1">
-            <Label htmlFor="refNumber">
-              Reference Number <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="referenceNumber"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="refNumber"
-                  type="text"
-                  placeholder="John"
-                  disabled={isSubmitting}
-                  autoComplete="refNumber"
-                  className={errors.referenceNumber ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.referenceNumber && (
-              <p className="text-sm text-destructive">
-                {errors.referenceNumber.message}
-              </p>
-            )}
-          </div>
-
-          {/* Status */}
+          {/* Status - Update only */}
           {!isCreate && (
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label htmlFor="status">
                 Status <span className="text-red-500">*</span>
               </Label>
@@ -381,10 +382,7 @@ export default function ModalPayment({
                     disabled={isSubmitting}
                   >
                     <SelectTrigger
-                      id="status"
-                      className={`bg-white dark:bg-inherit ${
-                        errors.status ? "border-red-500" : ""
-                      }`}
+                      className={errors.status ? "border-red-500" : ""}
                     >
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
@@ -398,86 +396,152 @@ export default function ModalPayment({
                   </Select>
                 )}
               />
+              {errors.status && (
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {errors.status.message}
+                </p>
+              )}
             </div>
           )}
 
-          <div className="space-y-1">
-            <Label htmlFor="paymentNotes" className="text-sm font-medium">
-              Notes
+          {/* Reference Number */}
+          <div className="space-y-2">
+            <Label htmlFor="referenceNumber">
+              Reference Number <span className="text-red-500">*</span>
             </Label>
+            <Controller
+              control={control}
+              name="referenceNumber"
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="referenceNumber"
+                  type="text"
+                  placeholder="Enter reference number"
+                  disabled={isSubmitting}
+                  className={errors.referenceNumber ? "border-red-500" : ""}
+                />
+              )}
+            />
+            {errors.referenceNumber && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {errors.referenceNumber.message}
+              </p>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
             <Controller
               control={control}
               name="notes"
               render={({ field }) => (
                 <Textarea
                   {...field}
-                  id="paymentNotes"
-                  placeholder="Note about the payment..."
+                  id="notes"
+                  placeholder="Additional notes about the payment..."
                   rows={3}
-                  className="w-full resize-none"
+                  disabled={isSubmitting}
                 />
               )}
             />
           </div>
 
-          <Card className="mt-16">
-            <CardContent className="p-4">
-              {/* Profile URL Field */}
-              <div className="flex flex-col items-center gap-2">
-                {/* Profile Image Preview or Placeholder */}
-                {logoPreview ? (
-                  <div className="relative w-24 h-24">
-                    <img
-                      src={getImageSource() ?? undefined}
-                      alt="Profile Preview"
-                      className="w-full h-full rounded-full object-cover border border-gray-300"
-                    />
-                    {/* Remove Button (X) */}
-                    <button
-                      type="button"
-                      onClick={handleRemoveLogo}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
-                      title="Remove profile image"
+          {/* Payment Receipt Upload */}
+          <div className="space-y-2">
+            <Label>Payment Receipt</Label>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex flex-col items-center gap-4">
+                  {logoPreview ? (
+                    <div className="relative">
+                      <img
+                        src={logoPreview}
+                        alt="Payment Receipt"
+                        className="w-24 h-24 rounded-lg object-cover border border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveLogo}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-red-600"
+                        title="Remove receipt image"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="w-24 h-24 rounded-lg bg-gray-100 flex flex-col items-center justify-center border border-dashed border-gray-400 hover:border-blue-500 cursor-pointer transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
                     >
-                      ×
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border border-dashed border-gray-400 hover:border-blue-500 cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                    title="Upload profile image"
-                  >
-                    <span className="text-gray-500 text-2xl">+</span>
-                  </div>
-                )}
+                      <Upload className="h-6 w-6 text-gray-400" />
+                      <span className="text-xs text-gray-500 mt-1">
+                        {isUploading ? "Uploading..." : "Upload"}
+                      </span>
+                    </div>
+                  )}
 
-                {/* Hidden File Input */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                  title="Upload profile image"
-                  placeholder="Choose profile image"
-                />
-              </div>
-            </CardContent>
-          </Card>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading || isSubmitting}
+                    className="text-xs"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-3 w-3" />
+                        {logoPreview ? "Change Receipt" : "Upload Receipt"}
+                      </>
+                    )}
+                  </Button>
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    disabled={isUploading || isSubmitting}
+                  />
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    Upload payment receipt or proof of payment
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-3 pt-6">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : isCreate ? "Create" : "Update"}
+            <Button type="submit" disabled={isSubmitting || isUploading}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : isCreate ? (
+                "Create Payment"
+              ) : (
+                "Save Changes"
+              )}
             </Button>
           </div>
         </form>

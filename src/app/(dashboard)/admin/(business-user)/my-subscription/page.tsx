@@ -51,12 +51,12 @@ import { SubscriptionTableHeaders } from "@/constants/AppResource/table/user/sub
 import {
   AllSubscriptionResponse,
   SubscriptionModel,
-} from "@/models/dashboard/subscription/subscription.response.model";
-import { SubscriptionFormData } from "@/models/dashboard/subscription/subscription.schema";
+} from "@/models/dashboard/master-data/subscription/subscription.response.model";
+import { SubscriptionFormData } from "@/models/dashboard/master-data/subscription/subscription.schema";
 import {
   CreateSubscriptionRequest,
   UpdateSubscriptionRequest,
-} from "@/models/dashboard/subscription/subscription.request.model";
+} from "@/models/dashboard/master-data/subscription/subscription.request.model";
 import ModalSubscription from "@/components/shared/modal/subscription-modal";
 
 export default function SubscriptionPage() {

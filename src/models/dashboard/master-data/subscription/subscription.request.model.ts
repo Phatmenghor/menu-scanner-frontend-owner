@@ -15,18 +15,6 @@ export interface UpdateSubscriptionRequest {
   notes?: string;
 }
 
-export interface RenewSubscriptionRequest {
-  newPlanId?: string;
-  customDurationDays?: number;
-  createPayment?: boolean;
-  paymentImageUrl?: string;
-  paymentAmount?: number;
-  paymentMethod?: string;
-  paymentStatus?: string;
-  paymentReferenceNumber?: string;
-  paymentNotes?: string;
-}
-
 export interface CancelSubscriptionRequest {
   reason?: string | null;
   notes?: string | null;
@@ -47,4 +35,16 @@ export interface AllSubscriptionRequest {
   pageSize?: number;
   sortBy?: string;
   sortDirection?: string;
+}
+
+export interface RenewSubscriptionRequest {
+  newPlanId: string;
+  customDurationDays: number;
+  createPayment?: boolean;
+  paymentImageUrl?: string;
+  paymentAmount?: number;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  paymentReferenceNumber?: string;
+  paymentNotes?: string;
 }

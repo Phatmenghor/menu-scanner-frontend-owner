@@ -1,12 +1,14 @@
 import { z } from "zod";
 
 export const CreatePaymentSchema = z.object({
+  businessId: z.string().optional(),
   imageUrl: z.string().optional(),
-  subscriptionId: z.string(),
+  subscriptionId: z.string().optional(),
   status: z.string().optional(),
   amount: z.number(),
   paymentMethod: z.string(),
   referenceNumber: z.string().optional(),
+  paymentType: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -19,6 +21,7 @@ export const UpdatePaymentSchema = z.object({
   paymentMethod: z.string().optional(),
   status: z.string().optional(),
   referenceNumber: z.string().optional(),
+  paymentType: z.string().optional(),
   notes: z.string().optional(),
 });
 

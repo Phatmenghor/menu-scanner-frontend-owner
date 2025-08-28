@@ -144,6 +144,21 @@ export enum SubscriptionStatus {
   NOT_SUBSCRIBE = "NOT_SUBSCRIBE",
 }
 
+export enum PaymentStatus {
+  All = "ALL",
+  PENDING = "PENDING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum PaymentMethod {
+  CASH = "CASH",
+  BANK_TRANSFER = "BANK_TRANSFER",
+  MOBILE_PAYMENT = "MOBILE_PAYMENT",
+  ONLINE = "ONLINE",
+}
+
 // Subscription options for select
 export const subscriptionOptions: SelectOption[] = [
   { value: SubscriptionStatus.All, label: "All" },

@@ -1,7 +1,7 @@
 import {
   SubscriptionModel,
   AllSubscriptionResponse,
-} from "@/models/dashboard/subscription/subscription.response.model";
+} from "@/models/dashboard/master-data/subscription/subscription.response.model";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat, formatDate } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash, RotateCcw, X } from "lucide-react";

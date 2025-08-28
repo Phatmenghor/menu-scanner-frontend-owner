@@ -16,12 +16,12 @@ import { ModalMode, Status } from "@/constants/AppResource/status/status";
 import {
   AllSubscriptionResponse,
   SubscriptionModel,
-} from "@/models/dashboard/subscription/subscription.response.model";
+} from "@/models/dashboard/master-data/subscription/subscription.response.model";
 import {
   CancelSubscriptionRequest,
   RenewSubscriptionRequest,
   UpdateSubscriptionRequest,
-} from "@/models/dashboard/subscription/subscription.request.model";
+} from "@/models/dashboard/master-data/subscription/subscription.request.model";
 import {
   cancelSubscriptionService,
   deletedSubscriptionService,
@@ -72,22 +72,22 @@ export default function SubscriptionPage() {
   // Renew modal state
   const [renewModalState, setRenewModalState] = useState<{
     isOpen: boolean;
-    subscription: SubscriptionModel | null;
+    subscriptionId: string;
     isSubmitting: boolean;
   }>({
     isOpen: false,
-    subscription: null,
+    subscriptionId: "",
     isSubmitting: false,
   });
 
   // Cancel modal state
   const [cancelModalState, setCancelModalState] = useState<{
     isOpen: boolean;
-    subscription: SubscriptionModel | null;
+    subscriptionId: string;
     isSubmitting: boolean;
   }>({
     isOpen: false,
-    subscription: null,
+    subscriptionId: "",
     isSubmitting: false,
   });
 
@@ -198,7 +198,7 @@ export default function SubscriptionPage() {
     (subscription: SubscriptionModel) => {
       setRenewModalState({
         isOpen: true,
-        subscription: subscription,
+        subscriptionId: subscription.id || "",
         isSubmitting: false,
       });
     },
@@ -209,7 +209,7 @@ export default function SubscriptionPage() {
     (subscription: SubscriptionModel) => {
       setCancelModalState({
         isOpen: true,
-        subscription: subscription,
+        subscriptionId: subscription.id || "",
         isSubmitting: false,
       });
     },
@@ -264,7 +264,7 @@ export default function SubscriptionPage() {
   const closeRenewModal = () => {
     setRenewModalState({
       isOpen: false,
-      subscription: null,
+      subscriptionId: "",
       isSubmitting: false,
     });
   };
@@ -272,7 +272,7 @@ export default function SubscriptionPage() {
   const closeCancelModal = () => {
     setCancelModalState({
       isOpen: false,
-      subscription: null,
+      subscriptionId: "",
       isSubmitting: false,
     });
   };
@@ -343,13 +343,13 @@ export default function SubscriptionPage() {
 
   // Handle renew submission
   const handleSubmitRenew = async (renewData: RenewSubscriptionRequest) => {
-    if (!renewModalState.subscription?.id) return;
+    if (!renewModalState.subscriptionId) return;
 
     setRenewModalState((prev) => ({ ...prev, isSubmitting: true }));
 
     try {
       const response = await renewSubscriptionService(
-        renewModalState.subscription.id,
+        renewModalState.subscriptionId,
         renewData
       );
 
@@ -359,7 +359,7 @@ export default function SubscriptionPage() {
             ? {
                 ...prev,
                 content: prev.content.map((sub) =>
-                  sub.id === renewModalState.subscription?.id
+                  sub.id === renewModalState.subscriptionId
                     ? response.subscription
                     : sub
                 ),
@@ -387,13 +387,13 @@ export default function SubscriptionPage() {
 
   // Handle cancel submission
   const handleSubmitCancel = async (cancelData: CancelSubscriptionRequest) => {
-    if (!cancelModalState.subscription?.id) return;
+    if (!cancelModalState.subscriptionId) return;
 
     setCancelModalState((prev) => ({ ...prev, isSubmitting: true }));
 
     try {
       const response = await cancelSubscriptionService(
-        cancelModalState.subscription.id,
+        cancelModalState.subscriptionId,
         cancelData
       );
 
@@ -403,7 +403,7 @@ export default function SubscriptionPage() {
             ? {
                 ...prev,
                 content: prev.content.map((sub) =>
-                  sub.id === cancelModalState.subscription?.id
+                  sub.id === cancelModalState.subscriptionId
                     ? response.subscription
                     : sub
                 ),
@@ -546,7 +546,7 @@ export default function SubscriptionPage() {
         open={renewModalState.isOpen}
         onOpenChange={closeRenewModal}
         onSubmit={handleSubmitRenew}
-        subscription={renewModalState.subscription}
+        subscriptionId={renewModalState.subscriptionId}
         isSubmitting={renewModalState.isSubmitting}
       />
 
@@ -555,7 +555,7 @@ export default function SubscriptionPage() {
         open={cancelModalState.isOpen}
         onOpenChange={closeCancelModal}
         onSubmit={handleSubmitCancel}
-        subscription={cancelModalState.subscription}
+        subscriptionId={cancelModalState.subscriptionId}
         isSubmitting={cancelModalState.isSubmitting}
       />
 
