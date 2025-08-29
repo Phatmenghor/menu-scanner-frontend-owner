@@ -23,96 +23,61 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, EyeOff, Loader2, User, Upload, X } from "lucide-react";
+import { Loader2, User, Upload, X } from "lucide-react";
 import {
-  ModalMode,
   Status,
   STATUS_USER_OPTIONS,
-  UserRole,
-  UserGropeType,
 } from "@/constants/AppResource/status/status";
 import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { uploadImageService } from "@/services/dashboard/image/image.service";
 import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
-import {
-  CreateUsers,
-  createUserSchema,
-  UpdateUsers,
-  updateUserSchema,
-  UserFormData,
-} from "@/models/dashboard/user/plateform-user/user.schema";
 import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
-import { ComboboxSelectBusiness } from "../combo-box/combobox-business";
-import { BusinessModel } from "@/models/dashboard/master-data/business/business-response-model";
 import Loading from "@/components/shared/common/loading";
+import { z } from "zod";
 
-// Updated request interfaces
-export interface CreateCustomerUserRequest {
-  email: string;
-  userIdentifier: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  userType: string;
-  businessId?: string;
-  roles?: UserRole[];
-  accountStatus: Status;
-  profileImageUrl?: string;
-  position?: string;
-  address?: string;
-  notes?: string;
-  password: string;
-}
-
+// Update request interface - only editable fields
 export interface UpdateCustomerUserRequest {
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   phoneNumber?: string;
   profileImageUrl?: string;
-  businessId?: string;
-  roles?: UserRole[];
   accountStatus: Status;
-  position?: string;
-  address?: string;
   notes?: string;
 }
+
+// Validation schema for editable fields only
+const editUserSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  profileImageUrl: z.string().optional(),
+  accountStatus: z.nativeEnum(Status),
+  notes: z.string().optional(),
+});
+
+// Infer form data type from schema to ensure consistency
+type EditUserFormData = z.infer<typeof editUserSchema>;
 
 type Props = {
-  mode: ModalMode;
   userId?: string;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
-  onSave: (data: CreateCustomerUserRequest | UpdateCustomerUserRequest) => void;
+  onSave: (data: UpdateCustomerUserRequest) => void;
   error?: string | null;
-};
-
-const getDefaultRoleValue = () => {
-  return [UserRole.CUSTOMER];
-};
-
-const getDefaultUserTypeValue = () => {
-  return UserGropeType.CUSTOMER;
 };
 
 export default function ModalCustomerUser({
   isOpen,
   onClose,
   userId,
-  mode,
   onSave,
   isSubmitting = false,
   error = null,
 }: Props) {
-  const isCreate = mode === ModalMode.CREATE_MODE;
-  const schema = isCreate ? createUserSchema : updateUserSchema;
-
   const [userData, setUserData] = useState<UserModel | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [selectedBusiness, setSelectedBusiness] =
-    useState<BusinessModel | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,25 +88,16 @@ export default function ModalCustomerUser({
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<UserFormData>({
-    resolver: zodResolver(schema),
+  } = useForm<EditUserFormData>({
+    resolver: zodResolver(editUserSchema),
     defaultValues: {
-      id: "",
-      email: "",
-      userIdentifier: "",
       firstName: "",
       lastName: "",
       phoneNumber: "",
       profileImageUrl: "",
-      userType: getDefaultUserTypeValue(),
-      businessId: "",
-      roles: getDefaultRoleValue(),
       accountStatus: Status.ACTIVE,
-      position: "",
-      address: "",
       notes: "",
-      password: "",
-    },
+    } as EditUserFormData,
     mode: "onChange",
   });
 
@@ -150,42 +106,25 @@ export default function ModalCustomerUser({
   // Fetch user data for edit mode
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!userId || !isOpen || isCreate) return;
+      if (!userId || !isOpen) return;
 
       setIsLoadingData(true);
       try {
         const data = await getUserByIdService(userId);
         setUserData(data);
 
-        // Populate form with fetched data
-        const formData = {
-          id: data?.id || "",
-          email: data?.email || "",
-          userIdentifier: data?.userIdentifier || "",
+        // Populate form with fetched data - only editable fields
+        const formData: EditUserFormData = {
           firstName: data?.firstName || "",
           lastName: data?.lastName || "",
           phoneNumber: data?.phoneNumber || "",
           profileImageUrl: data?.profileImageUrl || "",
-          userType: data?.userType || getDefaultUserTypeValue(),
-          businessId: data?.businessId || "",
-          roles: data?.roles || getDefaultRoleValue(),
           accountStatus: data?.accountStatus || Status.ACTIVE,
-          position: data?.position || "",
-          address: data?.address || "",
           notes: data?.notes || "",
-          password: "", // Always empty for security
         };
 
         reset(formData);
         setLogoPreview(data?.profileImageUrl || null);
-
-        // Set selected business if available
-        if (data?.businessId && data?.businessName) {
-          setSelectedBusiness({
-            id: data.businessId,
-            businessName: data.businessName,
-          } as BusinessModel);
-        }
       } catch (error: any) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -194,34 +133,7 @@ export default function ModalCustomerUser({
     };
 
     fetchUserData();
-  }, [userId, isOpen, reset, isCreate]);
-
-  // Reset form for create mode
-  useEffect(() => {
-    if (isOpen && isCreate) {
-      const formData = {
-        id: "",
-        email: "",
-        userIdentifier: "",
-        firstName: "",
-        lastName: "",
-        phoneNumber: "",
-        profileImageUrl: "",
-        userType: getDefaultUserTypeValue(),
-        businessId: "",
-        roles: getDefaultRoleValue(),
-        accountStatus: Status.ACTIVE,
-        position: "",
-        address: "",
-        notes: "",
-        password: "",
-      };
-      reset(formData);
-      setLogoPreview(null);
-      setSelectedBusiness(null);
-      setUserData(null);
-    }
-  }, [isOpen, isCreate, reset]);
+  }, [userId, isOpen, reset]);
 
   // Update logo preview when profileUrl changes
   useEffect(() => {
@@ -277,66 +189,29 @@ export default function ModalCustomerUser({
     setValue("profileImageUrl", "", { shouldDirty: true });
   };
 
-  const handleBusinessChange = (business: BusinessModel | null) => {
-    setSelectedBusiness(business);
-    setValue("businessId", business?.id || "", {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-  };
-
   const getImageSource = () => {
     return logoPreview?.startsWith("http")
       ? logoPreview
       : (process.env.NEXT_PUBLIC_API_BASE_URL ?? "") + logoPreview;
   };
 
-  const onSubmit = (data: UserFormData) => {
-    if (isCreate) {
-      const payload: CreateCustomerUserRequest = {
-        email: (data?.email || "").trim(),
-        userIdentifier: (data?.userIdentifier || "").trim(),
-        firstName: (data?.firstName || "").trim(),
-        lastName: (data?.lastName || "").trim(),
-        phoneNumber: data?.phoneNumber?.trim(),
-        userType: data?.userType || getDefaultUserTypeValue(),
-        businessId: data?.businessId,
-        roles: data.roles || getDefaultRoleValue(),
-        accountStatus: Status.ACTIVE,
-        profileImageUrl: data.profileImageUrl,
-        position: data.position,
-        address: data.address,
-        notes: data.notes,
-        password: (data?.password || "").trim(),
-      };
-      onSave(payload);
-    } else {
-      const payload: UpdateCustomerUserRequest = {
-        firstName: (data?.firstName || "").trim(),
-        lastName: (data?.lastName || "").trim(),
-        phoneNumber: data.phoneNumber?.trim(),
-        profileImageUrl: data.profileImageUrl,
-        businessId: data?.businessId,
-        roles: data.roles || getDefaultRoleValue(),
-        accountStatus: data.accountStatus || Status.ACTIVE,
-        position: data.position,
-        address: data.address,
-        notes: data.notes,
-      };
-      onSave(payload);
-    }
+  const onSubmit = (data: EditUserFormData): void => {
+    const payload: UpdateCustomerUserRequest = {
+      firstName: data.firstName?.trim(),
+      lastName: data.lastName?.trim(),
+      phoneNumber: data.phoneNumber?.trim(),
+      profileImageUrl: data.profileImageUrl || "",
+      accountStatus: data.accountStatus,
+      notes: data.notes || "",
+    };
+    onSave(payload);
   };
 
   const handleClose = () => {
     reset();
     setLogoPreview(null);
-    setSelectedBusiness(null);
     setUserData(null);
     onClose();
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
   };
 
   return (
@@ -350,12 +225,10 @@ export default function ModalCustomerUser({
             </div>
             <div className="flex-1">
               <DialogTitle className="text-xl font-semibold">
-                {isCreate ? "Create Customer" : "Edit Customer"}
+                Edit Customer
               </DialogTitle>
               <DialogDescription className="text-base text-muted-foreground">
-                {isCreate
-                  ? "Fill out the form to create a new customer."
-                  : userData
+                {userData
                   ? `Update customer information for "${
                       userData.fullName || userData.email
                     }"`
@@ -371,7 +244,7 @@ export default function ModalCustomerUser({
             {/* Loading State */}
             {isLoadingData ? (
               <Loading />
-            ) : !isCreate && !userData ? (
+            ) : !userData ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
                   No customer data available
@@ -385,68 +258,6 @@ export default function ModalCustomerUser({
                     <p className="text-sm text-destructive font-medium">
                       {error}
                     </p>
-                  </div>
-                )}
-
-                {/* User Identifier & Email - Create Mode Only */}
-                {isCreate && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="userIdentifier"
-                        className="text-sm font-medium"
-                      >
-                        Username <span className="text-red-500">*</span>
-                      </Label>
-                      <Controller
-                        control={control}
-                        name="userIdentifier"
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="userIdentifier"
-                            type="text"
-                            placeholder="johndoe"
-                            disabled={isSubmitting}
-                            className={`transition-colors focus:border-green-500 ${
-                              errors.userIdentifier ? "border-red-500" : ""
-                            }`}
-                          />
-                        )}
-                      />
-                      {errors.userIdentifier && (
-                        <p className="text-sm text-red-600">
-                          {errors.userIdentifier.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium">
-                        Email <span className="text-red-500">*</span>
-                      </Label>
-                      <Controller
-                        control={control}
-                        name="email"
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="email"
-                            type="email"
-                            placeholder="email@example.com"
-                            disabled={isSubmitting}
-                            className={`transition-colors focus:border-green-500 ${
-                              errors.email ? "border-red-500" : ""
-                            }`}
-                          />
-                        )}
-                      />
-                      {errors.email && (
-                        <p className="text-sm text-red-600">
-                          {errors.email.message}
-                        </p>
-                      )}
-                    </div>
                   </div>
                 )}
 
@@ -507,192 +318,78 @@ export default function ModalCustomerUser({
                   </div>
                 </div>
 
-                {/* Phone & Business */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="phoneNumber"
-                      className="text-sm font-medium"
-                    >
-                      Phone Number <span className="text-red-500">*</span>
-                    </Label>
-                    <Controller
-                      control={control}
-                      name="phoneNumber"
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="phoneNumber"
-                          type="tel"
-                          placeholder="+1234567890"
-                          disabled={isSubmitting}
-                          className={`transition-colors focus:border-green-500 ${
-                            errors.phoneNumber ? "border-red-500" : ""
-                          }`}
-                        />
-                      )}
-                    />
-                    {errors.phoneNumber && (
-                      <p className="text-sm text-red-600">
-                        {errors.phoneNumber.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="businessId" className="text-sm font-medium">
-                      Business
-                    </Label>
-                    <Controller
-                      name="businessId"
-                      control={control}
-                      render={({ field }) => (
-                        <ComboboxSelectBusiness
-                          dataSelect={selectedBusiness}
-                          onChangeSelected={handleBusinessChange}
-                          disabled={isSubmitting}
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Password - Create Mode Only */}
-                {isCreate && (
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium">
-                      Password <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Controller
-                        control={control}
-                        name="password"
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            disabled={isSubmitting}
-                            className={`pr-10 transition-colors focus:border-green-500 ${
-                              errors.password ? "border-red-500" : ""
-                            }`}
-                          />
-                        )}
-                      />
-                      <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3"
-                        tabIndex={-1}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-500" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-gray-500" />
-                        )}
-                      </button>
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-red-600">
-                        {errors.password.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Status & Position */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {!isCreate && (
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="accountStatus"
-                        className="text-sm font-medium"
-                      >
-                        Status <span className="text-red-500">*</span>
-                      </Label>
-                      <Controller
-                        control={control}
-                        name="accountStatus"
-                        render={({ field }) => (
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            disabled={isSubmitting}
-                          >
-                            <SelectTrigger className="transition-colors focus:border-green-500">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {STATUS_USER_OPTIONS.map((status) => (
-                                <SelectItem
-                                  key={status.value}
-                                  value={status.value}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <div
-                                      className={`w-2 h-2 rounded-full ${
-                                        status.value === Status.ACTIVE
-                                          ? "bg-green-500"
-                                          : "bg-gray-400"
-                                      }`}
-                                    ></div>
-                                    {status.label}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                      {errors.accountStatus && (
-                        <p className="text-sm text-red-600">
-                          {errors.accountStatus.message}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="position" className="text-sm font-medium">
-                      Position
-                    </Label>
-                    <Controller
-                      control={control}
-                      name="position"
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="position"
-                          type="text"
-                          placeholder="Job title or position"
-                          disabled={isSubmitting}
-                          className="transition-colors focus:border-green-500"
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Address */}
+                {/* Phone Number */}
                 <div className="space-y-2">
-                  <Label htmlFor="address" className="text-sm font-medium">
-                    Address
+                  <Label htmlFor="phoneNumber" className="text-sm font-medium">
+                    Phone Number <span className="text-red-500">*</span>
                   </Label>
                   <Controller
                     control={control}
-                    name="address"
+                    name="phoneNumber"
                     render={({ field }) => (
                       <Input
                         {...field}
-                        id="address"
-                        type="text"
-                        placeholder="Street address"
+                        id="phoneNumber"
+                        type="tel"
+                        placeholder="+1234567890"
                         disabled={isSubmitting}
-                        className="transition-colors focus:border-green-500"
+                        className={`transition-colors focus:border-green-500 ${
+                          errors.phoneNumber ? "border-red-500" : ""
+                        }`}
                       />
                     )}
                   />
+                  {errors.phoneNumber && (
+                    <p className="text-sm text-red-600">
+                      {errors.phoneNumber.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="accountStatus"
+                    className="text-sm font-medium"
+                  >
+                    Status <span className="text-red-500">*</span>
+                  </Label>
+                  <Controller
+                    control={control}
+                    name="accountStatus"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger className="transition-colors focus:border-green-500">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_USER_OPTIONS.map((status) => (
+                            <SelectItem key={status.value} value={status.value}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    status.value === Status.ACTIVE
+                                      ? "bg-green-500"
+                                      : "bg-gray-400"
+                                  }`}
+                                ></div>
+                                {status.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.accountStatus && (
+                    <p className="text-sm text-red-600">
+                      {errors.accountStatus.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Notes */}
@@ -787,49 +484,49 @@ export default function ModalCustomerUser({
                   </Card>
                 </div>
 
-                {/* Current Customer Info Card - Edit Mode */}
-                {!isCreate && userData && (
-                  <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
-                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      Current Customer Details
-                    </h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Name:</span>
-                        <p className="font-medium">
-                          {userData.fullName ||
-                            `${userData.firstName} ${userData.lastName}`}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Email:</span>
-                        <p className="font-medium">{userData.email}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Phone:</span>
-                        <p className="font-medium">
-                          {userData.phoneNumber || "Not provided"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Status:</span>
-                        <p className="font-medium flex items-center gap-2">
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              userData.accountStatus === Status.ACTIVE
-                                ? "bg-green-500"
-                                : "bg-gray-400"
-                            }`}
-                          ></div>
-                          {userData.accountStatus === Status.ACTIVE
-                            ? "Active"
-                            : "Inactive"}
-                        </p>
-                      </div>
+                {/* Current Customer Info Card - Read Only Information */}
+                <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
+                  <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    Customer Information (Read Only)
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Email:</span>
+                      <p className="font-medium">{userData.email}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Username:</span>
+                      <p className="font-medium">
+                        {userData.userIdentifier || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Business:</span>
+                      <p className="font-medium">
+                        {userData.businessName || "Not assigned"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Position:</span>
+                      <p className="font-medium">
+                        {userData.position || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Address:</span>
+                      <p className="font-medium">
+                        {userData.address || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Roles:</span>
+                      <p className="font-medium">
+                        {userData.roles?.join(", ") || "Customer"}
+                      </p>
                     </div>
                   </div>
-                )}
+                </div>
               </form>
             )}
           </div>
@@ -841,7 +538,7 @@ export default function ModalCustomerUser({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-3 w-3 animate-spin" />
-                {isCreate ? "Creating customer..." : "Updating customer..."}
+                Updating customer...
               </>
             ) : isDirty ? (
               <>
@@ -872,10 +569,8 @@ export default function ModalCustomerUser({
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isCreate ? "Creating..." : "Updating..."}
+                  Updating...
                 </>
-              ) : isCreate ? (
-                "Create Customer"
               ) : (
                 "Update Customer"
               )}

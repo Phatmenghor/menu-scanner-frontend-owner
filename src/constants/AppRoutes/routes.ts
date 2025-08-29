@@ -106,32 +106,12 @@ export const sidebarItems: SidebarItem[] = [
     icon: Users,
     subroutes: [
       {
-        title: "New Owners",
-        href: ROUTES.DASHBOARD.NEW_OWNER,
-      },
-      {
-        title: "Owners",
-        href: ROUTES.DASHBOARD.BUSINESS_OWNER,
-      },
-      {
         title: "Users",
         href: ROUTES.DASHBOARD.BUSINESS_USER,
       },
       {
         title: "Subdomain",
         href: ROUTES.DASHBOARD.SUB_DOMAIN,
-      },
-      {
-        title: "Business",
-        href: ROUTES.DASHBOARD.MANAGE_BUSINESS,
-      },
-      {
-        title: "Subscription",
-        href: ROUTES.DASHBOARD.MY_SUBSCRIPTION,
-      },
-      {
-        title: "Setting",
-        href: ROUTES.DASHBOARD.MY_BUSINESS,
       },
     ],
   },
