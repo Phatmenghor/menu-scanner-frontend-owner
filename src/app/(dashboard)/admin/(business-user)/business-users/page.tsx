@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Users } from "lucide-react";
 
 import { usePagination } from "@/hooks/use-pagination";
 import { useDebounce } from "@/utils/debounce/debounce";
@@ -44,17 +43,15 @@ export default function BusinessUserPage() {
   const [data, setData] = useState<AllUserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Modal states
-  const [modalState, setModalState] = useState<{
+  // Edit modal state (only update mode)
+  const [editModalState, setEditModalState] = useState<{
     isOpen: boolean;
-    mode: ModalMode;
-    userId: string;
+    userId?: string;
     isSubmitting: boolean;
     error: string | null;
   }>({
     isOpen: false,
-    mode: ModalMode.UPDATE_MODE, // Only edit mode for business users
-    userId: "",
+    userId: undefined,
     isSubmitting: false,
     error: null,
   });
@@ -103,9 +100,6 @@ export default function BusinessUserPage() {
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<Status>(Status.ACTIVE);
-  const [userTypeFilter, setUserTypeFilter] = useState<BusinessUserType>(
-    BusinessUserType.BUSINESS_USER
-  );
 
   // Debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
@@ -136,7 +130,7 @@ export default function BusinessUserPage() {
           BusinessUserRole.BUSINESS_MANAGER,
           BusinessUserRole.BUSINESS_STAFF,
         ],
-        userType: userTypeFilter,
+        userType: BusinessUserType.BUSINESS_USER,
         accountStatus: statusFilter,
         pageSize: 10,
       });
@@ -147,7 +141,7 @@ export default function BusinessUserPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchQuery, statusFilter, userTypeFilter, currentPage]);
+  }, [debouncedSearchQuery, statusFilter, currentPage]);
 
   useEffect(() => {
     loadUsers();
@@ -155,10 +149,9 @@ export default function BusinessUserPage() {
 
   // Handler functions for table actions
   const handleEditUser = useCallback((user: UserModel) => {
-    setModalState({
+    setEditModalState({
       isOpen: true,
-      mode: ModalMode.UPDATE_MODE,
-      userId: user?.id || "",
+      userId: user?.id,
       isSubmitting: false,
       error: null,
     });
@@ -219,14 +212,15 @@ export default function BusinessUserPage() {
       createBusinessUserTableColumns({
         data,
         handlers: tableHandlers,
-        isSubmitting: modalState.isSubmitting || toggleStatusState.isToggling,
+        isSubmitting:
+          editModalState.isSubmitting || toggleStatusState.isToggling,
       }),
     [
       data?.pageNo,
       data?.pageSize,
       data?.content?.length,
       tableHandlers,
-      modalState.isSubmitting,
+      editModalState.isSubmitting,
       toggleStatusState.isToggling,
     ]
   );
@@ -241,16 +235,11 @@ export default function BusinessUserPage() {
     setStatusFilter(status);
   };
 
-  const handleUserTypeChange = (userType: BusinessUserType) => {
-    setUserTypeFilter(userType);
-  };
-
   // Close modal handlers
-  const closeModal = () => {
-    setModalState({
+  const closeEditModal = () => {
+    setEditModalState({
       isOpen: false,
-      mode: ModalMode.UPDATE_MODE,
-      userId: "",
+      userId: undefined,
       isSubmitting: false,
       error: null,
     });
@@ -287,10 +276,10 @@ export default function BusinessUserPage() {
     });
   };
 
-  // Handle form submission for updates only
-  const handleSubmit = async (formData: UserFormData): Promise<void> => {
+  // Handle form submission (update only)
+  const handleUpdateUser = async (formData: UserFormData): Promise<void> => {
     try {
-      setModalState((prev) => ({
+      setEditModalState((prev) => ({
         ...prev,
         isSubmitting: true,
         error: null,
@@ -329,26 +318,23 @@ export default function BusinessUserPage() {
 
         AppToast({
           type: "success",
-          message: `Business user "${
-            response.username || response.email
-          }" updated successfully`,
+          message: `Business user "${response.email}" updated successfully`,
           duration: 4000,
           position: "top-right",
         });
 
-        closeModal();
+        closeEditModal();
       }
     } catch (error: any) {
       const errorMessage = error.message || "An unexpected error occurred";
-      setModalState((prev) => ({
+      setEditModalState((prev) => ({
         ...prev,
         error: errorMessage,
       }));
 
       toast.error(errorMessage);
-      throw error; // Re-throw to prevent modal from closing
     } finally {
-      setModalState((prev) => ({ ...prev, isSubmitting: false }));
+      setEditModalState((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
@@ -425,13 +411,6 @@ export default function BusinessUserPage() {
         });
 
         closeToggleStatusModal();
-      } else {
-        AppToast({
-          type: "error",
-          message: `Failed to update business user status`,
-          duration: 4000,
-          position: "top-right",
-        });
       }
     } catch (error: any) {
       toast.error(
@@ -453,10 +432,7 @@ export default function BusinessUserPage() {
           title="Business Users"
           searchValue={searchQuery}
           searchPlaceholder="Search business users..."
-          buttonIcon={<Users className="w-3 h-3" />}
-          buttonText="Manage Users"
           onSearchChange={handleSearchChange}
-          hideButton={true} // No create functionality for business users
         >
           <div className="flex items-center gap-3">
             <CustomSelect
@@ -488,17 +464,15 @@ export default function BusinessUserPage() {
         </div>
       </div>
 
-      {/* Edit Modal - Only for updating existing users */}
+      {/* Edit User Modal */}
       <ModalBusinessUser
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        isSubmitting={modalState.isSubmitting}
-        onSave={handleSubmit}
-        Data={
-          modalState.userId ? ({ id: modalState.userId } as UserFormData) : null
-        }
-        mode={modalState.mode}
-        error={modalState.error}
+        isOpen={editModalState.isOpen}
+        onClose={closeEditModal}
+        isSubmitting={editModalState.isSubmitting}
+        onSave={handleUpdateUser}
+        userId={editModalState.userId}
+        mode={ModalMode.UPDATE_MODE}
+        error={editModalState.error}
       />
 
       {/* User Detail Modal */}
