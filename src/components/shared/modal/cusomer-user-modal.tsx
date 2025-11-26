@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
@@ -10,6 +12,8 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -17,54 +21,62 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, User, Upload, X } from "lucide-react";
 import {
-  ModalMode,
   Status,
   STATUS_USER_OPTIONS,
-  UserRole,
-  UserGropeType,
 } from "@/constants/AppResource/status/status";
 import { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { uploadImageService } from "@/services/dashboard/image/image.service";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  CreateUsers,
-  createUserSchema,
-  UpdateUsers,
-  updateUserSchema,
-  UserFormData,
-} from "@/models/dashboard/user/plateform-user/user.schema";
+import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
+import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
+import Loading from "@/components/shared/common/loading";
+import { z } from "zod";
+
+// Update request interface - only editable fields
+export interface UpdateCustomerUserRequest {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  profileImageUrl?: string;
+  accountStatus: Status;
+  notes?: string;
+}
+
+// Validation schema for editable fields only
+const editUserSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  profileImageUrl: z.string().optional(),
+  accountStatus: z.nativeEnum(Status),
+  notes: z.string().optional(),
+});
+
+// Infer form data type from schema to ensure consistency
+type EditUserFormData = z.infer<typeof editUserSchema>;
 
 type Props = {
-  mode: ModalMode;
-  Data?: UserFormData | null;
+  userId?: string;
   onClose: () => void;
   isOpen: boolean;
   isSubmitting?: boolean;
-  onSave: (data: CreateUsers | UpdateUsers) => void;
-};
-
-const getDefaultRoleValue = () => {
-  return [UserRole.CUSTOMER];
-};
-
-const getDefaultUserTypeValue = () => {
-  return UserGropeType.CUSTOMER;
+  onSave: (data: UpdateCustomerUserRequest) => void;
+  error?: string | null;
 };
 
 export default function ModalCustomerUser({
   isOpen,
   onClose,
-  Data,
-  mode,
+  userId,
   onSave,
   isSubmitting = false,
+  error = null,
 }: Props) {
-  const isCreate = mode === ModalMode.CREATE_MODE;
-  const schema = isCreate ? createUserSchema : updateUserSchema;
-  const [showPassword, setShowPassword] = useState(false);
+  const [userData, setUserData] = useState<UserModel | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,65 +86,61 @@ export default function ModalCustomerUser({
     handleSubmit,
     reset,
     setValue,
-    trigger,
     watch,
-    formState: { errors },
-  } = useForm<UserFormData>({
-    resolver: zodResolver(schema), // Use dynamic schema instead of hardcoded UserFormSchema
+    formState: { errors, isDirty },
+  } = useForm<EditUserFormData>({
+    resolver: zodResolver(editUserSchema),
     defaultValues: {
-      id: Data?.id ?? "",
-      email: "",
-      userIdentifier: "",
       firstName: "",
       lastName: "",
       phoneNumber: "",
       profileImageUrl: "",
-      userType: getDefaultUserTypeValue(),
-      businessId: "",
-      roles: getDefaultRoleValue(),
       accountStatus: Status.ACTIVE,
-      position: "",
-      address: "",
       notes: "",
-      password: "",
-    },
+    } as EditUserFormData,
     mode: "onChange",
   });
 
   const profileUrl = watch("profileImageUrl");
-  watch("businessId");
 
+  // Fetch user data for edit mode
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userId || !isOpen) return;
+
+      setIsLoadingData(true);
+      try {
+        const data = await getUserByIdService(userId);
+        setUserData(data);
+
+        // Populate form with fetched data - only editable fields
+        const formData: EditUserFormData = {
+          firstName: data?.firstName || "",
+          lastName: data?.lastName || "",
+          phoneNumber: data?.phoneNumber || "",
+          profileImageUrl: data?.profileImageUrl || "",
+          accountStatus: data?.accountStatus || Status.ACTIVE,
+          notes: data?.notes || "",
+        };
+
+        reset(formData);
+        setLogoPreview(data?.profileImageUrl || null);
+      } catch (error: any) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userId, isOpen, reset]);
+
+  // Update logo preview when profileUrl changes
   useEffect(() => {
     if (profileUrl) {
       setLogoPreview(profileUrl);
     }
   }, [profileUrl]);
-
-  // Reset form when modal opens or data changes
-  useEffect(() => {
-    if (isOpen) {
-      const formData = {
-        id: Data?.id || "",
-        email: Data?.email || "",
-        userIdentifier: Data?.userIdentifier || "",
-        firstName: Data?.firstName || "",
-        lastName: Data?.lastName || "",
-        phoneNumber: Data?.phoneNumber || "",
-        profileImageUrl: Data?.profileImageUrl || "",
-        userType: Data?.userType || getDefaultUserTypeValue(),
-        businessId: Data?.businessId || "",
-        roles: Data?.roles || getDefaultRoleValue(),
-        accountStatus: Data?.accountStatus || Status.ACTIVE,
-        position: Data?.position || "",
-        address: Data?.address || "",
-        notes: Data?.notes || "",
-        password: "", // Always empty for security
-      };
-
-      reset(formData);
-      setLogoPreview(Data?.profileImageUrl || null);
-    }
-  }, [isOpen, Data, reset]);
 
   // Clean up blob URLs
   useEffect(() => {
@@ -163,12 +171,8 @@ export default function ModalCustomerUser({
         if (response?.imageUrl) {
           setValue("profileImageUrl", response?.imageUrl, {
             shouldValidate: true,
+            shouldDirty: true,
           });
-          console.log(
-            "Image Preview URL:",
-            process.env.NEXT_PUBLIC_API_BASE_URL + response.imageUrl
-          );
-
           setLogoPreview(response?.imageUrl);
         }
       };
@@ -191,394 +195,364 @@ export default function ModalCustomerUser({
       : (process.env.NEXT_PUBLIC_API_BASE_URL ?? "") + logoPreview;
   };
 
-  const onSubmit = (data: UserFormData) => {
-    console.log("Form submitted with mode:", mode, "Data:", data); // Debug log
-
-    if (isCreate) {
-      const payload: CreateUsers = {
-        email: data?.email?.trim() || "",
-        userIdentifier: data?.userIdentifier?.trim() || "",
-        firstName: data?.firstName?.trim(),
-        lastName: data?.lastName?.trim(),
-        phoneNumber: data?.phoneNumber?.trim(),
-        userType: data?.userType || "",
-        businessId: data?.businessId,
-        roles: data.roles,
-        accountStatus: Status.ACTIVE,
-        profileImageUrl: data.profileImageUrl,
-        position: data.position,
-        address: data.address,
-        notes: data.notes,
-        password: data?.password?.trim() || "",
-      };
-      console.log("Create Payload:", payload); // Debug log
-      onSave(payload);
-    } else {
-      const payload: UpdateUsers = {
-        id: data.id ?? "",
-        firstName: data?.firstName?.trim(),
-        lastName: data?.lastName?.trim(),
-        phoneNumber: data.phoneNumber?.trim(),
-        profileImageUrl: data.profileImageUrl,
-        businessId: data?.businessId,
-        roles: data.roles,
-        accountStatus: data.accountStatus, // Use form data instead of hardcoded Status.ACTIVE
-        position: data.position,
-        address: data.address,
-        notes: data.notes,
-      };
-      console.log("Update Payload:", payload);
-      onSave(payload);
-    }
-    onClose();
+  const onSubmit = (data: EditUserFormData): void => {
+    const payload: UpdateCustomerUserRequest = {
+      firstName: data.firstName?.trim(),
+      lastName: data.lastName?.trim(),
+      phoneNumber: data.phoneNumber?.trim(),
+      profileImageUrl: data.profileImageUrl || "",
+      accountStatus: data.accountStatus,
+      notes: data.notes || "",
+    };
+    onSave(payload);
   };
 
   const handleClose = () => {
-    reset(); // Reset form when closing
+    reset();
     setLogoPreview(null);
+    setUserData(null);
     onClose();
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isCreate ? "Create Customer" : "Edit Customer"}
-          </DialogTitle>
-          <DialogDescription>
-            {isCreate
-              ? "Fill out the form to create a new customer."
-              : "Update customer information below."}
-          </DialogDescription>
+      <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">
+        {/* Header */}
+        <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
+          <div className="flex items-center gap-4 pr-8">
+            <div className="p-2 bg-blue-100 rounded-full">
+              <User className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <DialogTitle className="text-xl font-semibold">
+                Edit Customer
+              </DialogTitle>
+              <DialogDescription className="text-base text-muted-foreground">
+                {userData
+                  ? `Update customer information for "${
+                      userData.fullName || userData.email
+                    }"`
+                  : "Loading customer information..."}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-          {/* userIdentifier Field */}
-          {isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="userIdentifier">
-                username <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="userIdentifier"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="userIdentifier"
-                    type="text"
-                    placeholder="johndoe"
-                    disabled={isSubmitting}
-                    autoComplete="userIdentifier"
-                    className={errors.userIdentifier ? "border-red-500" : ""}
-                  />
-                )}
-              />
-              {errors.userIdentifier && (
-                <p className="text-sm text-destructive">
-                  {errors.userIdentifier.message}
+        {/* Content */}
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="p-6">
+            {/* Loading State */}
+            {isLoadingData ? (
+              <Loading />
+            ) : !userData ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  No customer data available
                 </p>
-              )}
-            </div>
-          )}
-
-          {isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="email">
-                Email <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="email"
-                    type="email"
-                    placeholder="email@example.com"
-                    disabled={isSubmitting}
-                    autoComplete="email"
-                    className={errors.email ? "border-red-500" : ""}
-                  />
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {/* Error Display */}
+                {error && (
+                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                    <p className="text-sm text-destructive font-medium">
+                      {error}
+                    </p>
+                  </div>
                 )}
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-          )}
 
-          {/* First Name Field */}
-          <div className="space-y-1">
-            <Label htmlFor="first_name">
-              First Name <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="firstName"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="first_name"
-                  type="text"
-                  placeholder="John"
-                  disabled={isSubmitting}
-                  autoComplete="given-name"
-                  className={errors.firstName ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.firstName && (
-              <p className="text-sm text-destructive">
-                {errors.firstName.message}
-              </p>
-            )}
-          </div>
+                {/* First Name & Last Name */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-sm font-medium">
+                      First Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Controller
+                      control={control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="firstName"
+                          type="text"
+                          placeholder="John"
+                          disabled={isSubmitting}
+                          className={`transition-colors focus:border-green-500 ${
+                            errors.firstName ? "border-red-500" : ""
+                          }`}
+                        />
+                      )}
+                    />
+                    {errors.firstName && (
+                      <p className="text-sm text-red-600">
+                        {errors.firstName.message}
+                      </p>
+                    )}
+                  </div>
 
-          {/* Last Name Field */}
-          <div className="space-y-1">
-            <Label htmlFor="last_name">
-              Last Name <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="lastName"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="last_name"
-                  type="text"
-                  placeholder="Doe"
-                  disabled={isSubmitting}
-                  autoComplete="family-name"
-                  className={errors.lastName ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.lastName && (
-              <p className="text-sm text-destructive">
-                {errors.lastName.message}
-              </p>
-            )}
-          </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-sm font-medium">
+                      Last Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Controller
+                      control={control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="lastName"
+                          type="text"
+                          placeholder="Doe"
+                          disabled={isSubmitting}
+                          className={`transition-colors focus:border-green-500 ${
+                            errors.lastName ? "border-red-500" : ""
+                          }`}
+                        />
+                      )}
+                    />
+                    {errors.lastName && (
+                      <p className="text-sm text-red-600">
+                        {errors.lastName.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-          {/* Phone Number Field */}
-          <div className="space-y-1">
-            <Label htmlFor="phoneNumber">
-              Phone Number <span className="text-red-500">*</span>
-            </Label>
-            <Controller
-              control={control}
-              name="phoneNumber"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="phoneNumber"
-                  type="tel"
-                  placeholder="+1234567890"
-                  disabled={isSubmitting}
-                  autoComplete="tel"
-                  className={errors.phoneNumber ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.phoneNumber && (
-              <p className="text-sm text-destructive">
-                {errors.phoneNumber.message}
-              </p>
-            )}
-          </div>
-
-          {/* Password Field - Create Mode Only or Update Mode with optional password */}
-          {isCreate && (
-            <>
-              <div className="space-y-1">
-                <Label htmlFor="password">
-                  Password {isCreate && <span className="text-red-500">*</span>}
-                </Label>
-                <div className="relative">
+                {/* Phone Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-sm font-medium">
+                    Phone Number <span className="text-red-500">*</span>
+                  </Label>
                   <Controller
                     control={control}
-                    name="password"
+                    name="phoneNumber"
                     render={({ field }) => (
                       <Input
                         {...field}
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
+                        id="phoneNumber"
+                        type="tel"
+                        placeholder="+1234567890"
                         disabled={isSubmitting}
-                        autoComplete="new-password"
-                        className={
-                          errors.password ? "border-red-500 pr-10" : "pr-10"
-                        }
+                        className={`transition-colors focus:border-green-500 ${
+                          errors.phoneNumber ? "border-red-500" : ""
+                        }`}
                       />
                     )}
                   />
-                  <button
-                    type="button"
-                    onClick={togglePasswordVisibility}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-500" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-500" />
-                    )}
-                  </button>
+                  {errors.phoneNumber && (
+                    <p className="text-sm text-red-600">
+                      {errors.phoneNumber.message}
+                    </p>
+                  )}
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-destructive">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-            </>
-          )}
 
-          {/* Status Field */}
-          {!isCreate && (
-            <div className="space-y-1">
-              <Label htmlFor="status-select">
-                Status <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                control={control}
-                name="accountStatus"
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isSubmitting}
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="accountStatus"
+                    className="text-sm font-medium"
                   >
-                    <SelectTrigger
-                      id="status-select"
-                      className={`bg-white dark:bg-inherit ${
-                        errors.accountStatus ? "border-red-500" : ""
-                      }`}
-                    >
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_USER_OPTIONS.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.accountStatus && (
-                <p className="text-sm text-destructive">
-                  {errors.accountStatus.message}
-                </p>
-              )}
-            </div>
-          )}
+                    Status <span className="text-red-500">*</span>
+                  </Label>
+                  <Controller
+                    control={control}
+                    name="accountStatus"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger className="transition-colors focus:border-green-500">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_USER_OPTIONS.map((status) => (
+                            <SelectItem key={status.value} value={status.value}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    status.value === Status.ACTIVE
+                                      ? "bg-green-500"
+                                      : "bg-gray-400"
+                                  }`}
+                                ></div>
+                                {status.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.accountStatus && (
+                    <p className="text-sm text-red-600">
+                      {errors.accountStatus.message}
+                    </p>
+                  )}
+                </div>
 
-          {/* Address Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="address">Address</Label>
-            <Controller
-              control={control}
-              name="address"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="address"
-                  type="text"
-                  placeholder="Street address"
-                  disabled={isSubmitting}
-                  autoComplete="street-address"
-                  className={errors.address ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.address && (
-              <p className="text-sm text-destructive">
-                {errors.address.message}
-              </p>
+                {/* Notes */}
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-sm font-medium">
+                    Notes
+                  </Label>
+                  <Controller
+                    control={control}
+                    name="notes"
+                    render={({ field }) => (
+                      <Textarea
+                        {...field}
+                        id="notes"
+                        placeholder="Additional notes about the customer..."
+                        rows={3}
+                        disabled={isSubmitting}
+                        className="transition-colors focus:border-green-500"
+                      />
+                    )}
+                  />
+                </div>
+
+                {/* Profile Image Upload */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Profile Image</Label>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col items-center gap-4">
+                        {logoPreview ? (
+                          <div className="relative">
+                            <img
+                              src={getImageSource()}
+                              alt="Profile Preview"
+                              className="w-24 h-24 rounded-full object-cover border border-gray-300"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleRemoveLogo}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-red-600"
+                              title="Remove profile image"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            className="w-24 h-24 rounded-full bg-gray-100 flex flex-col items-center justify-center border border-dashed border-gray-400 hover:border-blue-500 cursor-pointer transition-colors"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <Upload className="h-6 w-6 text-gray-400" />
+                            <span className="text-xs text-gray-500 mt-1">
+                              {isUploading ? "Uploading..." : "Upload"}
+                            </span>
+                          </div>
+                        )}
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading || isSubmitting}
+                          className="text-xs"
+                        >
+                          {isUploading ? (
+                            <>
+                              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="mr-2 h-3 w-3" />
+                              {logoPreview ? "Change Image" : "Upload Image"}
+                            </>
+                          )}
+                        </Button>
+
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFileChange}
+                          disabled={isUploading || isSubmitting}
+                        />
+
+                        <p className="text-xs text-muted-foreground text-center">
+                          Upload a profile picture for the customer
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Current Customer Info Card - Read Only Information */}
+                <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
+                  <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    Customer Information (Read Only)
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Email:</span>
+                      <p className="font-medium">{userData.email}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Username:</span>
+                      <p className="font-medium">
+                        {userData.userIdentifier || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Business:</span>
+                      <p className="font-medium">
+                        {userData.businessName || "Not assigned"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Position:</span>
+                      <p className="font-medium">
+                        {userData.position || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Address:</span>
+                      <p className="font-medium">
+                        {userData.address || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Roles:</span>
+                      <p className="font-medium">
+                        {userData.roles?.join(", ") || "Customer"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </form>
             )}
           </div>
+        </ScrollArea>
 
-          {/* Notes Field - Optional */}
-          <div className="space-y-1">
-            <Label htmlFor="notes">Notes</Label>
-            <Controller
-              control={control}
-              name="notes"
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="notes"
-                  type="text"
-                  placeholder="Additional notes"
-                  disabled={isSubmitting}
-                  className={errors.notes ? "border-red-500" : ""}
-                />
-              )}
-            />
-            {errors.notes && (
-              <p className="text-sm text-destructive">{errors.notes.message}</p>
+        {/* Footer */}
+        <div className="flex justify-between items-center p-6 border-t bg-muted/30 flex-shrink-0">
+          <div className="text-sm text-muted-foreground flex items-center gap-2">
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Updating customer...
+              </>
+            ) : isDirty ? (
+              <>
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                You have unsaved changes
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                No changes made
+              </>
             )}
           </div>
-
-          <Card className="mt-16">
-            <CardContent className="p-4">
-              {/* Profile URL Field */}
-              <div className="flex flex-col items-center gap-2">
-                {/* Profile Image Preview or Placeholder */}
-                {logoPreview ? (
-                  <div className="relative w-24 h-24">
-                    <img
-                      src={getImageSource()}
-                      alt="Profile Preview"
-                      className="w-full h-full rounded-full object-cover border border-gray-300"
-                    />
-                    {/* Remove Button (X) */}
-                    <button
-                      type="button"
-                      onClick={handleRemoveLogo}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
-                      title="Remove profile image"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border border-dashed border-gray-400 hover:border-blue-500 cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                    title="Upload profile image"
-                  >
-                    <span className="text-gray-500 text-2xl">+</span>
-                  </div>
-                )}
-
-                {/* Hidden File Input */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                  title="Upload profile image"
-                  placeholder="Choose profile image"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex gap-3">
             <Button
               type="button"
               variant="outline"
@@ -587,11 +561,22 @@ export default function ModalCustomerUser({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : isCreate ? "Create" : "Update"}
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              disabled={isSubmitting || !isDirty}
+              className="min-w-[120px]"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Customer"
+              )}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
