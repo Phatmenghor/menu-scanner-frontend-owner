@@ -33,11 +33,7 @@ export const createBusinessTableColumns = ({
       key: "index",
       label: "#",
       className: "max-w-[120px]",
-      render: (_, index) => (
-        <span className="font-medium">
-          {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index)}
-        </span>
-      ),
+      render: (_, index) => indexDisplay(data?.pageNo, data?.pageSize, index),
     },
     {
       key: "avatar",
@@ -55,59 +51,37 @@ export const createBusinessTableColumns = ({
       key: "name",
       label: "Business Name",
       className: "max-w-[200px]",
-      render: (business) => (
-        <span className="font-medium" title={business.name}>
-          {business.name || "---"}
-        </span>
-      ),
+      render: (business) => business.name,
     },
     {
       key: "businessType",
       label: "Business Type",
       className: "max-w-[120px]",
-      render: (business) => (
-        <span title={business.businessType}>
-          {business.businessType || "---"}
-        </span>
-      ),
+      render: (business) => business.businessType,
     },
     {
       key: "email",
       label: "Email",
       className: "max-w-[250px]",
-      render: (business) => business.email || "---",
+      render: (business) => business.email,
     },
     {
       key: "phone",
       label: "Phone",
       className: "max-w-[150px]",
-      render: (business) => (
-        <span title={business.phone}>{business.phone || "---"}</span>
-      ),
+      render: (business) => business.phone,
     },
     {
       key: "subscription",
       label: "Subscription Plan",
       className: "max-w-[200px]",
-      render: (business) => (
-        <span title={business.currentSubscriptionPlan}>
-          {business.currentSubscriptionPlan || "No Plan"}
-        </span>
-      ),
+      render: (business) => business.currentSubscriptionPlan || "No Plan",
     },
     {
       key: "daysRemaining",
       label: "Days Remaining",
       className: "max-w-[150px]",
-      render: (business) => (
-        <span
-          className={
-            business.isExpiringSoon ? "text-warning" : "text-muted-foreground"
-          }
-        >
-          {`${business.daysRemaining} days` || "---"}
-        </span>
-      ),
+      render: (business) => `${business.daysRemaining} days`,
     },
     {
       key: "status",
@@ -125,11 +99,7 @@ export const createBusinessTableColumns = ({
       key: "createdAt",
       label: "Created At",
       className: "max-w-[180px]",
-      render: (business) => (
-        <span className="text-muted-foreground">
-          {dateTimeFormat(business.createdAt)}
-        </span>
-      ),
+      render: (business) => dateTimeFormat(business.createdAt),
     },
     {
       key: "actions",

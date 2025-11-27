@@ -195,14 +195,12 @@ export default function BusinessUserPage() {
       handleViewUserDetail,
       handleResetPassword,
       handleDeleteUser,
-      handleToggleStatus,
     }),
     [
       handleEditUser,
       handleViewUserDetail,
       handleResetPassword,
       handleDeleteUser,
-      handleToggleStatus,
     ]
   );
 
@@ -499,30 +497,6 @@ export default function BusinessUserPage() {
         description="Are you sure you want to delete this business user?"
         itemName={deleteState.user?.fullName || deleteState.user?.email}
         isSubmitting={deleteState.isDeleting}
-      />
-
-      {/* Status Toggle Confirmation Dialog */}
-      <ConfirmDialog
-        open={toggleStatusState.isOpen}
-        onOpenChange={closeToggleStatusModal}
-        centered={true}
-        title="Change User Status"
-        description={`Are you sure you want to ${
-          toggleStatusState.user?.accountStatus === "ACTIVE"
-            ? "deactivate"
-            : "activate"
-        } this business user: ${toggleStatusState.user?.email}?`}
-        confirmButton={{
-          text: `${
-            toggleStatusState.user?.accountStatus === "ACTIVE"
-              ? "Deactivate"
-              : "Activate"
-          }`,
-          onClick: handleStatusToggleConfirm,
-          variant: "primary",
-        }}
-        cancelButton={{ text: "Cancel", variant: "secondary" }}
-        onConfirm={handleStatusToggleConfirm}
       />
     </div>
   );

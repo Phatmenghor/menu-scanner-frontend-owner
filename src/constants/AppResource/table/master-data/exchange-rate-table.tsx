@@ -33,7 +33,7 @@ export const createExchangeRateTableColumns = ({
       className: "max-w-16",
       render: (_, index) => (
         <span className="font-medium">
-          {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index)}
+          {indexDisplay(data?.pageNo, data?.pageSize, index)}
         </span>
       ),
     },
@@ -41,7 +41,7 @@ export const createExchangeRateTableColumns = ({
       key: "usdToKhrRate",
       label: "USD to KHR Rate",
       className: "max-w-[150px]",
-      render: (item) => item.usdToKhrRate || "---",
+      render: (item) => item.usdToKhrRate,
     },
     {
       key: "isActive",
@@ -53,9 +53,7 @@ export const createExchangeRateTableColumns = ({
       key: "notes",
       label: "Notes",
       className: "max-w-[250px]",
-      render: (item) => (
-        <span title={item.notes || "No notes"}>{item.notes || "---"}</span>
-      ),
+      render: (item) => item.notes,
     },
     {
       key: "createdAt",

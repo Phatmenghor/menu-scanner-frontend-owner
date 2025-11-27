@@ -63,16 +63,14 @@ export const createBusinessUserTableColumns = ({
       label: "User Identifier",
       className: "max-w-[150px]",
       render: (user) => (
-        <span title={user?.userIdentifier}>
-          {user?.userIdentifier || "---"}
-        </span>
+        <span title={user?.userIdentifier}>{user?.userIdentifier}</span>
       ),
     },
     {
       key: "email",
       label: "Email",
       className: "max-w-[250px]",
-      render: (user) => <span title={user?.email}>{user?.email || "---"}</span>,
+      render: (user) => <span title={user?.email}>{user?.email}</span>,
     },
     {
       key: "fullName",
@@ -89,7 +87,7 @@ export const createBusinessUserTableColumns = ({
       label: "Business",
       className: "max-w-[200px]",
       render: (user) => (
-        <span title={user?.businessName}>{user?.businessName || "---"}</span>
+        <span title={user?.businessName}>{user?.businessName}</span>
       ),
     },
     {

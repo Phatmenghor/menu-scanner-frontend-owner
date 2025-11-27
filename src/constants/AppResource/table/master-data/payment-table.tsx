@@ -1,11 +1,9 @@
-import { Badge } from "@/components/ui/badge";
 import { ActionButton } from "@/components/shared/common/action-button";
 import { TableColumn } from "@/components/shared/common/data-table";
 import {
   AllPayment,
   PaymentModel,
 } from "@/models/dashboard/payment/payment/payment.response.model";
-import { PaymentStatusBadge } from "@/components/shared/badge/payment-status-badge";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash, Building2, CreditCard } from "lucide-react";
@@ -32,32 +30,31 @@ export const createPaymentTableColumns = ({
       key: "index",
       label: "#",
       className: "w-16",
-      render: (_, index) =>
-        indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index),
+      render: (_, index) => indexDisplay(data?.pageNo, data?.pageSize, index),
     },
     {
       key: "businessName",
       label: "Business",
       className: "max-w-[180px]",
-      render: (item) => item.businessName || "---",
+      render: (item) => item.businessName,
     },
     {
       key: "status",
       label: "Status",
       className: "max-w-[120px]",
-      render: (item) => item.status || "---",
+      render: (item) => item.status,
     },
     {
       key: "planName",
       label: "Plan",
       className: "max-w-[150px]",
-      render: (item) => item.planName || "---",
+      render: (item) => item.planName,
     },
     {
       key: "subscriptionDisplayName",
       label: "Subscription",
       className: "max-w-[180px]",
-      render: (item) => item.subscriptionDisplayName || "---",
+      render: (item) => item.subscriptionDisplayName,
     },
     {
       key: "formattedAmount",
@@ -75,19 +72,19 @@ export const createPaymentTableColumns = ({
       key: "paymentMethod",
       label: "Payment Method",
       className: "max-w-[140px]",
-      render: (item) => item.paymentMethod || "---",
+      render: (item) => item.paymentMethod,
     },
     {
       key: "statusDescription",
       label: "Description",
       className: "max-w-[150px]",
-      render: (item) => item.statusDescription || "---",
+      render: (item) => item.statusDescription,
     },
     {
       key: "referenceNumber",
       label: "Reference #",
       className: "max-w-[140px]",
-      render: (item) => item.referenceNumber || "---",
+      render: (item) => item.referenceNumber,
     },
     {
       key: "createdAt",

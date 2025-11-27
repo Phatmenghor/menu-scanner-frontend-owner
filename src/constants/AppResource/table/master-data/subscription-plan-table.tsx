@@ -4,22 +4,9 @@ import {
 } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
-import { Edit, Eye, Trash, Crown, Gift, Globe, Lock } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 import { ActionButton } from "@/components/shared/common/action-button";
-import { Badge } from "@/components/ui/badge";
 import { TableColumn } from "@/components/shared/common/data-table";
-
-export const SubscriptionPlanTableHeaders = [
-  { label: "#", className: "max-w-[80px]" },
-  { label: "Plan Name", className: "max-w-[200px]" },
-  { label: "Price", className: "max-w-[120px]" },
-  { label: "Duration", className: "max-w-[100px]" },
-  { label: "Status", className: "max-w-[120px]" },
-  { label: "Subscriptions", className: "max-w-[120px]" },
-  { label: "Visibility", className: "max-w-[100px]" },
-  { label: "Created At", className: "max-w-[150px]" },
-  { label: "Actions", className: "w-[160px]" },
-];
 
 interface SubscriptionPlanTableHandlers {
   handleEditPlan: (plan: SubscriptionPlanModel) => void;
@@ -50,60 +37,44 @@ export const createSubscriptionPlanTableColumns = ({
       key: "index",
       label: "#",
       className: "max-w-[80px]",
-      render: (_, index) => (
-        <span className="font-medium">
-          {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index)}
-        </span>
-      ),
+      render: (_, index) => indexDisplay(data?.pageNo, data?.pageSize, index),
     },
     {
       key: "name",
       label: "Plan Name",
       className: "max-w-[200px]",
-      render: (plan) => plan.name || "---",
+      render: (plan) => plan.name,
     },
     {
       key: "price",
       label: "Price",
       className: "max-w-[120px]",
-      render: (plan) =>
-        plan.price == 0 ? (
-          <span className="text-green-600 font-semibold">FREE</span>
-        ) : (
-          <span>{formatCurrency(plan.price)}</span>
-        ),
+      render: (plan) => (plan.price == 0 ? "FREE" : formatCurrency(plan.price)),
     },
     {
       key: "duration",
       label: "Duration",
       className: "max-w-[100px]",
-      render: (plan) => (
-        <span className="text-sm">
-          {plan.durationDays === 0 ? "Unlimited" : `${plan.durationDays} days`}
-        </span>
-      ),
+      render: (plan) =>
+        plan.durationDays === 0 ? "Unlimited" : `${plan.durationDays} days`,
     },
     {
       key: "status",
       label: "Status",
       className: "max-w-[120px]",
-      render: (plan) => plan.status || "---",
+      render: (plan) => plan.status,
     },
     {
       key: "subscriptions",
       label: "Subscriptions",
-      className: "max-w-[120px]",
+      className: "max-w-[120px] ",
       render: (plan) => `${plan.activeSubscriptionsCount || 0} active`,
     },
     {
       key: "createdAt",
       label: "Created At",
       className: "max-w-[150px]",
-      render: (plan) => (
-        <span className="text-muted-foreground text-sm">
-          {dateTimeFormat(plan.createdAt)}
-        </span>
-      ),
+      render: (plan) => dateTimeFormat(plan.createdAt),
     },
     {
       key: "actions",

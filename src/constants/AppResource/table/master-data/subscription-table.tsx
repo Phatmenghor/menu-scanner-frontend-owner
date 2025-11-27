@@ -40,7 +40,7 @@ export const createSubscriptionTableColumns = ({
       className: "max-w-[60px]",
       render: (_, index) => (
         <span className="font-medium">
-          {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index)}
+          {indexDisplay(data?.pageNo, data?.pageSize, index)}
         </span>
       ),
     },
@@ -50,7 +50,7 @@ export const createSubscriptionTableColumns = ({
       className: "max-w-[150px]",
       render: (subscription) => (
         <span className="font-medium" title={subscription.businessName}>
-          {subscription.businessName || "---"}
+          {subscription.businessName}
         </span>
       ),
     },
@@ -59,9 +59,7 @@ export const createSubscriptionTableColumns = ({
       label: "Plan",
       className: "max-w-[120px]",
       render: (subscription) => (
-        <span title={subscription.planName}>
-          {subscription.planName || "---"}
-        </span>
+        <span title={subscription.planName}>{subscription.planName}</span>
       ),
     },
     {
@@ -86,7 +84,7 @@ export const createSubscriptionTableColumns = ({
       className: "max-w-[100px]",
       render: (subscription) => (
         <span className="text-muted-foreground">
-          {formatDate(subscription.startDate) || "---"}
+          {formatDate(subscription.startDate)}
         </span>
       ),
     },
@@ -94,35 +92,13 @@ export const createSubscriptionTableColumns = ({
       key: "endDate",
       label: "End Date",
       className: "max-w-[100px]",
-      render: (subscription) => (
-        <span className="text-muted-foreground">
-          {formatDate(subscription.endDate) || "---"}
-        </span>
-      ),
+      render: (subscription) => formatDate(subscription.endDate),
     },
     {
       key: "daysRemaining",
       label: "Days Left",
       className: "max-w-[80px]",
-      render: (subscription) => {
-        const isExpired = subscription.daysRemaining <= 0;
-        const isExpiringSoon =
-          subscription.daysRemaining > 0 && subscription.daysRemaining <= 7;
-
-        return (
-          <span
-            className={
-              isExpired
-                ? "text-red-600 font-medium"
-                : isExpiringSoon
-                ? "text-yellow-600 font-medium"
-                : "text-muted-foreground"
-            }
-          >
-            {subscription.daysRemaining || 0}
-          </span>
-        );
-      },
+      render: (subscription) => subscription.daysRemaining || 0,
     },
     {
       key: "status",

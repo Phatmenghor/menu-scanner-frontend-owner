@@ -30,9 +30,9 @@ export function formatValue(value: any) {
 }
 
 export const indexDisplay = (
-  pageNo: number,
-  pageSize: number,
-  index: number
+  pageNo?: number,
+  pageSize?: number,
+  index?: number
 ) => {
-  return ((pageNo || 1) - 1) * (pageSize || 5) + index + 1;
+  return ((pageNo || 1) - 1) * (pageSize || 10) + (index || 1) + 1;
 };

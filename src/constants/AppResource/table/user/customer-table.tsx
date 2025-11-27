@@ -57,7 +57,7 @@ export const createCustomerUserTableColumns = ({
       key: "userIdentifier",
       label: "Customer ID",
       className: "max-w-[120px]",
-      render: (user) => user?.userIdentifier || "---",
+      render: (user) => user?.userIdentifier,
     },
     {
       key: "location",
