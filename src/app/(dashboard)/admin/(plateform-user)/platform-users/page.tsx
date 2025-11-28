@@ -136,7 +136,6 @@ export default function UserPage() {
       });
       setData(response);
     } catch (error: any) {
-      console.log("Failed to fetch users: ", error);
       toast.error("Failed to load users");
     } finally {
       setIsLoading(false);
@@ -147,7 +146,6 @@ export default function UserPage() {
     loadUsers();
   }, [loadUsers]);
 
-  // Handler functions for table actions
   const handleCreateUser = useCallback(() => {
     setModalState({
       isOpen: true,
@@ -536,14 +534,14 @@ export default function UserPage() {
         error={modalState.error}
       />
 
-      {/* User Detail Modal - Only pass userPlatformId */}
+      {/* User Detail Modal  */}
       <UserDetailModal
         userId={detailModalState.userPlatformId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
 
-      {/* Reset Password Modal - Only pass userPlatformId */}
+      {/* Reset Password Modal*/}
       <ResetPasswordModal
         isOpen={resetPasswordState.isOpen}
         userName={resetPasswordState.userName}

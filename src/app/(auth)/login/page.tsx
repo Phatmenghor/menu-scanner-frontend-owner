@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginService } from "@/services/auth/login.service";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import {
   FormControl,
@@ -17,18 +18,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import { AppToast } from "@/components/shared/toast/app-toast";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Create form schema with translations
+  // Create form schema
   const formSchema = z.object({
-    userIdentifier: z.string().optional(),
+    userIdentifier: z.string().min(1, "Email or username is required"),
     password: z.string().min(6, {
       message: "Password must be at least 6 characters",
     }),
@@ -45,129 +47,148 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: FormData) {
-    startTransition(async () => {
-      try {
-        const response = await loginService({
-          userIdentifier: values.userIdentifier || "",
-          password: values.password,
+    setIsLoading(true);
+    try {
+      const response = await loginService({
+        userIdentifier: values.userIdentifier || "",
+        password: values.password,
+      });
+
+      if (response) {
+        AppToast({
+          type: "success",
+          message: "Welcome to the emenu dashboard!",
+          duration: 3000,
+          position: "top-right",
         });
 
-        console.log("Login response:", response);
-
-        if (response) {
-          AppToast({
-            type: "success",
-            message: response?.welcomeMessage || "Welcome to the dashboard!",
-            duration: 3000,
-            position: "top-right",
-          });
-
-          router.replace(ROUTES.DASHBOARD.USERS);
-        }
-      } catch (error: any) {
-        toast.error(error);
+        router.replace(ROUTES.DASHBOARD.USERS);
       }
-    });
+    } catch (error: any) {
+      const errorMsg =
+        error?.errorMessage === "An unexpected error occurred: Bad credentials"
+          ? "Incorrect email or password."
+          : error?.errorMessage ||
+            error?.rawError?.message ||
+            error?.message ||
+            "Something went wrong. Please try again.";
+
+      toast.error(errorMsg);
+      setIsLoading(false);
+    }
   }
 
-  const isLoading = form.formState.isSubmitting || isPending;
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      form.handleSubmit(onSubmit)();
+    }
+  };
 
   return (
-    <main className="flex w-full items-center justify-center bg-background">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-32 w-96 h-96 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-600/20 blur-3xl" />
-        <div className="absolute -bottom-40 -left-32 w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-400/20 to-cyan-600/20 blur-3xl" />
+    <div className="flex h-screen w-full">
+      {/* Left side with CPBank background image */}
+      <div className="hidden flex-1 relative lg:block">
+        <Image
+          src="/assets/image/cpbank.png"
+          alt="CPBank Background"
+          fill
+          className="object-cover"
+          priority
+        />
       </div>
-      <section className="flex w-full max-w-md flex-col justify-center space-y-6">
-        <article className="relative group">
-          {/* Gradient border animation */}
-          <span
-            aria-hidden="true"
-            className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 opacity-70 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200 animate-gradient-x"
-          />
 
-          {/* Login card */}
-          <section className="relative rounded-xl border bg-card p-8 shadow-xl">
-            <header className="space-y-2 text-center mb-6">
-              <h1 className="text-2xl font-bold tracking-tight">
-                Admin Panel Login
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Enter your credentials to continue
-              </p>
-            </header>
+      {/* Right side with login form */}
+      <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <Card className="w-full max-w-md border border-gray-200 shadow-2xl">
+          <CardHeader className="space-y-2 pb-6">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Admin Panel Login
+            </h1>
+            <p className="text-gray-600">Enter your credentials to continue</p>
+          </CardHeader>
 
+          <CardContent>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
+                className="space-y-5"
               >
+                {/* Email/Username Field */}
                 <FormField
                   control={form.control}
                   name="userIdentifier"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="username">Username</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">
+                        Email or Username
+                        <span className="text-red-500 ml-1">*</span>
+                      </FormLabel>
                       <FormControl>
-                        <Input
-                          id="username"
-                          type="text"
-                          placeholder={"name@example.com"}
-                          autoFocus
-                          disabled={isLoading}
-                          autoComplete="email"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <Input
+                            {...field}
+                            id="userIdentifier"
+                            type="text"
+                            placeholder="name@example.com"
+                            disabled={isLoading}
+                            autoComplete="email"
+                            className="pl-10 h-11 border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            onKeyDown={handleKeyPress}
+                          />
+                        </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-sm text-red-500" />
                     </FormItem>
                   )}
                 />
 
+                {/* Password Field */}
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="password">
+                      <FormLabel className="text-sm font-medium text-gray-700">
                         Password
-                        <span className="text-red-500">*</span>
+                        <span className="text-red-500 ml-1">*</span>
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                           <Input
+                            {...field}
                             id="password"
                             type={showPassword ? "text" : "password"}
                             disabled={isLoading}
-                            autoFocus
                             placeholder="Enter your password"
                             autoComplete="current-password"
-                            {...field}
+                            className="pl-10 pr-10 h-11 border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            onKeyDown={handleKeyPress}
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute hover:bg-transparent right-0 top-0 h-full px-3"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                             onClick={() => setShowPassword(!showPassword)}
                             disabled={isLoading}
                           >
                             {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              <EyeOff className="h-5 w-5" />
                             ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
+                              <Eye className="h-5 w-5" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-sm text-red-500" />
                     </FormItem>
                   )}
                 />
 
+                {/* Submit Button */}
                 <Button
                   type="submit"
-                  className="w-full shadow-md active:scale-95 font-semibold transition-all duration-300 hover:shadow-lg focus:outline-none"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-md hover:shadow-lg font-semibold mt-6"
                   disabled={isLoading}
                 >
                   {isLoading && (
@@ -177,27 +198,29 @@ export default function LoginPage() {
                 </Button>
               </form>
             </Form>
-          </section>
-        </article>
-        <div className="text-center mt-8">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            By signing in, you agree to our{" "}
-            <a
-              href="#"
-              className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
-            >
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a
-              href="#"
-              className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
-            >
-              Privacy Policy
-            </a>
-          </p>
-        </div>
-      </section>
-    </main>
+
+            {/* Footer Links */}
+            <div className="text-center mt-6">
+              <p className="text-xs text-gray-500">
+                By signing in, you agree to our{" "}
+                <a
+                  href="#"
+                  className="text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a
+                  href="#"
+                  className="text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                  Privacy Policy
+                </a>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

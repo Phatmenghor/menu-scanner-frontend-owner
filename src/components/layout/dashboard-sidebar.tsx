@@ -10,18 +10,15 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES, sidebarItems } from "@/constants/AppRoutes/routes";
-import { UserAuthResponse } from "@/models/auth/auth.response";
 import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProfileResponseModel } from "@/models/auth/profile-response-model";
 import { getProfileService } from "@/services/auth/login.service";
 import { toast } from "sonner";
+import { UserAvatarCard } from "../shared/avator/user-avatar-card";
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  onLoadUserProfile?: () => Promise<UserAuthResponse | null>;
-  fallbackUserInfo?: () => UserAuthResponse | null;
 }
 
 export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
@@ -29,7 +26,6 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const isMobile = useIsMobile();
   const [authUser, setAuthUser] = useState<ProfileResponseModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  // Initialize all sections as closed by default
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     "Master Data": true,
   });
@@ -111,18 +107,14 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
 
               {!isCollapsed && isOpen && (
                 <div className="relative ml-6 mt-1 space-y-1">
-                  {/* Main vertical connecting line */}
                   <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300 z-0"></div>
 
                   {route.subroutes.map((subroute, index) => (
                     <div key={subroute.title} className="relative">
-                      {/* Horizontal connecting line */}
                       <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-300 z-0"></div>
 
-                      {/* Small connecting dot */}
                       <div className="absolute left-0 top-1/2 w-1.5 h-1.5 bg-gray-400 rounded-full transform -translate-x-0.5 -translate-y-0.5 z-10"></div>
 
-                      {/* Corner connector for last item - stops vertical line */}
                       {index === route.subroutes!.length - 1 && (
                         <div
                           className="absolute left-0 top-1/2 w-px bg-background z-10"
@@ -130,7 +122,6 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
                         ></div>
                       )}
 
-                      {/* Extended horizontal line for better visual connection */}
                       <div className="absolute left-4 top-1/2 w-2 h-px bg-gray-200 z-0"></div>
 
                       <Button
@@ -184,7 +175,6 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile overlay with blur effect */}
       {isMobile && isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-md"
@@ -192,7 +182,6 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
         />
       )}
 
-      {/* Sidebar with glassmorphism effect */}
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border/50 bg-background/95 backdrop-blur-xl transition-all duration-300 ease-out shadow-xl",
@@ -200,7 +189,6 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           isMobile && !isOpen && "hidden"
         )}
       >
-        {/* Enhanced Header with gradient and better typography */}
         <div className="relative flex h-20 items-center justify-between border-b border-border/50 px-4 bg-gradient-to-br from-primary/5 via-background/50 to-accent/5">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 opacity-50 blur-3xl"></div>
 
@@ -246,74 +234,23 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           </Button>
         </div>
 
-        {/* Enhanced Navigation with modern spacing */}
         <ScrollArea className="flex-1 py-6">
           <nav className="px-4 space-y-2">{renderNavItems(collapsed)}</nav>
         </ScrollArea>
 
-        {/* Modern Footer with user info */}
-        {!collapsed && authUser && (
-          <div className="border-t border-border/50 p-4">
-            <Link href={ROUTES.DASHBOARD.PROFILE}>
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 hover:bg-accent/50 transition-colors duration-300 cursor-pointer group">
-                <div className="relative">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage
-                      src={authUser?.profileImageUrl}
-                      alt={authUser?.fullName || "User"}
-                    />
-                    <AvatarFallback className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                      {authUser?.fullName?.charAt(0) ||
-                        authUser?.firstName?.charAt(0) ||
-                        "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  {/* Online indicator */}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 shadow-sm shadow-green-500/50 border-2 border-background"></div>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">
-                    {authUser.displayName ||
-                      authUser.fullName ||
-                      `${authUser.firstName} ${authUser.lastName}`.trim() ||
-                      "GUEST USER"}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {authUser.email || "user@example.com"}
-                  </p>
-                </div>
-
-                {/* Loading indicator */}
-                {isLoading && (
-                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shadow-sm shadow-yellow-500/50"></div>
-                )}
-              </div>
-            </Link>
-          </div>
-        )}
-
-        {/* Collapsed user info */}
-        {collapsed && authUser && (
-          <div className="border-t border-border/50 p-2">
-            <div className="flex justify-center">
-              <div className="relative">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src={authUser?.profileImageUrl}
-                    alt={authUser?.fullName || "User"}
-                  />
-                  <AvatarFallback className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                    {authUser.fullName?.charAt(0) ||
-                      authUser.firstName?.charAt(0) ||
-                      "U"}
-                  </AvatarFallback>
-                </Avatar>
-                {/* Online indicator for collapsed state */}
-                <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50 border border-background"></div>
-              </div>
-            </div>
-          </div>
+        {/* User Avatar Card - Replaces old footer code */}
+        {authUser && (
+          <UserAvatarCard
+            user={authUser}
+            collapsed={collapsed}
+            isOnline={true}
+            isLoading={isLoading}
+            profileLink={ROUTES.DASHBOARD.PROFILE}
+            showEmail={true}
+            showOnlineIndicator={true}
+            enableImagePreview={true}
+            avatarSize="md"
+          />
         )}
       </div>
     </>

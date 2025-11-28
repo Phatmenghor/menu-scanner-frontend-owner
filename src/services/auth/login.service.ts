@@ -9,8 +9,8 @@ export async function loginService(credentials: LoginCredentials) {
   try {
     const response = await axiosClient.post("/api/v1/auth/login", credentials);
 
-    const userData = response.data.data as UserAuthResponse;
-    // On success, store token and role (simulate your original behavior)
+    const userData = response.data.data;
+
     storeToken(userData.accessToken);
     storeUserInfo({
       userId: userData.userId || "",
@@ -26,7 +26,6 @@ export async function loginService(credentials: LoginCredentials) {
     return userData;
   } catch (error) {
     console.error("Login service error:", error);
-
     throw {
       errorMessage: "An unexpected error occurred during login.",
       rawError: error,
