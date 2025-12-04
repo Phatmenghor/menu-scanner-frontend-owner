@@ -1,4 +1,10 @@
-import { PaymentMethod, PaymentStatus, UserRole } from "./status";
+import {
+  AccountStatus,
+  PaymentMethod,
+  PaymentStatus,
+  Status,
+  UserRole,
+} from "./status";
 
 export const USER_PLATFORM_ROLE_CREATE_UPDATE = [
   { value: UserRole.PLATFORM_OWNER, label: "Platform Owner" },
@@ -7,6 +13,18 @@ export const USER_PLATFORM_ROLE_CREATE_UPDATE = [
   { value: UserRole.PLATFORM_SUPPORT, label: "Platform Support" },
 ];
 
+export const USER_BUSINESS_ROLE_CREATE_UPDATE = [
+  { value: UserRole.BUSINESS_OWNER, label: "Business Owner" },
+  { value: UserRole.BUSINESS_MANAGER, label: "Business Manager" },
+  { value: UserRole.BUSINESS_STAFF, label: "Business Staff" },
+];
+
+export const ACCOUNT_STATUS_CREATE_UPDATE = [
+  { value: AccountStatus.ACTIVE, label: "Active" },
+  { value: AccountStatus.INACTIVE, label: "Inactive" },
+  { value: AccountStatus.LOCKED, label: "Locked" },
+  { value: AccountStatus.SUSPENDED, label: "Suspended" },
+];
 
 export const PAYMENT_STATUS_CREATE_UPDATE = [
   { value: PaymentStatus.PENDING, label: "Pending" },

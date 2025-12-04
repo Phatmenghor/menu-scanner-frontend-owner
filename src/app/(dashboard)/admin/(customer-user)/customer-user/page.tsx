@@ -1,105 +1,97 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
+import { Plus } from "lucide-react";
+
 import { usePagination } from "@/hooks/use-pagination";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
   AccountStatus,
-  Status,
+  ModalMode,
+  UserRole,
   UserGropeType,
 } from "@/constants/AppResource/status/status";
-import {
-  AllUserResponse,
-  UserModel,
-} from "@/models/dashboard/user/plateform-user/user.response";
-import { UpdateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
-import {
-  deletedUserService,
-  getAllUserService,
-  updateUserService,
-} from "@/services/dashboard/user/plateform-user/plateform-user.service";
+import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
+import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
 
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import { DataTableWithPagination } from "@/components/shared/common/data-table";
-import { CustomPagination } from "@/components/shared/common/custom-pagination";
-import ModalCustomerUser, {
-  UpdateCustomerUserRequest,
-} from "@/components/shared/modal/cusomer-user-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { UserDetailModal } from "@/components/dashboard/plate-form-user/user-detail-modal";
-import { STATUS_FILTER } from "@/constants/AppResource/status/filter-status";
-import { createCustomerUserTableColumns } from "@/constants/AppResource/table/user/customer-table";
+import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
+import {
+  ACCOUNT_STATUS_FILTER,
+  USER_PLATFORM_ROLE_FILTER,
+} from "@/constants/AppResource/status/filter-status";
 
-export default function CustomerUserPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState<AllUserResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Redux imports
+import {
+  useUsers,
+  fetchUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  toggleUserStatus,
+  setSearchFilter,
+  setAccountStatusFilter,
+  setRoleFilter,
+  setPageNo,
+  UpdateUserRequest,
+  CreateUserRequest,
+} from "@/store/features/users";
+import { DataTableWithPagination } from "@/components/shared/common/data-table";
+import UserCustomerModal from "@/components/dashboard/users/customer/user-customer-modal";
+import { UserCustomerDetailModal } from "@/components/dashboard/users/customer/user-customer-detail-modal";
 
-  // Edit modal state - simplified to only handle editing
-  const [editModalState, setEditModalState] = useState<{
-    isOpen: boolean;
-    userId: string;
-    isSubmitting: boolean;
-    error: string | null;
-  }>({
+export default function UserPage() {
+  const searchParams = useSearchParams();
+
+  // Redux state
+  const {
+    userState,
+    users,
+    isLoading,
+    filters,
+    operations,
+    pagination,
+    dispatch,
+  } = useUsers();
+
+  // Local UI state for modals
+  const [modalState, setModalState] = useState({
     isOpen: false,
+    mode: ModalMode.CREATE_MODE,
     userId: "",
-    isSubmitting: false,
-    error: null,
+    error: null as string | null,
   });
 
-  // Detail modal state - only store userId
-  const [detailModalState, setDetailModalState] = useState<{
-    isOpen: boolean;
-    userId: string;
-  }>({
+  const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    userId: "",
+    userCustomerId: "",
   });
 
-  // Reset password modal state
-  const [resetPasswordState, setResetPasswordState] = useState<{
-    isOpen: boolean;
-    userId: string;
-    userName: string;
-  }>({
+  const [resetPasswordState, setResetPasswordState] = useState({
     isOpen: false,
-    userId: "",
+    userCustomerId: "",
     userName: "",
   });
 
-  // Delete modal state
-  const [deleteState, setDeleteState] = useState<{
-    isOpen: boolean;
-    user: UserModel | null;
-    isDeleting: boolean;
-  }>({
+  const [deleteState, setDeleteState] = useState({
     isOpen: false,
-    user: null,
-    isDeleting: false,
+    user: null as UserModel | null,
   });
 
-  // Filters
-  const [accountStatusFilter, setAccountStatusFilter] = useState<AccountStatus>(
-    AccountStatus.All
-  );
+  const debouncedSearch = useDebounce(filters.search, 400);
 
-  // Debounced search query
-  const debouncedSearchQuery = useDebounce(searchQuery, 400);
-  const searchParams = useSearchParams();
-
-  const { currentPage, updateUrlWithPage, handlePageChange } = usePagination({
+  const { updateUrlWithPage, handlePageChange } = usePagination({
     baseRoute: ROUTES.DASHBOARD.CUSTOMER_USER,
     defaultPageSize: 10,
   });
 
-  // Initialize URL with page parameter
+  // Initialize URL on mount
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
     if (!pageParam) {
@@ -107,152 +99,224 @@ export default function CustomerUserPage() {
     }
   }, [searchParams, updateUrlWithPage]);
 
-  // Load users
-  const loadUsers = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await getAllUserService({
-        search: debouncedSearchQuery,
-        pageNo: currentPage,
-        pageSize: 10,
-        userType: UserGropeType.CUSTOMER,
-        accountStatus:
-          accountStatusFilter === AccountStatus.All
-            ? undefined
-            : accountStatusFilter,
-      });
-      setData(response);
-    } catch (error: any) {
-      console.log("Failed to fetch customer users: ", error);
-      toast.error("Failed to load customer users");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [debouncedSearchQuery, accountStatusFilter, currentPage]);
-
+  // Fetch users when filters change
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    dispatch(
+      fetchUsers({
+        search: debouncedSearch,
+        pageNo: pagination.currentPage,
+        roles: [UserRole.CUSTOMER],
+        userTypes: [UserGropeType.CUSTOMER],
+        accountStatus:
+          filters.accountStatus === AccountStatus.ALL
+            ? []
+            : [filters.accountStatus],
+      })
+    );
+  }, [
+    dispatch,
+    debouncedSearch,
+    filters.accountStatus,
+    filters.role,
+    pagination.currentPage,
+  ]);
 
-  // Handler functions for table actions - removed create, kept edit
-  const handleEditUser = useCallback((user: UserModel) => {
-    setEditModalState({
+  // Event handlers
+  const handleCreateUser = () => {
+    setModalState({
       isOpen: true,
-      userId: user?.id || "",
-      isSubmitting: false,
+      mode: ModalMode.CREATE_MODE,
+      userId: "",
       error: null,
     });
-  }, []);
+  };
 
-  const handleViewUserDetail = useCallback((user: UserModel) => {
+  const handleEditUser = (user: UserModel) => {
+    setModalState({
+      isOpen: true,
+      mode: ModalMode.UPDATE_MODE,
+      userId: user?.id || "",
+      error: null,
+    });
+  };
+
+  const handleViewDetail = (user: UserModel) => {
     setDetailModalState({
       isOpen: true,
-      userId: user.id || "",
+      userCustomerId: user.id || "",
     });
-  }, []);
+  };
 
-  const handleResetPassword = useCallback((user: UserModel) => {
+  const handleResetPassword = (user: UserModel) => {
     setResetPasswordState({
       isOpen: true,
-      userId: user.id || "",
+      userCustomerId: user.id || "",
       userName: user.fullName || user.email || "",
     });
-  }, []);
+  };
 
-  const handleDeleteUser = useCallback((user: UserModel) => {
+  const handleDeleteUser = (user: UserModel) => {
     setDeleteState({
       isOpen: true,
       user: user,
-      isDeleting: false,
     });
-  }, []);
+  };
 
-  // Direct status toggle without confirmation dialog
-  const handleToggleStatus = useCallback(async (user: UserModel) => {
+  const handleToggleStatus = async (user: UserModel) => {
     if (!user?.id) return;
 
     try {
-      const newStatus =
-        user?.accountStatus === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
-
-      const response = await updateUserService(user.id, {
-        accountStatus: newStatus,
+      await dispatch(toggleUserStatus(user)).unwrap();
+      AppToast({
+        type: "success",
+        message: "User status updated successfully",
       });
-
-      if (response) {
-        // Optimistic update
-        setData((prev) =>
-          prev
-            ? {
-                ...prev,
-                content: prev.content.map((u) =>
-                  u.id === user.id ? response : u
-                ),
-              }
-            : prev
-        );
-
-        AppToast({
-          type: "success",
-          message: `Customer status updated successfully`,
-        });
-      } else {
-        AppToast({
-          type: "error",
-          message: `Failed to update customer status`,
-        });
-      }
     } catch (error: any) {
-      toast.error(
-        error?.message || "An error occurred while updating customer status"
-      );
+      AppToast({
+        type: "error",
+        message: error || "Failed to update user status",
+      });
     }
-  }, []);
+  };
 
-  // Memoized table handlers
   const tableHandlers = useMemo(
     () => ({
       handleEditUser,
-      handleViewUserDetail,
+      handleViewUserDetail: handleViewDetail,
       handleResetPassword,
       handleDeleteUser,
       handleToggleStatus,
     }),
-    [
-      handleEditUser,
-      handleViewUserDetail,
-      handleResetPassword,
-      handleDeleteUser,
-      handleToggleStatus,
-    ]
+    []
   );
 
-  // Optimized table columns
   const columns = useMemo(
     () =>
-      createCustomerUserTableColumns({
-        data,
+      userPlatformTableColumns({
+        data: userState.data,
         handlers: tableHandlers,
       }),
-    [data?.pageNo, data?.pageSize, data?.content?.length, tableHandlers]
+    [userState.data, tableHandlers]
   );
 
-  // Search change handler
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    dispatch(setSearchFilter(e.target.value));
   };
 
-  // Filter handlers
   const handleStatusChange = (status: AccountStatus) => {
-    setAccountStatusFilter(status);
+    dispatch(setAccountStatusFilter(status));
   };
 
-  // Close modal handlers
-  const closeEditModal = () => {
-    setEditModalState({
+  const handlePageChangeWrapper = (page: number) => {
+    dispatch(setPageNo(page));
+    handlePageChange(page);
+  };
+
+  const handleSubmit = async (formData: UserFormData): Promise<void> => {
+    try {
+      setModalState((prev) => ({ ...prev, error: null }));
+
+      const isCreate = modalState.mode === ModalMode.CREATE_MODE;
+
+      if (isCreate) {
+        // Ensure all required fields are present (validated by schema)
+        const createPayload: CreateUserRequest = {
+          userIdentifier: formData.userIdentifier!,
+          email: formData.email!,
+          password: formData.password!,
+          firstName: formData.firstName!,
+          lastName: formData.lastName!,
+          phoneNumber: formData.phoneNumber!,
+          userType: formData.userType!,
+          accountStatus: formData.accountStatus!,
+          roles: formData.roles!,
+          position: formData.position,
+          address: formData.address,
+          notes: formData.notes,
+        };
+
+        const response = await dispatch(createUser(createPayload)).unwrap();
+
+        AppToast({
+          type: "success",
+          message: `User "${
+            response.username || formData.email
+          }" created successfully`,
+        });
+
+        closeModal();
+      } else {
+        // Update mode
+        if (!formData.id) {
+          throw new Error("User ID is required for update");
+        }
+
+        const updatePayload: UpdateUserRequest = {
+          firstName: formData.firstName!,
+          lastName: formData.lastName!,
+          phoneNumber: formData.phoneNumber!,
+          accountStatus: formData.accountStatus!,
+          roles: formData.roles!,
+          position: formData.position,
+          address: formData.address,
+          notes: formData.notes,
+        };
+
+        const response = await dispatch(
+          updateUser({ userId: formData.id, userData: updatePayload })
+        ).unwrap();
+
+        AppToast({
+          type: "success",
+          message: `User "${
+            response.username || response.email
+          }" updated successfully`,
+        });
+
+        closeModal();
+      }
+    } catch (error: any) {
+      const errorMessage = error || "An unexpected error occurred";
+      setModalState((prev) => ({ ...prev, error: errorMessage }));
+      AppToast({ type: "error", message: errorMessage });
+      throw error;
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteState.user?.id) return;
+
+    try {
+      await dispatch(deleteUser(deleteState.user.id)).unwrap();
+
+      AppToast({
+        type: "success",
+        message: `User "${
+          deleteState.user.fullName ?? ""
+        }" deleted successfully`,
+      });
+
+      closeDeleteModal();
+
+      // Navigate to previous page if this was the last item
+      if (users.length === 1 && pagination.currentPage > 1) {
+        const newPage = pagination.currentPage - 1;
+        dispatch(setPageNo(newPage));
+        updateUrlWithPage(newPage);
+      }
+    } catch (error: any) {
+      AppToast({
+        type: "error",
+        message: error || "Failed to delete user",
+      });
+    }
+  };
+
+  const closeModal = () => {
+    setModalState({
       isOpen: false,
+      mode: ModalMode.CREATE_MODE,
       userId: "",
-      isSubmitting: false,
       error: null,
     });
   };
@@ -260,14 +324,14 @@ export default function CustomerUserPage() {
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      userId: "",
+      userCustomerId: "",
     });
   };
 
   const closeResetPasswordModal = () => {
     setResetPasswordState({
       isOpen: false,
-      userId: "",
+      userCustomerId: "",
       userName: "",
     });
   };
@@ -276,108 +340,7 @@ export default function CustomerUserPage() {
     setDeleteState({
       isOpen: false,
       user: null,
-      isDeleting: false,
     });
-  };
-
-  // Handle form submission - only update mode
-  const handleUpdateSubmit = async (
-    formData: UpdateCustomerUserRequest
-  ): Promise<void> => {
-    try {
-      setEditModalState((prev) => ({
-        ...prev,
-        isSubmitting: true,
-        error: null,
-      }));
-
-      if (!editModalState.userId) {
-        throw new Error("User ID is required for update");
-      }
-
-      // Map form data to service request format
-      const updatePayload: UpdateUserRequest = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phoneNumber: formData.phoneNumber,
-        accountStatus: formData.accountStatus,
-        profileImageUrl: formData.profileImageUrl,
-        notes: formData.notes,
-      };
-
-      const response = await updateUserService(
-        editModalState.userId,
-        updatePayload
-      );
-
-      if (response) {
-        // Optimistic update
-        setData((prev) =>
-          prev
-            ? {
-                ...prev,
-                content: prev.content.map((user) =>
-                  user.id === editModalState.userId ? response : user
-                ),
-              }
-            : prev
-        );
-
-        AppToast({
-          type: "success",
-          message: `Customer "${
-            response.username || response.email
-          }" updated successfully`,
-        });
-
-        closeEditModal();
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || "An unexpected error occurred";
-      setEditModalState((prev) => ({
-        ...prev,
-        error: errorMessage,
-      }));
-
-      toast.error(errorMessage);
-    } finally {
-      setEditModalState((prev) => ({ ...prev, isSubmitting: false }));
-    }
-  };
-
-  // Handle delete
-  const handleDelete = async () => {
-    if (!deleteState.user?.id) return;
-
-    setDeleteState((prev) => ({ ...prev, isDeleting: true }));
-
-    try {
-      const response = await deletedUserService(deleteState.user.id);
-
-      if (response) {
-        AppToast({
-          type: "success",
-          message: `Customer "${
-            deleteState.user.fullName ?? ""
-          }" deleted successfully`,
-          duration: 4000,
-          position: "top-right",
-        });
-
-        // Check if we need to go back a page
-        if (data && data.content.length === 1 && currentPage > 1) {
-          updateUrlWithPage(currentPage - 1);
-        } else {
-          await loadUsers();
-        }
-      }
-    } catch (error) {
-      console.error("Error deleting customer:", error);
-      toast.error("Failed to delete customer");
-    } finally {
-      setDeleteState((prev) => ({ ...prev, isDeleting: false }));
-      closeDeleteModal();
-    }
   };
 
   return (
@@ -386,80 +349,79 @@ export default function CustomerUserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Customer Management", href: "" },
+            { label: "Customer Users", href: "" },
           ]}
           title="Customer Users"
-          searchValue={searchQuery}
-          searchPlaceholder="Search customers..."
+          searchValue={filters.search}
+          searchPlaceholder="Search customer users..."
+          buttonIcon={<Plus className="w-3 h-3" />}
+          buttonText="New User"
           onSearchChange={handleSearchChange}
-          // Remove openModal prop since we no longer have create functionality
+          openModal={handleCreateUser}
         >
           <div className="flex items-center gap-3">
             <CustomSelect
-              options={STATUS_FILTER}
-              value={accountStatusFilter}
-              placeholder="Select Status"
+              options={ACCOUNT_STATUS_FILTER}
+              value={filters.accountStatus}
+              placeholder="All Status"
               onValueChange={(value) =>
                 handleStatusChange(value as AccountStatus)
               }
+              label="Account Status"
             />
           </div>
         </CardHeaderSection>
 
-        <div className="space-y-4">
-          <DataTableWithPagination
-            data={data?.content || []}
-            columns={columns}
-            loading={isLoading}
-            emptyMessage="No customers found"
-            getRowKey={(user) => user.id?.toString() || user.email}
-          />
-
-          {data && data.totalPages > 1 && (
-            <CustomPagination
-              currentPage={currentPage}
-              totalPages={data.totalPages}
-              onPageChange={handlePageChange}
-              size="md"
-            />
-          )}
-        </div>
+        {/* Merged DataTable with Pagination */}
+        <DataTableWithPagination
+          data={users}
+          columns={columns}
+          loading={isLoading}
+          emptyMessage="No users customer found"
+          getRowKey={(user) => user.id?.toString() || user.email}
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChangeWrapper}
+        />
       </div>
 
-      {/* Edit Modal - Only for updates */}
-      <ModalCustomerUser
-        isOpen={editModalState.isOpen}
-        onClose={closeEditModal}
-        isSubmitting={editModalState.isSubmitting}
-        onSave={handleUpdateSubmit}
-        userId={editModalState.userId}
-        error={editModalState.error}
+      {/* Modals Add/Edit */}
+      <UserCustomerModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        isSubmitting={operations.isCreating || operations.isUpdating}
+        onSave={handleSubmit}
+        userId={modalState.userId}
+        mode={modalState.mode}
+        error={modalState.error}
       />
 
-      {/* User Detail Modal - Only pass userId */}
-      <UserDetailModal
-        userId={detailModalState.userId}
+      {/* Modals User Detail */}
+      <UserCustomerDetailModal
+        userId={detailModalState.userCustomerId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
 
-      {/* Reset Password Modal - Only pass userId */}
+      {/* Modals Reset Password */}
       <ResetPasswordModal
         isOpen={resetPasswordState.isOpen}
         userName={resetPasswordState.userName}
         onClose={closeResetPasswordModal}
-        userId={resetPasswordState.userId}
+        userId={resetPasswordState.userCustomerId}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Modals Delete User */}
       <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}
-        title="Delete Customer"
-        description="Are you sure you want to delete this customer? This action cannot be undone."
+        title="Delete User"
+        description={`Are you sure you want to delete this user ${
+          deleteState.user?.fullName || deleteState.user?.email
+        }?`}
         itemName={deleteState.user?.fullName || deleteState.user?.email}
-        isSubmitting={deleteState.isDeleting}
+        isSubmitting={operations.isDeleting}
       />
     </div>
   );

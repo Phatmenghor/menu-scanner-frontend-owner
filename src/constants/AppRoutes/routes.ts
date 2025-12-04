@@ -36,7 +36,6 @@ export const ROUTES = {
     EXCHANGE_RATE: "/admin/exchange-rate",
     PAYMENT: "/admin/payment",
     USERS_BUSINESS: "/admin/users",
-    SUB_DOMAIN: "/admin/sub-domain",
     CUSTOMER_USER: "/admin/customer-user",
   },
 } as const;
@@ -108,10 +107,6 @@ export const sidebarItems: SidebarItem[] = [
       {
         title: "Users",
         href: ROUTES.DASHBOARD.BUSINESS_USER,
-      },
-      {
-        title: "Subdomain",
-        href: ROUTES.DASHBOARD.SUB_DOMAIN,
       },
     ],
   },

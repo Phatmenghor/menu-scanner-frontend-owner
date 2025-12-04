@@ -32,7 +32,7 @@ interface UserDetailSheetProps {
   onClose: () => void;
 }
 
-export function UserDetailModal({
+export function UserBusinessDetailModal({
   userId,
   isOpen,
   onClose,
@@ -49,7 +49,7 @@ export function UserDetailModal({
         const data = await getUserByIdService(userId);
         setUserData(data);
       } catch (error: any) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user platform data:", error);
       } finally {
         setIsLoadingData(false);
       }

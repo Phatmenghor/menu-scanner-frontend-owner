@@ -18,7 +18,11 @@ import {
   Status,
   STATUS_USER_OPTIONS,
 } from "@/constants/AppResource/status/status";
-import { USER_PLATFORM_ROLE_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
+import {
+  ACCOUNT_STATUS_CREATE_UPDATE,
+  USER_BUSINESS_ROLE_CREATE_UPDATE,
+  USER_PLATFORM_ROLE_CREATE_UPDATE,
+} from "@/constants/AppResource/status/create-update-status";
 import {
   createUserSchema,
   updateUserSchema,
@@ -26,10 +30,7 @@ import {
 } from "@/models/dashboard/user/plateform-user/user.schema";
 import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import Loading from "@/components/shared/common/loading";
-import {
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/store/features/users/users-platform";
+import { CreateUserRequest, UpdateUserRequest } from "@/store/features/users";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
@@ -48,7 +49,7 @@ type Props = {
   error?: string | null;
 };
 
-export default function UserPlatformModal({
+export default function UserBusinessModal({
   isOpen,
   onClose,
   userId,
@@ -361,7 +362,7 @@ export default function UserPlatformModal({
                       label="User Role"
                       control={control}
                       error={errors.roles as any}
-                      options={USER_PLATFORM_ROLE_CREATE_UPDATE}
+                      options={USER_BUSINESS_ROLE_CREATE_UPDATE}
                       placeholder="Select role"
                       required
                       disabled={isSubmitting}
@@ -380,7 +381,7 @@ export default function UserPlatformModal({
                       label="Account Status"
                       control={control}
                       error={errors.accountStatus}
-                      options={STATUS_USER_OPTIONS}
+                      options={ACCOUNT_STATUS_CREATE_UPDATE}
                       placeholder="Select status"
                       required
                       disabled={isSubmitting}

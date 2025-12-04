@@ -9,6 +9,14 @@ export const USER_PLATFORM_ROLE_FILTER = [
   { value: UserRole.PLATFORM_SUPPORT, label: "Platform Support" },
 ];
 
+export const USER_BUSINESS_ROLE_FILTER = [
+  { value: UserRole.ALL, label: "All Roles" },
+
+  { value: UserRole.BUSINESS_OWNER, label: "Platform Owner" },
+  { value: UserRole.BUSINESS_MANAGER, label: "Platform Admin" },
+  { value: UserRole.BUSINESS_STAFF, label: "Platform Manager" },
+];
+
 // Auto renew filter options
 export const AUTO_RENEW_FILTER = [
   { value: Status.ALL, label: "All Status" },

@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { userReducer } from "./features/users/users-platform";
+import { userReducer } from "./features/users";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
 // Add other feature reducers here as you build them

@@ -18,12 +18,12 @@ import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema
 
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import UserPlatformModal from "@/components/dashboard/plate-form-user/user-platform-modal";
+import UserPlatformModal from "@/components/dashboard/users/plateform-user/user-platform-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { userPlatformTableColumns } from "@/constants/AppResource/table/user/user-platform-table";
-import { UserDetailModal } from "@/components/dashboard/plate-form-user/user-detail-modal";
+import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
+import { UserPlatformDetailModal } from "@/components/dashboard/users/plateform-user/user-platform-detail-modal";
 import {
   ACCOUNT_STATUS_FILTER,
   STATUS_FILTER,
@@ -44,7 +44,7 @@ import {
   setPageNo,
   UpdateUserRequest,
   CreateUserRequest,
-} from "@/store/features/users/users-platform";
+} from "@/store/features/users";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 
 export default function UserPage() {
@@ -399,7 +399,7 @@ export default function UserPage() {
         />
       </div>
 
-      {/* Modals */}
+      {/* Modals Add/Edit */}
       <UserPlatformModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
@@ -410,12 +410,14 @@ export default function UserPage() {
         error={modalState.error}
       />
 
-      <UserDetailModal
+      {/* Modals User Detail */}
+      <UserPlatformDetailModal
         userId={detailModalState.userPlatformId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
 
+      {/* Modals Reset Password */}
       <ResetPasswordModal
         isOpen={resetPasswordState.isOpen}
         userName={resetPasswordState.userName}
@@ -423,6 +425,7 @@ export default function UserPage() {
         userId={resetPasswordState.userPlatformId}
       />
 
+      {/* Modals Delete User */}
       <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
