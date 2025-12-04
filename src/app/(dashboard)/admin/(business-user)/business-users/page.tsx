@@ -18,17 +18,12 @@ import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema
 
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import UserPlatformModal from "@/components/dashboard/users/plateform-user/user-platform-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { AppToast } from "@/components/shared/toast/app-toast";
-import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
-import { UserPlatformDetailModal } from "@/components/dashboard/users/plateform-user/user-platform-detail-modal";
 import {
   ACCOUNT_STATUS_FILTER,
-  STATUS_FILTER,
   USER_BUSINESS_ROLE_FILTER,
-  USER_PLATFORM_ROLE_FILTER,
 } from "@/constants/AppResource/status/filter-status";
 
 // Redux imports
@@ -75,12 +70,12 @@ export default function UserPage() {
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    userPlatformId: "",
+    userBusinessId: "",
   });
 
   const [resetPasswordState, setResetPasswordState] = useState({
     isOpen: false,
-    userPlatformId: "",
+    userBusinessId: "",
     userName: "",
   });
 
@@ -150,14 +145,14 @@ export default function UserPage() {
   const handleViewDetail = (user: UserModel) => {
     setDetailModalState({
       isOpen: true,
-      userPlatformId: user.id || "",
+      userBusinessId: user.id || "",
     });
   };
 
   const handleResetPassword = (user: UserModel) => {
     setResetPasswordState({
       isOpen: true,
-      userPlatformId: user.id || "",
+      userBusinessId: user.id || "",
       userName: user.fullName || user.email || "",
     });
   };
@@ -335,14 +330,14 @@ export default function UserPage() {
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      userPlatformId: "",
+      userBusinessId: "",
     });
   };
 
   const closeResetPasswordModal = () => {
     setResetPasswordState({
       isOpen: false,
-      userPlatformId: "",
+      userBusinessId: "",
       userName: "",
     });
   };
@@ -416,7 +411,7 @@ export default function UserPage() {
 
       {/* Modals User Detail */}
       <UserBusinessDetailModal
-        userId={detailModalState.userPlatformId}
+        userId={detailModalState.userBusinessId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
@@ -426,7 +421,7 @@ export default function UserPage() {
         isOpen={resetPasswordState.isOpen}
         userName={resetPasswordState.userName}
         onClose={closeResetPasswordModal}
-        userId={resetPasswordState.userPlatformId}
+        userId={resetPasswordState.userBusinessId}
       />
 
       {/* Modals Delete User */}

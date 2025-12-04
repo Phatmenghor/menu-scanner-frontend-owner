@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { userReducer } from "./features/users";
+import { businessReducer } from "./features/master-data/business";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
 // Add other feature reducers here as you build them
@@ -9,7 +10,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 const store = configureStore({
   reducer: {
     users: userReducer,
-    // products: productReducer,
+    business: businessReducer,
     // orders: orderReducer,
   },
   middleware: (getDefaultMiddleware) =>
