@@ -24,13 +24,13 @@ import {
 
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import { DataTable } from "@/components/shared/common/data-table";
+import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
 import ModalCustomerUser, {
   UpdateCustomerUserRequest,
 } from "@/components/shared/modal/cusomer-user-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
-import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
+import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { UserDetailModal } from "@/components/dashboard/plate-form-user/user-detail-modal";
 import { STATUS_FILTER } from "@/constants/AppResource/status/filter-status";
@@ -407,7 +407,7 @@ export default function CustomerUserPage() {
         </CardHeaderSection>
 
         <div className="space-y-4">
-          <DataTable
+          <DataTableWithPagination
             data={data?.content || []}
             columns={columns}
             loading={isLoading}
@@ -452,7 +452,7 @@ export default function CustomerUserPage() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
+      <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}

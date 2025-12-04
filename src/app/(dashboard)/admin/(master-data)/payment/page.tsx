@@ -6,11 +6,11 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
-import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
+import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import { DataTable } from "@/components/shared/common/data-table";
+import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
 import { ModalMode, Status } from "@/constants/AppResource/status/status";
 import { Plus } from "lucide-react";
@@ -400,7 +400,7 @@ export default function PaymentPage() {
         </CardHeaderSection>
 
         <div className="space-y-4">
-          <DataTable
+          <DataTableWithPagination
             data={data?.content || []}
             columns={columns}
             loading={isLoading}
@@ -439,7 +439,7 @@ export default function PaymentPage() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
+      <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}

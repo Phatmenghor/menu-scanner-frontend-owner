@@ -7,7 +7,7 @@ export enum Status {
 }
 
 export enum AccountStatus {
-  All = "ALL",
+  ALL = "ALL",
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   LOCKED = "LOCKED",
@@ -31,7 +31,8 @@ export enum ModalMode {
 }
 
 export enum UserRole {
-  All = "ALL",
+  ALL = "ALL",
+
   PLATFORM_OWNER = "PLATFORM_OWNER",
   PLATFORM_ADMIN = "PLATFORM_ADMIN",
   PLATFORM_MANAGER = "PLATFORM_MANAGER",

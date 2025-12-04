@@ -1,9 +1,8 @@
 export interface AllUserRequest {
   search?: string;
-  businessId?: string;
-  accountStatus?: string;
+  accountStatus?: string[];
   roles?: string[];
-  userType?: string;
+  userTypes?: string[];
   pageNo?: number;
   pageSize?: number;
   sortBy?: string;
@@ -28,6 +27,7 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
+  id?: string;
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;

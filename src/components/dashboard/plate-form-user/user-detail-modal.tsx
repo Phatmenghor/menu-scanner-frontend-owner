@@ -2,21 +2,6 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import {
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  Calendar,
-  UserCheck,
-  Users,
-  Briefcase,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Crown,
-  Building2,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
@@ -31,6 +16,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
 import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import Loading from "@/components/shared/common/loading";
+import {
+  getUserRoleColor,
+  getStatusColor,
+  getUserTypeColor,
+  getUserTypeIcon,
+  formatEnumToDisplay,
+} from "@/utils/styles/enum-style";
+import { dateTimeFormat } from "@/utils/date/date-time-format";
+import { CustomAvatar } from "@/components/shared/common/custom-avator";
 
 interface UserDetailSheetProps {
   userId?: string;
@@ -64,65 +58,6 @@ export function UserDetailModal({
     fetchUserData();
   }, [userId, isOpen]);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "suspended":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "inactive":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getUserTypeColor = (userType: string | null) => {
-    switch (userType?.toLowerCase()) {
-      case "platform_user":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "business_user":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "admin":
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    const colors = [
-      "bg-blue-100 text-blue-800",
-      "bg-green-100 text-green-800",
-      "bg-purple-100 text-purple-800",
-      "bg-orange-100 text-orange-800",
-      "bg-pink-100 text-pink-800",
-    ];
-    return colors[role.length % colors.length];
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getUserTypeIcon = (userType: string | null) => {
-    switch (userType?.toLowerCase()) {
-      case "platform_user":
-        return <Crown className="h-4 w-4" />;
-      case "business_user":
-        return <UserCheck className="h-4 w-4" />;
-      default:
-        return <User className="h-4 w-4" />;
-    }
-  };
-
   const handleClose = () => {
     setUserData(null);
     onClose();
@@ -139,37 +74,35 @@ export function UserDetailModal({
         {/* Header */}
         <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
           <div className="flex items-center gap-4 pr-8">
-            <Avatar className="h-12 w-12">
-              <AvatarImage
-                src={userData?.profileImageUrl ? profileImageUrl : ""}
-                alt={userData?.fullName}
-              />
-              <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                {userData?.firstName?.[0]}
-                {userData?.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
+            <CustomAvatar
+              imageUrl={userData?.profileImageUrl}
+              name={userData?.firstName}
+              size="xl"
+            />
+
             <div className="flex-1">
               <DialogTitle className="text-xl font-semibold">
-                User Details
+                {userData?.fullName || "User Details"}
               </DialogTitle>
-              <DialogDescription className="text-base text-muted-foreground">
-                {userData?.fullName
-                  ? `Information for "${userData.fullName}"`
-                  : "Loading user information..."}
+              <DialogDescription className="text-sm text-muted-foreground">
+                {userData?.email || "Loading user information..."}
               </DialogDescription>
               {userData && (
                 <div className="flex items-center gap-2 mt-2">
                   <Badge
-                    className={getStatusColor(userData?.accountStatus ?? "")}
-                  >
-                    {userData?.accountStatus}
-                  </Badge>
-                  <Badge
+                    variant="outline"
                     className={getUserTypeColor(userData?.userType ?? null)}
                   >
                     {getUserTypeIcon(userData?.userType ?? null)}
-                    <span className="ml-1">{userData?.userType}</span>
+                    <span className="ml-1.5">
+                      {formatEnumToDisplay(userData?.userType ?? "")}
+                    </span>
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={getStatusColor(userData?.accountStatus ?? "")}
+                  >
+                    {formatEnumToDisplay(userData?.accountStatus ?? "")}
                   </Badge>
                 </div>
               )}
@@ -187,57 +120,56 @@ export function UserDetailModal({
               <div className="space-y-6">
                 {/* Personal Information */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-6 bg-primary rounded-full"></div>
+                    <h3 className="text-base font-semibold">
                       Personal Information
                     </h3>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
+                  <div className="grid gap-3">
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
                       <Label className="text-sm font-medium text-muted-foreground">
-                        Email:
+                        Full Name
                       </Label>
-                      <span className="text-sm">
+                      <span className="text-sm font-medium text-right">
+                        {userData?.fullName || "---"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Email
+                      </Label>
+                      <span className="text-sm text-right">
                         {userData?.email || "---"}
                       </span>
                     </div>
 
-                    <div className="flex justify-between">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Full Name:
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Phone Number
                       </Label>
-                      <span className="text-sm">{userData?.fullName}</span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Phone Number:
-                      </Label>
-                      <span className="text-sm flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        {userData?.phoneNumber}
+                      <span className="text-sm text-right">
+                        {userData?.phoneNumber || "---"}
                       </span>
                     </div>
 
-                    <div className="flex justify-between">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Position:
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Position
                       </Label>
-                      <span className="text-sm flex items-center gap-2">
-                        <Briefcase className="h-4 w-4" />
+                      <span className="text-sm text-right">
                         {userData?.position || "---"}
                       </span>
                     </div>
 
-                    <div className="flex justify-between">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Address:
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Address
                       </Label>
-                      <span className="text-sm flex items-start gap-2 max-w-[300px] text-right">
-                        <MapPin className="h-4 w-4 mt-0.5" />
-                        {userData?.address || "No address provided"}
+                      <span className="text-sm text-right max-w-[350px]">
+                        {userData?.address || "---"}
                       </span>
                     </div>
                   </div>
@@ -245,61 +177,73 @@ export function UserDetailModal({
 
                 {/* Account Information */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-green-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-6 bg-primary rounded-full"></div>
+                    <h3 className="text-base font-semibold">
                       Account Information
                     </h3>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
+                  <div className="grid gap-3">
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
                       <Label className="text-sm font-medium text-muted-foreground">
-                        User Type:
+                        User Identifier
                       </Label>
-                      <div className="flex items-center gap-2">
-                        {getUserTypeIcon(userData?.userType ?? null)}
-                        <span className="text-sm">{userData?.userType}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Account Status:
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        {userData?.accountStatus.toLowerCase() === "active" ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : userData?.accountStatus.toLowerCase() ===
-                          "pending" ? (
-                          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        )}
-                        <span className="text-sm">
-                          {userData?.accountStatus}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Business Name:
-                      </Label>
-                      <span className="text-sm flex items-center gap-2">
-                        <Building2 className="h-4 w-4" />
-                        {userData?.businessName || "---"}
+                      <span className="text-sm text-right">
+                        {userData?.userIdentifier || "---"}
                       </span>
                     </div>
+
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        User Type
+                      </Label>
+                      <Badge
+                        variant="outline"
+                        className={getUserTypeColor(userData?.userType ?? null)}
+                      >
+                        {getUserTypeIcon(userData?.userType ?? null)}
+                        <span className="ml-1.5">
+                          {formatEnumToDisplay(userData?.userType ?? "")}
+                        </span>
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Account Status
+                      </Label>
+                      <Badge
+                        variant="outline"
+                        className={getStatusColor(
+                          userData?.accountStatus ?? ""
+                        )}
+                      >
+                        {formatEnumToDisplay(userData?.accountStatus ?? "")}
+                      </Badge>
+                    </div>
+
+                    {userData?.businessName && (
+                      <div className="flex items-start justify-between py-2 border-b border-border/40">
+                        <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                          Business
+                        </Label>
+                        <span className="text-sm text-right">
+                          {userData?.businessName}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Roles */}
                 {userData?.roles && userData?.roles.length > 0 && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
-                      <h3 className="text-lg font-semibold">Roles</h3>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-1 h-6 bg-primary rounded-full"></div>
+                      <h3 className="text-base font-semibold">
+                        Assigned Roles
+                      </h3>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
@@ -307,57 +251,87 @@ export function UserDetailModal({
                         <Badge
                           key={index}
                           variant="outline"
-                          className={getRoleColor(role)}
+                          className={getUserRoleColor(role)}
                         >
-                          <Users className="w-3 h-3 mr-1" />
-                          {role}
+                          {formatEnumToDisplay(role)}
                         </Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
+                {/* Additional Notes */}
+                {userData?.notes && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-1 h-6 bg-primary rounded-full"></div>
+                      <h3 className="text-base font-semibold">Notes</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                      {userData?.notes}
+                    </p>
+                  </div>
+                )}
+
                 {/* System Information */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-red-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-6 bg-primary rounded-full"></div>
+                    <h3 className="text-base font-semibold">
                       System Information
                     </h3>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
+                  <div className="grid gap-3">
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
                       <Label className="text-sm font-medium text-muted-foreground">
-                        User ID:
+                        User ID
                       </Label>
-                      <span className="text-sm font-mono">{userData?.id}</span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Created:
-                      </Label>
-                      <span className="text-sm flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(userData?.createdAt ?? "")}
+                      <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                        {userData?.id}
                       </span>
                     </div>
 
-                    <div className="flex justify-between">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Last Updated:
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Created At
                       </Label>
-                      <span className="text-sm flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(userData?.updatedAt ?? "")}
+                      <span className="text-sm text-right">
+                        {dateTimeFormat(userData?.createdAt ?? "")}
+                      </span>
+                    </div>
+
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Created By
+                      </Label>
+                      <span className="text-sm text-right">
+                        {userData?.createdBy || "---"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-start justify-between py-2 border-b border-border/40">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        Last Updated
+                      </Label>
+                      <span className="text-sm text-right">
+                        {dateTimeFormat(userData?.updatedAt ?? "")}
+                      </span>
+                    </div>
+
+                    <div className="flex items-start justify-between py-2">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Updated By
+                      </Label>
+                      <span className="text-sm text-right">
+                        {userData?.updatedBy || "---"}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="text-center py-12">
                 <p className="text-muted-foreground">No user data available</p>
               </div>
             )}

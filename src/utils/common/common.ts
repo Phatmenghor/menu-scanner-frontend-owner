@@ -34,5 +34,5 @@ export const indexDisplay = (
   pageSize?: number,
   index?: number
 ) => {
-  return ((pageNo || 1) - 1) * (pageSize || 10) + (index || 1) + 1;
+  return ((pageNo || 1) - 1) * (pageSize || 10) + (index || 1);
 };

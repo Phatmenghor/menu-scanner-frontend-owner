@@ -12,7 +12,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
-import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
+import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { BusinessFormData } from "@/models/dashboard/master-data/business/business.schema";
 import {
@@ -27,7 +27,7 @@ import {
 import ModalBusiness from "@/components/shared/modal/business-modal";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import { DataTable } from "@/components/shared/common/data-table";
+import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
 import { BusinessDetailModal } from "@/components/dashboard/master-data/business/business-detail-modal";
 import { createBusinessTableColumns } from "@/constants/AppResource/table/master-data/bisiness-table";
@@ -323,7 +323,7 @@ export default function BusinessPage() {
         />
 
         <div className="space-y-4">
-          <DataTable
+          <DataTableWithPagination
             data={data?.content || []}
             columns={columns}
             loading={isLoading}
@@ -360,7 +360,7 @@ export default function BusinessPage() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
+      <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}

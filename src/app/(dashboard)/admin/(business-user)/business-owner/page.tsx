@@ -44,7 +44,7 @@ import {
   updateUserService,
 } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
-import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
+import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -637,7 +637,7 @@ export default function BusinessUserPage() {
               user={selectedUser}
             />
 
-            <DeleteConfirmationDialog
+            <DeleteConfirmationModal
               isOpen={isDeleteDialogOpen}
               onClose={() => {
                 setIsDeleteDialogOpen(false);

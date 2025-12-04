@@ -152,83 +152,64 @@ export default function ResetPasswordModal({
           <div className="p-6">
             <div className="space-y-6">
               {/* User Information Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    User Information
-                  </h3>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-blue-700">
-                        Target User
-                      </Label>
-                      <p className="text-sm text-blue-900 font-medium">
-                        {userName || "Unknown User"}
-                      </p>
-                    </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-blue-700">
+                      Target User
+                    </Label>
+                    <p className="text-sm text-blue-900 font-medium">
+                      {userName || "Unknown User"}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Password Information Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-6 bg-green-600 rounded-full"></div>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    New Password Information
-                  </h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center">
+                    <Key className="w-5 h-5" />
+                  </div>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Default Password
+                  </Label>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center">
-                      <Key className="w-5 h-5" />
-                    </div>
-                    <Label className="text-sm font-medium text-gray-700">
-                      Default Password
-                    </Label>
-                  </div>
-
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      value={defaultPassword}
-                      readOnly
-                      className="pr-20 font-mono bg-gray-50 border-gray-200"
-                    />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="h-8 w-8 p-0 hover:bg-gray-200"
-                        title={showPassword ? "Hide password" : "Show password"}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={copyPassword}
-                        className="h-8 w-8 p-0 hover:bg-gray-200"
-                        title="Copy password"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={defaultPassword}
+                    readOnly
+                    className="pr-20 font-mono bg-gray-50 border-gray-200"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="h-8 w-8 p-0 hover:bg-gray-200"
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyPassword}
+                      className="h-8 w-8 p-0 hover:bg-gray-200"
+                      title="Copy password"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </div>

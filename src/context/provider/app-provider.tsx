@@ -4,7 +4,7 @@
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
 import { Provider } from "react-redux";
-import store from "@/store/store";
+import store from "@/store";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 interface AppProvidersProps {

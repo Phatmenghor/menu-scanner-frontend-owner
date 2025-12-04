@@ -1,11 +1,12 @@
-import { AccountStatus, Status } from "./status";
+import { AccountStatus, Status, UserRole } from "./status";
 
 export const USER_PLATFORM_ROLE_FILTER = [
-  { value: AccountStatus.All, label: "All Status" },
-  { value: AccountStatus.ACTIVE, label: "Active" },
-  { value: AccountStatus.INACTIVE, label: "Inactive" },
-  { value: AccountStatus.LOCKED, label: "Locked" },
-  { value: AccountStatus.SUSPENDED, label: "Suspended" },
+  { value: UserRole.ALL, label: "All Roles" },
+
+  { value: UserRole.PLATFORM_OWNER, label: "Platform Owner" },
+  { value: UserRole.PLATFORM_ADMIN, label: "Platform Admin" },
+  { value: UserRole.PLATFORM_MANAGER, label: "Platform Manager" },
+  { value: UserRole.PLATFORM_SUPPORT, label: "Platform Support" },
 ];
 
 // Auto renew filter options
@@ -25,4 +26,12 @@ export const SUBSCRIPT_STATUS_FILTER = [
   { value: Status.ALL, label: "All Status" },
   { value: Status.ACTIVE, label: "Active" },
   { value: Status.INACTIVE, label: "Expried" },
+];
+
+export const ACCOUNT_STATUS_FILTER = [
+  { value: AccountStatus.ALL, label: "All Status" },
+  { value: AccountStatus.ACTIVE, label: "Active" },
+  { value: AccountStatus.INACTIVE, label: "Inactive" },
+  { value: AccountStatus.LOCKED, label: "Locked" },
+  { value: AccountStatus.SUSPENDED, label: "Suspended" },
 ];

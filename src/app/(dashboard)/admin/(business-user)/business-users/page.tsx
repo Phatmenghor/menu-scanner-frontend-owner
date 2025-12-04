@@ -27,11 +27,11 @@ import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema
 
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import { DataTable } from "@/components/shared/common/data-table";
+import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { CustomPagination } from "@/components/shared/common/custom-pagination";
 import ModalBusinessUser from "@/components/shared/modal/business-user-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
-import { DeleteConfirmationDialog } from "@/components/shared/dialog/dialog-delete";
+import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { ConfirmDialog } from "@/components/shared/dialog/dialog-confirm";
 import { AppToast } from "@/components/shared/toast/app-toast";
 import { UserDetailModal } from "@/components/dashboard/plate-form-user/user-detail-modal";
@@ -443,7 +443,7 @@ export default function BusinessUserPage() {
         </CardHeaderSection>
 
         <div className="space-y-4">
-          <DataTable
+          <DataTableWithPagination
             data={data?.content || []}
             columns={columns}
             loading={isLoading}
@@ -489,7 +489,7 @@ export default function BusinessUserPage() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
+      <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}

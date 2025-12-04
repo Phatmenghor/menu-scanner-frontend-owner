@@ -63,7 +63,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
   return (
     <div>
       <Card>
-        <CardContent className="py-6 space-y-4">
+        <CardContent className="py-6">
           {/* Breadcrumb Section */}
           {breadcrumbs && breadcrumbs.length > 0 && (
             <Breadcrumb>
@@ -100,7 +100,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
           )}
 
           {/* Title Section with Back Button */}
-          <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-start">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-start mt-4">
             {back && !isMobile && (
               <Button
                 type="button"
@@ -122,7 +122,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
           </div>
 
           {/* Search and Actions Section */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             {/* Search input */}
             {onSearchChange && (
               <div className="flex w-full lg:w-[400px] items-center gap-2">
@@ -140,7 +140,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
             )}
 
             {/* Right side actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3 w-full lg:w-auto">
               {customSelect && (
                 <div className="[&>*]:bg-gray-800 [&>*]:border-gray-700 [&>*]:text-gray-200">
                   {customSelect}
@@ -148,7 +148,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
               )}
 
               {buttonText && buttonHref && (
-                <div>
+                <div className="">
                   <Link
                     href={{
                       pathname: buttonHref,
@@ -165,13 +165,15 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
                   </Link>
                 </div>
               )}
+
               {children && (
                 <div className="w-full [&>*]:text-gray-200">{children}</div>
               )}
+
               {customAddNewButton && <div>{customAddNewButton}</div>}
 
               {buttonText && openModal && (
-                <div>
+                <div className="">
                   <Button
                     variant="default"
                     className="text-white border-0 flex gap-2 font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/25 group"

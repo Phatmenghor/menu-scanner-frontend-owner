@@ -21,7 +21,6 @@ export interface UserModel {
   firstName: string;
   lastName: string;
   fullName: string;
-  displayName: string;
   phoneNumber: string;
   profileImageUrl: string;
   userType: string;
@@ -32,19 +31,4 @@ export interface UserModel {
   notes: string;
   businessId: string;
   businessName: string;
-  socialProvider: string;
-  hasTelegramLinked: boolean;
-  telegramUserId: string;
-  telegramUsername: string;
-  telegramDisplayName: string;
-  telegramLinkedAt: string;
-  telegramNotificationsEnabled: boolean;
-  canReceiveTelegramNotifications: boolean;
-  active: boolean;
-  businessUser: boolean;
-  customer: boolean;
-  platformUser: boolean;
-  telegramUser: boolean;
-  localUser: boolean;
-  authenticationMethod: string;
 }

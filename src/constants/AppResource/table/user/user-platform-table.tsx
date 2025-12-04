@@ -22,7 +22,7 @@ interface UserTableOptions {
   handlers: UserTableHandlers;
 }
 
-export const createUserPlatformTableColumns = ({
+export const userPlatformTableColumns = ({
   data,
   handlers,
 }: UserTableOptions): TableColumn<UserModel>[] => {
@@ -37,7 +37,8 @@ export const createUserPlatformTableColumns = ({
     {
       key: "index",
       label: "#",
-      className: "max-w-[120px]",
+      minWidth: "60px",
+      maxWidth: "80px",
       render: (_, index) => (
         <span className="font-medium">
           {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index)}
@@ -47,7 +48,8 @@ export const createUserPlatformTableColumns = ({
     {
       key: "avatar",
       label: "Avatar",
-      className: "max-w-[80px]",
+      minWidth: "70px",
+      maxWidth: "90px",
       render: (user) => {
         return (
           <CustomAvatar
@@ -61,22 +63,35 @@ export const createUserPlatformTableColumns = ({
     {
       key: "userIdentifier",
       label: "User Identifier",
-      className: "max-w-[120px]",
+      minWidth: "200px",
+      maxWidth: "350px",
+      truncate: true,
       render: (user) => (
-        <span
-          className="text-xs text-muted-foreground"
-          title={user?.userIdentifier}
-        >
+        <span className="text-xs text-muted-foreground">
           {user?.userIdentifier || "---"}
+        </span>
+      ),
+    },
+    {
+      key: "phoneNumber",
+      label: "Phone Number",
+      minWidth: "200px",
+      maxWidth: "350px",
+      truncate: true,
+      render: (user) => (
+        <span className="text-xs text-muted-foreground">
+          {user?.phoneNumber || "---"}
         </span>
       ),
     },
     {
       key: "email",
       label: "Email",
-      className: "max-w-[250px]",
+      minWidth: "180px",
+      maxWidth: "300px",
+      truncate: true,
       render: (user) => (
-        <span className="text-xs text-muted-foreground" title={user?.email}>
+        <span className="text-xs text-muted-foreground">
           {user?.email || "---"}
         </span>
       ),
@@ -84,9 +99,11 @@ export const createUserPlatformTableColumns = ({
     {
       key: "fullName",
       label: "Full Name",
-      className: "max-w-[200px]",
+      minWidth: "150px",
+      maxWidth: "250px",
+      truncate: true,
       render: (user) => (
-        <span className="text-xs text-muted-foreground" title={user?.fullName}>
+        <span className="text-xs text-muted-foreground">
           {user?.fullName || `${user.firstName} ${user.lastName}`}
         </span>
       ),
@@ -94,7 +111,9 @@ export const createUserPlatformTableColumns = ({
     {
       key: "roles",
       label: "Role",
-      className: "max-w-[200px]",
+      minWidth: "120px",
+      maxWidth: "200px",
+      truncate: true,
       render: (user) => (
         <>
           {user.roles?.length > 0
@@ -108,9 +127,22 @@ export const createUserPlatformTableColumns = ({
       ),
     },
     {
+      key: "accountStatus",
+      label: "Account Status",
+      minWidth: "150px",
+      maxWidth: "250px",
+      truncate: true,
+      render: (user) => (
+        <span className="text-xs text-muted-foreground">
+          {user?.accountStatus || "---"}
+        </span>
+      ),
+    },
+    {
       key: "createdAt",
       label: "Created At",
-      className: "max-w-[180px]",
+      minWidth: "150px",
+      maxWidth: "200px",
       render: (user) => (
         <span className="text-sm text-muted-foreground">
           {dateTimeFormat(user?.createdAt)}
@@ -120,7 +152,8 @@ export const createUserPlatformTableColumns = ({
     {
       key: "actions",
       label: "Actions",
-      className: "w-[200px]",
+      minWidth: "200px",
+      maxWidth: "240px",
       render: (user) => (
         <div className="flex items-center gap-2">
           <ActionButton
