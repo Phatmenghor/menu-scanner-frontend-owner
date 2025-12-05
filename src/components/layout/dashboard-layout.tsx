@@ -3,7 +3,7 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/app/redux/store/use-mobile";
 import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
 import { TopBar } from "./topbar";

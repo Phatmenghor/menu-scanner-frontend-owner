@@ -3,7 +3,7 @@
  * Local state and UI types for auth feature
  */
 
-import { UserAuthResponseModel, ProfileResponseModel } from "../models/auth-models";
+import { UserAuthResponseModel, ProfileResponseModel } from "./auth-models";
 
 /**
  * Auth Redux State
@@ -26,19 +26,13 @@ import {
 } from "@/models/dashboard/user/plateform-user/user.response";
 import {
   CreateUserRequest,
-  UpdateUserRequest,
   AllUserRequest,
 } from "@/models/dashboard/user/plateform-user/user.request";
 import { AccountStatus, UserRole } from "@/constants/AppResource/status/status";
+import { UpdateUserRequest } from "./request/update-user-request";
 
 // Re-export dashboard user models
-export type {
-  AllUserResponse,
-  UserModel,
-  CreateUserRequest,
-  UpdateUserRequest,
-  AllUserRequest,
-};
+export type { AllUserResponse, UserModel, CreateUserRequest, AllUserRequest };
 
 export interface UserFilters {
   search: string;

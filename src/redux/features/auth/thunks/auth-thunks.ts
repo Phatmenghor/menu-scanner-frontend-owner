@@ -4,12 +4,8 @@
  */
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  LoginCredentialsModel,
-  UserAuthResponseModel,
-  ProfileResponseModel,
-} from "../models/auth-models";
 import { loginService, getProfileService } from "../services/auth-services";
+import { LoginCredentialsRequest } from "../models/request/login-credentials-request";
 
 /**
  * Login thunk
@@ -17,14 +13,12 @@ import { loginService, getProfileService } from "../services/auth-services";
  */
 export const login = createAsyncThunk(
   "auth/login",
-  async (credentials: LoginCredentialsModel, { rejectWithValue }) => {
+  async (credentials: LoginCredentialsRequest, { rejectWithValue }) => {
     try {
       const userData = await loginService(credentials);
       return userData;
     } catch (error: any) {
-      return rejectWithValue(
-        error?.errorMessage || error?.message || "Login failed"
-      );
+      return rejectWithValue(error || "Login failed");
     }
   }
 );

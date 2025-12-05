@@ -12,7 +12,7 @@ import { useDebounce } from "@/utils/debounce/debounce";
 import { Plus } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { usePagination } from "@/hooks/use-pagination";
+import { usePagination } from "@/app/redux/store/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { AppToast } from "@/components/shared/common/app-toast";

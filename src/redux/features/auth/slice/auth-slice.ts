@@ -4,7 +4,7 @@
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AuthState } from "../types/auth-types";
+import { AuthState } from "../models/auth-types";
 import {
   UserAuthResponseModel,
   ProfileResponseModel,
@@ -96,5 +96,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, logout, clearError, resetAuthState } = authSlice.actions;
+export const { setUser, logout, clearError, resetAuthState } =
+  authSlice.actions;
 export default authSlice.reducer;

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 
-import { usePagination } from "@/hooks/use-pagination";
+import { usePagination } from "@/app/redux/store/use-pagination";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {

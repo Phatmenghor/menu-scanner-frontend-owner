@@ -1,4 +1,4 @@
-import { useAppDispatch, useAppSelector } from "@/features/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { selectError, selectIsLoading } from "../selectors/auth-selectors";
 
 export const useAuthState = () => {

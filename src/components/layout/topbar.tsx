@@ -1,7 +1,7 @@
 "use client";
 
 import { LogOut, Menu } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/app/redux/store/use-mobile";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,

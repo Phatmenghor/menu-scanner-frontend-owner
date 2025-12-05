@@ -6,7 +6,7 @@ import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/app/redux/store/use-mobile";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES, sidebarItems } from "@/constants/AppRoutes/routes";

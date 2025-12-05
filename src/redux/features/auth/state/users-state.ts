@@ -1,4 +1,4 @@
-import { useAppDispatch, useAppSelector } from "@/features/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   selectFilters,
   selectIsLoading,

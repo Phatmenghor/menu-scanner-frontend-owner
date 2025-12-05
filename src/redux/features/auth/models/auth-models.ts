@@ -3,11 +3,6 @@
  * API request/response models for authentication
  */
 
-export interface LoginCredentialsModel {
-  userIdentifier: string;
-  password: string;
-}
-
 export interface UserAuthResponseModel {
   accessToken?: string;
   tokenType?: string;

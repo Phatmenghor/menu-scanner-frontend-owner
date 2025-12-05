@@ -10,7 +10,7 @@ import {
   UpdateUserRequest,
   UserModel,
   UpdateUserParams,
-} from "../types/auth-types";
+} from "../models/auth-types";
 import { Status } from "@/constants/AppResource/status/status";
 import { updateUserService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import {

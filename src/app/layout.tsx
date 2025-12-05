@@ -2,9 +2,9 @@
 import localFont from "next/font/local";
 import "../styles/globals.css";
 import { ReactNode } from "react";
-import { ClientProviders } from "@/context/provider/client-provider";
 import PageProgressBar from "@/components/shared/progressbar/global-n-progress";
 import { ToastProvider } from "@/components/shared/common/app-toast";
+import { ClientProviders } from "@/context/client-provider";
 
 // Font Configuration with optimized settings
 const geistSans = localFont({

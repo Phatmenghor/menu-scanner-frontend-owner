@@ -8,7 +8,7 @@ import {
   CreateUserRequest,
   UpdateUserRequest,
   UserModel,
-} from "../types/auth-types";
+} from "../models/auth-types";
 import { axiosClientWithAuth } from "@/utils/axios";
 
 /**

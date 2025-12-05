@@ -4,7 +4,7 @@
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { UserManagementState, UserFilters } from "../types/auth-types";
+import { UserManagementState } from "../models/auth-types";
 import { AccountStatus, UserRole } from "@/constants/AppResource/status/status";
 import {
   createUser,

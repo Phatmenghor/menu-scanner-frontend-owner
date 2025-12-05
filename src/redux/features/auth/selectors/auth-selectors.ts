@@ -3,7 +3,7 @@
  * Memoized selectors for auth state
  */
 
-import { RootState } from "@/features/store";
+import { RootState } from "@/redux/store";
 import { createSelector } from "@reduxjs/toolkit";
 
 /**

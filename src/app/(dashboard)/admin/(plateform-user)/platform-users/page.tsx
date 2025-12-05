@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 
-import { usePagination } from "@/hooks/use-pagination";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
@@ -18,36 +17,29 @@ import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema
 
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import UserPlatformModal from "@/components/dashboard/users/plateform-user/user-platform-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
-import { UserPlatformDetailModal } from "@/components/dashboard/users/plateform-user/user-platform-detail-modal";
 import {
   ACCOUNT_STATUS_FILTER,
   STATUS_FILTER,
   USER_PLATFORM_ROLE_FILTER,
 } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
+import { showToast } from "@/components/shared/common/app-toast";
+import { useUsersState } from "@/redux/features/auth/state/users-state";
+import { usePagination } from "@/redux/store/use-pagination";
 import {
-  createUser,
-  deleteUser,
   fetchUsers,
   toggleUserStatus,
-  updateUser,
-} from "@/features/auth/thunks/users-thunks";
-import { showToast } from "@/components/shared/common/app-toast";
+} from "@/redux/features/auth/thunks/users-thunks";
 import {
   setAccountStatusFilter,
   setPageNo,
   setRoleFilter,
   setSearchFilter,
-} from "@/features/auth/slice/users-slice";
-import {
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/features/auth/types/auth-types";
-import { useUsersState } from "@/features/auth/state/users-state";
+} from "@/redux/features/auth/slice/users-slice";
+import { CreateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
 
 export default function UserPage() {
   const searchParams = useSearchParams();

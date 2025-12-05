@@ -20,8 +20,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import { showToast } from "@/components/shared/common/app-toast";
-import { login } from "@/features/auth/thunks/auth-thunks";
-import { useAuthState } from "@/features/auth/state/auth-state";
+import { useAuthState } from "@/redux/features/auth/state/auth-state";
+import { login } from "@/redux/features/auth/thunks/auth-thunks";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);

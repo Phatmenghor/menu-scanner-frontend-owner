@@ -3,21 +3,17 @@
  * Business logic for authentication operations
  */
 
-import {
-  LoginCredentialsModel,
-  UserAuthResponseModel,
-  ProfileResponseModel,
-} from "../models/auth-models";
 import { axiosClient, axiosClientWithAuth } from "@/utils/axios";
 import { storeRoles } from "@/utils/local-storage/roles";
 import { storeToken } from "@/utils/local-storage/token";
 import { storeUserInfo } from "@/utils/local-storage/userInfo";
+import { LoginCredentialsRequest } from "../models/request/login-credentials-request";
 
 /**
  * Login service
  * @param credentials User login credentials
  */
-export async function loginService(credentials: LoginCredentialsModel) {
+export async function loginService(credentials: LoginCredentialsRequest) {
   try {
     const response = await axiosClient.post("/api/v1/auth/login", credentials);
     const userData = response.data.data;
