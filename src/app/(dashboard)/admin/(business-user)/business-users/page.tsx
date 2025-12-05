@@ -27,8 +27,8 @@ import {
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { UserBusinessDetailModal } from "@/redux/features/auth/components/user-business-detail-modal";
 import UserBusinessModal from "@/redux/features/auth/components/user-business-modal";
-import { userBusinessTableColumns } from "@/constants/AppResource/table/users/user-business-table";
-import { useUsersState } from "@/redux/features/auth/state/users-state";
+import { userBusinessTableColumns } from "@/redux/features/auth/table/user-business-table";
+import { useUsersState } from "@/redux/features/auth/store/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
   createUser,
@@ -36,18 +36,18 @@ import {
   fetchUsers,
   toggleUserStatus,
   updateUser,
-} from "@/redux/features/auth/thunks/users-thunks";
+} from "@/redux/features/auth/store/thunks/users-thunks";
 import { showToast } from "@/components/shared/common/app-toast";
 import {
   setAccountStatusFilter,
   setPageNo,
   setRoleFilter,
   setSearchFilter,
-} from "@/redux/features/auth/slice/users-slice";
+} from "@/redux/features/auth/store/slice/users-slice";
 import {
   CreateUserRequest,
   UpdateUserRequest,
-} from "@/redux/features/auth/models/request/users-request";
+} from "@/redux/features/auth/store/models/request/users-request";
 
 export default function UserPage() {
   const searchParams = useSearchParams();

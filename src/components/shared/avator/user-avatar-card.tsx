@@ -41,12 +41,12 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const justOpenedRef = useRef(false);
 
-  const sizeClasses = {
-    sm: { avatar: "h-8 w-8", indicator: "w-2 h-2" },
-    md: { avatar: "h-10 w-10", indicator: "w-3 h-3" },
-    lg: { avatar: "h-12 w-12", indicator: "w-3.5 h-3.5" },
-    xl: { avatar: "h-16 w-16", indicator: "w-4 h-4" },
-  };
+    const sizeClasses = {
+      sm: { avatar: "h-8 w-8", indicator: "w-2 h-2" },
+      md: { avatar: "h-10 w-10", indicator: "w-3 h-3" },
+      lg: { avatar: "h-12 w-12", indicator: "w-3.5 h-3.5" },
+      xl: { avatar: "h-16 w-16", indicator: "w-4 h-4" },
+    };
 
   const size = collapsed ? "sm" : avatarSize;
   const sizes = sizeClasses[size];
@@ -62,18 +62,9 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
   const fallbackLetter =
     user.fullName?.charAt(0) || user.firstName?.charAt(0) || "U";
 
-  // Get profile image URL
-  const profileImageUrl = user.profileImageUrl
-    ? user.profileImageUrl.startsWith("http")
-      ? user.profileImageUrl
-      : process.env.NEXT_PUBLIC_API_BASE_URL
-      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${user.profileImageUrl}`
-      : user.profileImageUrl
-    : undefined;
-
   // Image preview handlers - smooth like CustomAvatar
   const handleMouseEnter = () => {
-    if (!enableImagePreview || !profileImageUrl) return;
+    if (!enableImagePreview || !user.profileImageUrl) return;
 
     // Clear any pending close timeout
     if (closeTimeoutRef.current) {
@@ -123,12 +114,12 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
           <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <Avatar
               className={`${sizes.avatar} ${
-                enableImagePreview && profileImageUrl
+                enableImagePreview && user.profileImageUrl
                   ? "cursor-pointer hover:scale-110 transition-transform"
                   : ""
               }`}
             >
-              <AvatarImage src={profileImageUrl} alt={displayName} />
+              <AvatarImage src={user.profileImageUrl} alt={displayName} />
               <AvatarFallback
                 className={`${sizes.avatar} rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm`}
               >
@@ -138,7 +129,7 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
           </div>
         </DialogTrigger>
 
-        {enableImagePreview && profileImageUrl && (
+        {enableImagePreview && user.profileImageUrl && (
           <DialogContent
             className="max-w-fit border-none bg-transparent shadow-none p-0"
             onMouseEnter={handlePreviewMouseEnter}
@@ -159,7 +150,7 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
                 )}
 
                 <img
-                  src={profileImageUrl}
+                  src={user.profileImageUrl}
                   alt={displayName}
                   className="max-w-[70vw] max-h-[70vh] w-auto h-auto object-contain rounded-lg"
                   onLoad={() => setImageLoading(false)}

@@ -3,8 +3,8 @@
  * Centralized configuration for all Redux reducers
  */
 
-import authReducer from "../features/auth/slice/auth-slice";
-import usersReducer from "../features/auth/slice/users-slice";
+import authReducer from "../features/auth/store/slice/auth-slice";
+import usersReducer from "../features/auth/store/slice/users-slice";
 
 /**
  * Root reducer configuration

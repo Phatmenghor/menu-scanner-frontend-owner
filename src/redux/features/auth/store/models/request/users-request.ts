@@ -28,3 +28,14 @@ export interface CreateUserRequest {
   notes?: string;
   accountStatus?: string;
 }
+
+export interface AllUserRequest {
+  search?: string;
+  accountStatus?: string[];
+  roles?: string[];
+  userTypes?: string[];
+  pageNo?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: string;
+}

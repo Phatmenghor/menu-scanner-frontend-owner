@@ -40,7 +40,7 @@ import { PasswordField } from "@/components/shared/form-field/password-field";
 import {
   CreateUserRequest,
   UpdateUserRequest,
-} from "../models/request/users-request";
+} from "../store/models/request/users-request";
 
 type Props = {
   mode: ModalMode;

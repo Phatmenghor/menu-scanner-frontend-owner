@@ -18,11 +18,11 @@ import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
+import { userPlatformTableColumns } from "@/redux/features/auth/table/user-platform-table";
 import { ACCOUNT_STATUS_FILTER } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { UserCustomerDetailModal } from "@/redux/features/auth/components/user-customer-detail-modal";
-import { useUsersState } from "@/redux/features/auth/state/users-state";
+import { useUsersState } from "@/redux/features/auth/store/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
   createUser,
@@ -30,17 +30,17 @@ import {
   fetchUsers,
   toggleUserStatus,
   updateUser,
-} from "@/redux/features/auth/thunks/users-thunks";
+} from "@/redux/features/auth/store/thunks/users-thunks";
 import { showToast } from "@/components/shared/common/app-toast";
 import {
   setAccountStatusFilter,
   setPageNo,
   setSearchFilter,
-} from "@/redux/features/auth/slice/users-slice";
+} from "@/redux/features/auth/store/slice/users-slice";
 import {
   CreateUserRequest,
   UpdateUserRequest,
-} from "@/redux/features/auth/models/request/users-request";
+} from "@/redux/features/auth/store/models/request/users-request";
 import UserCustomerModal from "@/redux/features/auth/components/user-customer-modal";
 
 export default function UserPage() {

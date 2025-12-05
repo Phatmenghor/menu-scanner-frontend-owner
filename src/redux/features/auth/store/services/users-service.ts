@@ -3,13 +3,12 @@
  * Business logic for user CRUD operations
  */
 
+import { axiosClientWithAuth } from "@/utils/axios";
 import {
   AllUserRequest,
   CreateUserRequest,
   UpdateUserRequest,
-  UserModel,
-} from "../models/auth-types";
-import { axiosClientWithAuth } from "@/utils/axios";
+} from "../models/request/users-request";
 
 /**
  * Get all users with filters and pagination

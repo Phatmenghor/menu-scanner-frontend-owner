@@ -1,4 +1,4 @@
-﻿import { useAppDispatch, useAppSelector } from "../../app/redux/store";
+﻿import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   selectFilters,
   selectIsLoading,
@@ -6,7 +6,7 @@ import {
   selectPagination,
   selectUsers,
   selectUsersContent,
-} from "./selectors/users-selectors";
+} from "./store/selectors/users-selectors";
 
 export const useUsersStateManagement = () => {
   const dispatch = useAppDispatch();

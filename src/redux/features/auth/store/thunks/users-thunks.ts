@@ -4,13 +4,7 @@
  */
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  AllUserRequest,
-  CreateUserRequest,
-  UpdateUserRequest,
-  UserModel,
-  UpdateUserParams,
-} from "../models/auth-types";
+
 import { Status } from "@/constants/AppResource/status/status";
 import { updateUserService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import {
@@ -19,6 +13,12 @@ import {
   getAllUsersService,
   getUserByIdService,
 } from "../services/users-service";
+import {
+  AllUserRequest,
+  CreateUserRequest,
+} from "../models/request/users-request";
+import { UpdateUserParams } from "../models/user-types";
+import { UserModel } from "../models/response/users-response";
 
 /**
  * Fetch all users

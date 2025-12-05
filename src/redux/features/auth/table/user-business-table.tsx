@@ -22,7 +22,7 @@ interface UserTableOptions {
   handlers: UserTableHandlers;
 }
 
-export const userPlatformTableColumns = ({
+export const userBusinessTableColumns = ({
   data,
   handlers,
 }: UserTableOptions): TableColumn<UserModel>[] => {
@@ -55,7 +55,7 @@ export const userPlatformTableColumns = ({
           <CustomAvatar
             imageUrl={user.profileImageUrl}
             name={user?.firstName}
-            size="md"
+            size="lg"
           />
         );
       },
