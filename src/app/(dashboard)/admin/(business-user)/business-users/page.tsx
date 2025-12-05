@@ -91,7 +91,6 @@ export default function UserPage() {
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
     baseRoute: ROUTES.DASHBOARD.BUSINESS_USER,
-    defaultPageSize: 10,
   });
 
   // Initialize URL on mount

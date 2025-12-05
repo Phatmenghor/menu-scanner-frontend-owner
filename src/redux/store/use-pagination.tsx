@@ -17,7 +17,7 @@ interface UsePaginationReturn {
 
 export function usePagination({
   baseRoute,
-  defaultPageSize = 10,
+  defaultPageSize = 15,
   totalPages,
   onPageChange,
 }: UsePaginationOptions): UsePaginationReturn {

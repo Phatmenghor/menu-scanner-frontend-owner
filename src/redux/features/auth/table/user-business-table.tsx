@@ -37,19 +37,19 @@ export const userBusinessTableColumns = ({
     {
       key: "index",
       label: "#",
-      minWidth: "60px",
-      maxWidth: "80px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (_, index) => (
         <span className="font-medium">
-          {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index)}
+          {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index + 1)}
         </span>
       ),
     },
     {
       key: "avatar",
       label: "Avatar",
-      minWidth: "70px",
-      maxWidth: "90px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => {
         return (
           <CustomAvatar
@@ -63,8 +63,8 @@ export const userBusinessTableColumns = ({
     {
       key: "userIdentifier",
       label: "User Identifier",
-      minWidth: "200px",
-      maxWidth: "350px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground">
@@ -75,8 +75,8 @@ export const userBusinessTableColumns = ({
     {
       key: "phoneNumber",
       label: "Phone Number",
-      minWidth: "200px",
-      maxWidth: "350px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground">
@@ -87,8 +87,8 @@ export const userBusinessTableColumns = ({
     {
       key: "email",
       label: "Email",
-      minWidth: "180px",
-      maxWidth: "300px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground">
@@ -99,8 +99,8 @@ export const userBusinessTableColumns = ({
     {
       key: "fullName",
       label: "Full Name",
-      minWidth: "150px",
-      maxWidth: "250px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground">
@@ -111,8 +111,8 @@ export const userBusinessTableColumns = ({
     {
       key: "roles",
       label: "Role",
-      minWidth: "120px",
-      maxWidth: "200px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <>
@@ -129,8 +129,8 @@ export const userBusinessTableColumns = ({
     {
       key: "accountStatus",
       label: "Account Status",
-      minWidth: "150px",
-      maxWidth: "250px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground">
@@ -141,8 +141,8 @@ export const userBusinessTableColumns = ({
     {
       key: "createdAt",
       label: "Created At",
-      minWidth: "150px",
-      maxWidth: "200px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => (
         <span className="text-sm text-muted-foreground">
           {dateTimeFormat(user?.createdAt)}
@@ -152,8 +152,8 @@ export const userBusinessTableColumns = ({
     {
       key: "actions",
       label: "Actions",
-      minWidth: "200px",
-      maxWidth: "240px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => (
         <div className="flex items-center gap-2">
           <ActionButton
