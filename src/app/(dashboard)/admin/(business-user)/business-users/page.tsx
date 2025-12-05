@@ -97,10 +97,12 @@ export default function UserPage() {
   // Initialize URL on mount
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
-    if (!pageParam) {
-      updateUrlWithPage(1, true);
+    const pageFromUrl = pageParam ? parseInt(pageParam, 10) : 1;
+
+    if (pageFromUrl !== pagination.currentPage) {
+      dispatch(setPageNo(pageFromUrl));
     }
-  }, [searchParams, updateUrlWithPage]);
+  }, [searchParams]);
 
   // Fetch users when filters change
   useEffect(() => {

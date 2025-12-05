@@ -46,13 +46,16 @@ export const selectOperations = createSelector(
 /**
  * Select pagination info
  */
-export const selectPagination = createSelector([selectUsers], (data) => ({
-  currentPage: data?.pageNo || 1,
-  totalPages: data?.totalPages || 1,
-  totalElements: data?.totalElements || 0,
-  hasNext: data?.hasNext || false,
-  hasPrevious: data?.hasPrevious || false,
-}));
+export const selectPagination = createSelector(
+  [selectUserState, selectUsers],
+  (state, data) => ({
+    currentPage: state.filters.pageNo || 1,
+    totalPages: data?.totalPages || 1,
+    totalElements: data?.totalElements || 0,
+    hasNext: data?.hasNext || false,
+    hasPrevious: data?.hasPrevious || false,
+  })
+);
 
 /**
  * Select loading state
