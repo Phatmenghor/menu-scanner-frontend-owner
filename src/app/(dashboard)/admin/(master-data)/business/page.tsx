@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { AppToast } from "@/components/shared/toast/app-toast";
+import { AppToast } from "@/components/shared/common/app-toast";
 import { BusinessFormData } from "@/models/dashboard/master-data/business/business.schema";
 import {
   AllBusinessResponse,

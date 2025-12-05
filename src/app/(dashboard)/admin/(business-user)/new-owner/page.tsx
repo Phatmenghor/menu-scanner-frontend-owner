@@ -46,7 +46,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createBusinessOwnerService } from "@/services/dashboard/user/business-owner/business-owner.service";
 import { CreateBusinessOwnerRequest } from "@/models/dashboard/user/business-owner/business-owner.request.model";
-import { AppToast } from "@/components/shared/toast/app-toast";
+import { AppToast } from "@/components/shared/common/app-toast";
 import { getAllSubscriptionPlanService } from "@/services/dashboard/master-data/subscrion-plan/subscription-plan.service";
 import {
   AllSubscriptionPlan,

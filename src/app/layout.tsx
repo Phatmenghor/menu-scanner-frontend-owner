@@ -4,7 +4,7 @@ import "../styles/globals.css";
 import { ReactNode } from "react";
 import { ClientProviders } from "@/context/provider/client-provider";
 import PageProgressBar from "@/components/shared/progressbar/global-n-progress";
-import { ToastProvider } from "@/components/shared/toast/app-toast";
+import { ToastProvider } from "@/components/shared/common/app-toast";
 
 // Font Configuration with optimized settings
 const geistSans = localFont({

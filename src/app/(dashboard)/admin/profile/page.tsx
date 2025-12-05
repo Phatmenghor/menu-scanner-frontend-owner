@@ -27,7 +27,7 @@ import {
 import ChangePasswordModal from "@/components/shared/modal/change-password-modal";
 import { UpdateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
 import { useRouter } from "next/navigation";
-import { AppToast } from "@/components/shared/toast/app-toast";
+import { AppToast } from "@/components/shared/common/app-toast";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 

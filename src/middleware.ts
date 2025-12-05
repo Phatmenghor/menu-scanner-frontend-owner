@@ -18,17 +18,11 @@ export default function middleware(req: NextRequest) {
 
   const token = req.cookies.get("auth-token")?.value;
 
-  console.log(
-    `🚀 Middleware - Path: ${pathname}, Auth: ${token ? "✅" : "❌"}`
-  );
-
   // Handle root path - ALWAYS redirect
   if (pathname === "/") {
     if (token) {
-      console.log("🏠 Root → Dashboard (authenticated)");
       return NextResponse.redirect(new URL("/admin/platform-users", req.url));
     } else {
-      console.log("🏠 Root → Login (not authenticated)");
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
@@ -36,14 +30,12 @@ export default function middleware(req: NextRequest) {
   // Protect dashboard routes
   if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) {
     if (!token) {
-      console.log("🔒 Protected route → Login");
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
   // If user has token and tries to access login, redirect to dashboard
   if (pathname === "/login" && token) {
-    console.log("🔑 Login page → Dashboard (already authenticated)");
     return NextResponse.redirect(
       new URL("/dashboard/admin/platform-users", req.url)
     );

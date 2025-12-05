@@ -1,17 +1,24 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AccountStatus, UserRole } from "@/constants/AppResource/status/status";
-import type { UserState } from "./types";
-import {
-  fetchUsers,
-  fetchUserById,
-  createUser,
-  updateUser,
-  deleteUser,
-  toggleUserStatus,
-} from "./thunks";
+/**
+ * User Management - Redux Slice
+ * Manages user state: data, loading, errors, filters, operations
+ */
 
-// Initial state
-const initialState: UserState = {
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { UserManagementState, UserFilters } from "../types/auth-types";
+import { AccountStatus, UserRole } from "@/constants/AppResource/status/status";
+import {
+  createUser,
+  deleteUser,
+  fetchUserById,
+  fetchUsers,
+  toggleUserStatus,
+  updateUser,
+} from "../thunks/users-thunks";
+
+/**
+ * Initial state
+ */
+const initialState: UserManagementState = {
   data: null,
   isLoading: false,
   error: null,
@@ -28,8 +35,10 @@ const initialState: UserState = {
   },
 };
 
-// Slice
-const userSlice = createSlice({
+/**
+ * Users slice
+ */
+const usersSlice = createSlice({
   name: "users",
   initialState,
   reducers: {
@@ -37,12 +46,15 @@ const userSlice = createSlice({
     setSearchFilter: (state, action: PayloadAction<string>) => {
       state.filters.search = action.payload;
     },
+
     setAccountStatusFilter: (state, action: PayloadAction<AccountStatus>) => {
       state.filters.accountStatus = action.payload;
     },
+
     setRoleFilter: (state, action: PayloadAction<UserRole>) => {
       state.filters.role = action.payload;
     },
+
     setPageNo: (state, action: PayloadAction<number>) => {
       state.filters.pageNo = action.payload;
     },
@@ -51,13 +63,18 @@ const userSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+
     resetFilters: (state) => {
       state.filters = initialState.filters;
     },
-    resetState: () => initialState,
+
+    resetState: () => {
+      return initialState;
+    },
   },
+
   extraReducers: (builder) => {
-    // Fetch users
+    // Fetch users handlers
     builder
       .addCase(fetchUsers.pending, (state) => {
         state.isLoading = true;
@@ -72,7 +89,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Fetch user by ID
+    // Fetch user by ID handlers
     builder
       .addCase(fetchUserById.pending, (state) => {
         state.isLoading = true;
@@ -86,7 +103,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Create user
+    // Create user handlers
     builder
       .addCase(createUser.pending, (state) => {
         state.operations.isCreating = true;
@@ -104,7 +121,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Update user
+    // Update user handlers
     builder
       .addCase(updateUser.pending, (state) => {
         state.operations.isUpdating = true;
@@ -123,7 +140,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Delete user
+    // Delete user handlers
     builder
       .addCase(deleteUser.pending, (state) => {
         state.operations.isDeleting = true;
@@ -143,7 +160,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Toggle user status
+    // Toggle user status handlers
     builder
       .addCase(toggleUserStatus.pending, (state) => {
         state.error = null;
@@ -161,7 +178,6 @@ const userSlice = createSlice({
   },
 });
 
-// Export actions
 export const {
   setSearchFilter,
   setAccountStatusFilter,
@@ -170,7 +186,6 @@ export const {
   clearError,
   resetFilters,
   resetState,
-} = userSlice.actions;
+} = usersSlice.actions;
 
-// Export reducer
-export default userSlice.reducer;
+export default usersSlice.reducer;

@@ -21,7 +21,6 @@ import { CustomSelect } from "@/components/shared/common/custom-select";
 import UserPlatformModal from "@/components/dashboard/users/plateform-user/user-platform-modal";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { AppToast } from "@/components/shared/toast/app-toast";
 import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
 import { UserPlatformDetailModal } from "@/components/dashboard/users/plateform-user/user-platform-detail-modal";
 import {
@@ -29,23 +28,26 @@ import {
   STATUS_FILTER,
   USER_PLATFORM_ROLE_FILTER,
 } from "@/constants/AppResource/status/filter-status";
-
-// Redux imports
-import {
-  useUsers,
-  fetchUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-  toggleUserStatus,
-  setSearchFilter,
-  setAccountStatusFilter,
-  setRoleFilter,
-  setPageNo,
-  UpdateUserRequest,
-  CreateUserRequest,
-} from "@/store/features/users";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
+import {
+  createUser,
+  deleteUser,
+  fetchUsers,
+  toggleUserStatus,
+  updateUser,
+} from "@/features/auth/thunks/users-thunks";
+import { showToast } from "@/components/shared/common/app-toast";
+import {
+  setAccountStatusFilter,
+  setPageNo,
+  setRoleFilter,
+  setSearchFilter,
+} from "@/features/auth/slice/users-slice";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "@/features/auth/types/auth-types";
+import { useUsersState } from "@/features/auth/state/users-state";
 
 export default function UserPage() {
   const searchParams = useSearchParams();
@@ -59,7 +61,7 @@ export default function UserPage() {
     operations,
     pagination,
     dispatch,
-  } = useUsers();
+  } = useUsersState();
 
   // Local UI state for modals
   const [modalState, setModalState] = useState({
@@ -122,8 +124,6 @@ export default function UserPage() {
     pagination.currentPage,
   ]);
 
-  // console.log("## filters.accountStatus", filters.accountStatus);
-
   // Event handlers
   const handleCreateUser = () => {
     setModalState({
@@ -170,15 +170,9 @@ export default function UserPage() {
 
     try {
       await dispatch(toggleUserStatus(user)).unwrap();
-      AppToast({
-        type: "success",
-        message: "User status updated successfully",
-      });
+      showToast.success("User status updated successfully");
     } catch (error: any) {
-      AppToast({
-        type: "error",
-        message: error || "Failed to update user status",
-      });
+      showToast.error(error || "Failed to update user status");
     }
   };
 
@@ -196,10 +190,10 @@ export default function UserPage() {
   const columns = useMemo(
     () =>
       userPlatformTableColumns({
-        data: userState.data,
+        data: userState,
         handlers: tableHandlers,
       }),
-    [userState.data, tableHandlers]
+    [userState, tableHandlers]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,12 +238,9 @@ export default function UserPage() {
 
         const response = await dispatch(createUser(createPayload)).unwrap();
 
-        AppToast({
-          type: "success",
-          message: `User "${
-            response.username || formData.email
-          }" created successfully`,
-        });
+        showToast.success(
+          `User "${response.fullName || formData.email}" created successfully`
+        );
 
         closeModal();
       } else {
@@ -273,19 +264,17 @@ export default function UserPage() {
           updateUser({ userId: formData.id, userData: updatePayload })
         ).unwrap();
 
-        AppToast({
-          type: "success",
-          message: `User "${
-            response.username || response.email
-          }" updated successfully`,
-        });
+        showToast.success(
+          `User "${response.username || response.email}" updated successfully`
+        );
 
         closeModal();
       }
     } catch (error: any) {
       const errorMessage = error || "An unexpected error occurred";
       setModalState((prev) => ({ ...prev, error: errorMessage }));
-      AppToast({ type: "error", message: errorMessage });
+
+      showToast.error(errorMessage);
       throw error;
     }
   };
@@ -296,12 +285,9 @@ export default function UserPage() {
     try {
       await dispatch(deleteUser(deleteState.user.id)).unwrap();
 
-      AppToast({
-        type: "success",
-        message: `User "${
-          deleteState.user.fullName ?? ""
-        }" deleted successfully`,
-      });
+      showToast.success(
+        `User "${deleteState.user.fullName ?? ""}" deleted successfully`
+      );
 
       closeDeleteModal();
 
@@ -312,10 +298,7 @@ export default function UserPage() {
         updateUrlWithPage(newPage);
       }
     } catch (error: any) {
-      AppToast({
-        type: "error",
-        message: error || "Failed to delete user",
-      });
+      showToast.error(error || "Failed to delete user");
     }
   };
 

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { usePagination } from "@/hooks/use-pagination";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { AppToast } from "@/components/shared/toast/app-toast";
+import { AppToast } from "@/components/shared/common/app-toast";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";

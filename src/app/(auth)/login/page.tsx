@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginService } from "@/services/auth/login.service";
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { Form } from "@/components/ui/form";
@@ -21,12 +19,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/AppRoutes/routes";
-import { AppToast } from "@/components/shared/toast/app-toast";
+import { showToast } from "@/components/shared/common/app-toast";
+import { login } from "@/features/auth/thunks/auth-thunks";
+import { useAuthState } from "@/features/auth/state/auth-state";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const { isLoading, error, dispatch } = useAuthState();
 
   // Create form schema
   const formSchema = z.object({
@@ -47,34 +48,21 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: FormData) {
-    setIsLoading(true);
     try {
-      const response = await loginService({
-        userIdentifier: values.userIdentifier || "",
-        password: values.password,
-      });
+      const result = await dispatch(
+        login({
+          userIdentifier: values.userIdentifier || "",
+          password: values.password,
+        })
+      ).unwrap();
 
-      if (response) {
-        AppToast({
-          type: "success",
-          message: "Welcome to the emenu dashboard!",
-          duration: 3000,
-          position: "top-right",
-        });
-
+      if (result) {
+        showToast.success("Welcome to the emenu dashboard!");
         router.replace(ROUTES.DASHBOARD.USERS);
       }
-    } catch (error: any) {
-      const errorMsg =
-        error?.errorMessage === "An unexpected error occurred: Bad credentials"
-          ? "Incorrect email or password."
-          : error?.errorMessage ||
-            error?.rawError?.message ||
-            error?.message ||
-            "Something went wrong. Please try again.";
-
-      toast.error(errorMsg);
-      setIsLoading(false);
+    } catch (err: any) {
+      // Error is already stored in Redux auth slice
+      showToast.error(error || "Login failed. Please try again.");
     }
   }
 

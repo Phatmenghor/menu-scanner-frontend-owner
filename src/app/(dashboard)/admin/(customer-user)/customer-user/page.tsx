@@ -20,7 +20,7 @@ import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { AppToast } from "@/components/shared/toast/app-toast";
+import { AppToast } from "@/components/shared/common/app-toast";
 import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
 import {
   ACCOUNT_STATUS_FILTER,

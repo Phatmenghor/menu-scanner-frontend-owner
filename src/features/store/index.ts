@@ -1,18 +1,19 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { userReducer } from "./features/users";
-import { businessReducer } from "./features/master-data/business";
+﻿import { configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import {
+  loggingMiddleware,
+  authLoggingMiddleware,
+  userLoggingMiddleware,
+  errorLoggingMiddleware,
+} from "./middleware";
+import { reducers } from "./reducers";
 
-// Add other feature reducers here as you build them
-// import { productReducer } from "./features/products";
-// import { orderReducer } from "./features/orders";
-
+/**
+ * Redux Store Configuration
+ * Centralized store setup with all reducers and middleware
+ */
 const store = configureStore({
-  reducer: {
-    users: userReducer,
-    business: businessReducer,
-    // orders: orderReducer,
-  },
+  reducer: reducers,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -23,7 +24,11 @@ const store = configureStore({
         // Ignore these paths in the state
         ignoredPaths: ["users.data"],
       },
-    }),
+    }).concat([
+      authLoggingMiddleware,
+      userLoggingMiddleware,
+      errorLoggingMiddleware,
+    ]),
   devTools: process.env.NODE_ENV !== "production",
 });
 

@@ -13,7 +13,6 @@ import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
 
 // Toast Types
 export type ToastType = "success" | "error" | "warning" | "info";
-
 export type ToastPosition =
   | "top-right"
   | "top-left"
@@ -64,41 +63,99 @@ export const useToast = (): ToastContextType => {
   return context;
 };
 
-// Global toast function
-let globalToastFunction: ((options: ToastOptions) => void) | null = null;
+// ============================================
+// IMPROVED GLOBAL TOAST API
+// ============================================
 
-export const AppToast = (options: ToastOptions): void => {
-  if (globalToastFunction) {
-    globalToastFunction(options);
-  } else {
-    console.warn("AppToast called before ToastProvider is mounted");
+interface ToastHandler {
+  (options: ToastOptions): void;
+}
+
+interface ToastQueue {
+  handler: ToastHandler | null;
+  queue: ToastOptions[];
+}
+
+const toastQueue: ToastQueue = {
+  handler: null,
+  queue: [],
+};
+
+// Process queued toasts when handler is available
+const processQueue = () => {
+  if (toastQueue.handler && toastQueue.queue.length > 0) {
+    toastQueue.queue.forEach((options) => {
+      toastQueue.handler!(options);
+    });
+    toastQueue.queue = [];
   }
 };
 
-// Individual Toast Component
+// Show toast function (handles queueing)
+const showToastPlease = (options: ToastOptions): void => {
+  if (toastQueue.handler) {
+    toastQueue.handler(options);
+  } else {
+    toastQueue.queue.push(options);
+  }
+};
+
+// Clean, easy-to-use global toast object
+export const showToast = {
+  success: (message: string, description?: string): void => {
+    showToastPlease({ type: "success", message, description });
+  },
+
+  error: (message: string, description?: string): void => {
+    showToastPlease({ type: "error", message, description });
+  },
+
+  warning: (message: string, description?: string): void => {
+    showToastPlease({ type: "warning", message, description });
+  },
+
+  info: (message: string, description?: string): void => {
+    showToastPlease({ type: "info", message, description });
+  },
+
+  // Custom toast with all options
+  custom: (options: ToastOptions): void => {
+    showToastPlease(options);
+  },
+
+  // Alias for custom
+  show: (options: ToastOptions): void => {
+    showToastPlease(options);
+  },
+};
+
+// ============================================
+// INDIVIDUAL TOAST COMPONENT
+// ============================================
+
 const Toast: React.FC<{
   toast: ToastData;
   onClose: (id: string) => void;
-}> = ({ toast, onClose }) => {
+}> = ({ toast: toastData, onClose }) => {
   const [isExiting, setIsExiting] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    if (toast.isVisible && toast.duration > 0) {
+    if (toastData.isVisible && toastData.duration > 0) {
       timeoutRef.current = setTimeout(() => {
         handleClose();
-      }, toast.duration);
+      }, toastData.duration);
     }
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [toast.isVisible, toast.duration]);
+  }, [toastData.isVisible, toastData.duration]);
 
   const handleClose = useCallback(() => {
     setIsExiting(true);
-    setTimeout(() => onClose(toast.id), 200);
-  }, [toast.id, onClose]);
+    setTimeout(() => onClose(toastData.id), 200);
+  }, [toastData.id, onClose]);
 
   const getToastStyles = (): string => {
     const baseStyles =
@@ -119,18 +176,17 @@ const Toast: React.FC<{
     };
 
     const visibilityStyles =
-      toast.isVisible && !isExiting
+      toastData.isVisible && !isExiting
         ? "opacity-100 translate-y-0"
         : "opacity-0 -translate-y-2";
 
-    return `${baseStyles} ${positionStyles[toast.position]} ${
-      typeStyles[toast.type]
+    return `${baseStyles} ${positionStyles[toastData.position]} ${
+      typeStyles[toastData.type]
     } ${visibilityStyles}`;
   };
 
   const getIcon = (): JSX.Element => {
     const baseIconStyles = "w-5 h-5 flex-shrink-0";
-
     const iconMap: Record<ToastType, JSX.Element> = {
       success: <CheckCircle className={`${baseIconStyles} text-green-600`} />,
       error: <AlertCircle className={`${baseIconStyles} text-red-600`} />,
@@ -139,34 +195,37 @@ const Toast: React.FC<{
       ),
       info: <Info className={`${baseIconStyles} text-blue-600`} />,
     };
-
-    return iconMap[toast.type] || iconMap.info;
+    return iconMap[toastData.type] || iconMap.info;
   };
 
   return (
     <div className={getToastStyles()}>
       {/* Content */}
-      <div className="flex items-center gap-3 flex-1">
-        {getIcon()}
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-900">{toast.message}</p>
-          {toast.description && (
-            <p className="text-xs text-gray-600 mt-1">{toast.description}</p>
-          )}
-        </div>
-        <button
-          onClick={handleClose}
-          className="p-1 rounded hover:bg-gray-100 transition-colors duration-150"
-          title="Close"
-        >
-          <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-        </button>
+      {getIcon()}
+
+      <div className="flex-1">
+        <p className="font-medium text-gray-900">{toastData.message}</p>
+        {toastData.description && (
+          <p className="text-sm text-gray-600 mt-1">{toastData.description}</p>
+        )}
       </div>
+
+      {/* Close button */}
+      <button
+        onClick={handleClose}
+        className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+        aria-label="Close toast"
+      >
+        <X className="w-4 h-4" />
+      </button>
     </div>
   );
 };
 
-// Toast Provider Component
+// ============================================
+// TOAST PROVIDER COMPONENT
+// ============================================
+
 export const ToastProvider: React.FC<ToastProviderProps> = ({
   children,
   defaultPosition = "top-right",
@@ -175,7 +234,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const counterRef = useRef(0);
 
-  const showToast = useCallback(
+  const showToastInternal = useCallback(
     (options: ToastOptions): void => {
       const id = `toast-${counterRef.current++}-${Date.now()}`;
       const newToast: ToastData = {
@@ -184,7 +243,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
         message: options.message,
         description: options.description,
         isVisible: true,
-        duration: options.duration || defaultDuration,
+        duration: options.duration ?? defaultDuration,
         position: options.position || defaultPosition,
       };
 
@@ -200,50 +259,52 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   // Convenience methods
   const success = useCallback(
     (message: string, description?: string): void => {
-      showToast({ type: "success", message, description });
+      showToastInternal({ type: "success", message, description });
     },
-    [showToast]
+    [showToastInternal]
   );
 
   const error = useCallback(
     (message: string, description?: string): void => {
-      showToast({ type: "error", message, description });
+      showToastInternal({ type: "error", message, description });
     },
-    [showToast]
+    [showToastInternal]
   );
 
   const warning = useCallback(
     (message: string, description?: string): void => {
-      showToast({ type: "warning", message, description });
+      showToastInternal({ type: "warning", message, description });
     },
-    [showToast]
+    [showToastInternal]
   );
 
   const info = useCallback(
     (message: string, description?: string): void => {
-      showToast({ type: "info", message, description });
+      showToastInternal({ type: "info", message, description });
     },
-    [showToast]
+    [showToastInternal]
   );
 
   const contextValue: ToastContextType = useMemo(
     () => ({
-      showToast,
+      showToast: showToastInternal,
       success,
       error,
       warning,
       info,
     }),
-    [showToast, success, error, warning, info]
+    [showToastInternal, success, error, warning, info]
   );
 
-  // Set global function
+  // Register global handler and process queue
   useEffect(() => {
-    globalToastFunction = showToast;
+    toastQueue.handler = showToastInternal;
+    processQueue();
+
     return () => {
-      globalToastFunction = null;
+      toastQueue.handler = null;
     };
-  }, [showToast]);
+  }, [showToastInternal]);
 
   return (
     <ToastContext.Provider value={contextValue}>
