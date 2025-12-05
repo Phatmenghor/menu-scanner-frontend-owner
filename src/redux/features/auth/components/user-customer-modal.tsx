@@ -16,12 +16,10 @@ import {
   ModalMode,
   UserGropeType,
   Status,
-  STATUS_USER_OPTIONS,
 } from "@/constants/AppResource/status/status";
 import {
   ACCOUNT_STATUS_CREATE_UPDATE,
   USER_BUSINESS_ROLE_CREATE_UPDATE,
-  USER_PLATFORM_ROLE_CREATE_UPDATE,
 } from "@/constants/AppResource/status/create-update-status";
 import {
   createUserSchema,
@@ -30,7 +28,6 @@ import {
 } from "@/models/dashboard/user/plateform-user/user.schema";
 import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import Loading from "@/components/shared/common/loading";
-import { CreateUserRequest, UpdateUserRequest } from "@/store/features/users";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
@@ -38,6 +35,10 @@ import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { PasswordField } from "@/components/shared/form-field/password-field";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "../models/request/users-request";
 
 type Props = {
   mode: ModalMode;

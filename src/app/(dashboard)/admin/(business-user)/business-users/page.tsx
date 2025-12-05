@@ -25,8 +25,8 @@ import {
 } from "@/constants/AppResource/status/filter-status";
 
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
-import { UserBusinessDetailModal } from "@/components/dashboard/users/business-user/user-business-detail-modal";
-import UserBusinessModal from "@/components/dashboard/users/business-user/user-business-modal";
+import { UserBusinessDetailModal } from "@/redux/features/auth/components/user-business-detail-modal";
+import UserBusinessModal from "@/redux/features/auth/components/user-business-modal";
 import { userBusinessTableColumns } from "@/constants/AppResource/table/users/user-business-table";
 import { useUsersState } from "@/redux/features/auth/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
@@ -123,8 +123,6 @@ export default function UserPage() {
     filters.role,
     pagination.currentPage,
   ]);
-
-  // console.log("## filters.accountStatus", filters.accountStatus);
 
   // Event handlers
   const handleCreateUser = () => {

@@ -24,7 +24,7 @@ interface UserDetailModalProps {
   onClose: () => void;
 }
 
-export function UserPlatformDetailModal({
+export function UserCustomerDetailModal({
   userId,
   isOpen,
   onClose,

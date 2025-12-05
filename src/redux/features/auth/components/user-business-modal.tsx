@@ -30,7 +30,6 @@ import {
 } from "@/models/dashboard/user/plateform-user/user.schema";
 import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import Loading from "@/components/shared/common/loading";
-import { CreateUserRequest, UpdateUserRequest } from "@/store/features/users";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
@@ -38,6 +37,10 @@ import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { PasswordField } from "@/components/shared/form-field/password-field";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "../models/request/users-request";
 
 type Props = {
   mode: ModalMode;
@@ -176,19 +179,11 @@ export default function UserBusinessModal({
     }
   };
 
-  /* ==========================================
-     MODAL CLOSE HANDLER
-     - Resets form state
-     - Calls parent onClose
-  ========================================== */
   const handleClose = () => {
     reset();
     onClose();
   };
 
-  /* ==========================================
-     RENDER: MODAL STRUCTURE
-  ========================================== */
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">

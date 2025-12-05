@@ -21,8 +21,7 @@ import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confir
 import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
 import { ACCOUNT_STATUS_FILTER } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
-import UserCustomerModal from "@/components/dashboard/users/customer/user-customer-modal";
-import { UserCustomerDetailModal } from "@/components/dashboard/users/customer/user-customer-detail-modal";
+import { UserCustomerDetailModal } from "@/redux/features/auth/components/user-customer-detail-modal";
 import { useUsersState } from "@/redux/features/auth/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
@@ -42,6 +41,7 @@ import {
   CreateUserRequest,
   UpdateUserRequest,
 } from "@/redux/features/auth/models/request/users-request";
+import UserCustomerModal from "@/redux/features/auth/components/user-customer-modal";
 
 export default function UserPage() {
   const searchParams = useSearchParams();
