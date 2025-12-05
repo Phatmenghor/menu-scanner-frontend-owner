@@ -3,10 +3,10 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useIsMobile } from "@/app/redux/store/use-mobile";
 import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
 import { TopBar } from "./topbar";
+import { useIsMobile } from "@/redux/store/use-mobile";
 
 export default function DashboardLayout({
   children,

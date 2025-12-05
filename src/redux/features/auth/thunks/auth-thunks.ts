@@ -5,7 +5,7 @@
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { loginService, getProfileService } from "../services/auth-services";
-import { LoginCredentialsRequest } from "../models/request/login-credentials-request";
+import { LoginCredentialsRequest } from "../models/request/auth-request";
 
 /**
  * Login thunk

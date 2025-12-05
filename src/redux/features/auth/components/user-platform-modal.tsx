@@ -16,7 +16,6 @@ import {
   ModalMode,
   UserGropeType,
   Status,
-  STATUS_USER_OPTIONS,
 } from "@/constants/AppResource/status/status";
 import {
   ACCOUNT_STATUS_CREATE_UPDATE,
@@ -37,7 +36,10 @@ import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { PasswordField } from "@/components/shared/form-field/password-field";
-import { CreateUserRequest, UpdateUserRequest } from "../models/auth-types";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "../models/request/users-request";
 
 type Props = {
   mode: ModalMode;
@@ -176,19 +178,11 @@ export default function UserPlatformModal({
     }
   };
 
-  /* ==========================================
-     MODAL CLOSE HANDLER
-     - Resets form state
-     - Calls parent onClose
-  ========================================== */
   const handleClose = () => {
     reset();
     onClose();
   };
 
-  /* ==========================================
-     RENDER: MODAL STRUCTURE
-  ========================================== */
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">
@@ -362,7 +356,7 @@ export default function UserPlatformModal({
                       label="User Role"
                       control={control}
                       error={errors.roles as any}
-                      options={USER_BUSINESS_ROLE_CREATE_UPDATE}
+                      options={USER_PLATFORM_ROLE_CREATE_UPDATE}
                       placeholder="Select role"
                       required
                       disabled={isSubmitting}

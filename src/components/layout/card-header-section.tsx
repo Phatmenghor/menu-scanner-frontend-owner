@@ -15,7 +15,7 @@ import Link from "next/link";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { useIsMobile } from "@/app/redux/store/use-mobile";
+import { useIsMobile } from "@/redux/store/use-mobile";
 
 interface BreadcrumbItemType {
   label: string;

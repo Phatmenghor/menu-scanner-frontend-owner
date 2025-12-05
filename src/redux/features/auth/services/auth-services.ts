@@ -7,7 +7,7 @@ import { axiosClient, axiosClientWithAuth } from "@/utils/axios";
 import { storeRoles } from "@/utils/local-storage/roles";
 import { storeToken } from "@/utils/local-storage/token";
 import { storeUserInfo } from "@/utils/local-storage/userInfo";
-import { LoginCredentialsRequest } from "../models/request/login-credentials-request";
+import { LoginCredentialsRequest } from "../models/request/auth-request";
 
 /**
  * Login service

@@ -1,7 +1,6 @@
 "use client";
 
 import { LogOut, Menu } from "lucide-react";
-import { useIsMobile } from "@/app/redux/store/use-mobile";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -19,6 +18,7 @@ import { clearToken } from "@/utils/local-storage/token";
 import { clearRoles } from "@/utils/local-storage/roles";
 import { clearUserInfo } from "@/utils/local-storage/userInfo";
 import { ROUTES } from "@/constants/AppRoutes/routes";
+import { useIsMobile } from "@/redux/store/use-mobile";
 
 interface TopBarProps {
   onMenuClick?: () => void;

@@ -61,7 +61,6 @@ export default function LoginPage() {
         router.replace(ROUTES.DASHBOARD.USERS);
       }
     } catch (err: any) {
-      // Error is already stored in Redux auth slice
       showToast.error(error || "Login failed. Please try again.");
     }
   }

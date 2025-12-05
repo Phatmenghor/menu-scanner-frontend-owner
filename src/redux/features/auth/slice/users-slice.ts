@@ -4,7 +4,6 @@
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { UserManagementState } from "../models/auth-types";
 import { AccountStatus, UserRole } from "@/constants/AppResource/status/status";
 import {
   createUser,
@@ -14,6 +13,7 @@ import {
   toggleUserStatus,
   updateUser,
 } from "../thunks/users-thunks";
+import { UserManagementState } from "../models/user-types";
 
 /**
  * Initial state

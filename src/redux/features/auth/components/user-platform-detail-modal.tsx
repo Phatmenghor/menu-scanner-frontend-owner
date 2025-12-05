@@ -63,11 +63,6 @@ export function UserPlatformDetailModal({
     onClose();
   };
 
-  const profileImageUrl =
-    userData?.profileImageUrl && process.env.NEXT_PUBLIC_API_BASE_URL
-      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${userData.profileImageUrl}`
-      : undefined;
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">

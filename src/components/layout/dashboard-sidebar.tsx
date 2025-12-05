@@ -6,7 +6,6 @@ import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/app/redux/store/use-mobile";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES, sidebarItems } from "@/constants/AppRoutes/routes";
@@ -15,6 +14,7 @@ import { ProfileResponseModel } from "@/models/auth/profile-response-model";
 import { getProfileService } from "@/services/auth/login.service";
 import { toast } from "sonner";
 import { UserAvatarCard } from "../shared/avator/user-avatar-card";
+import { useIsMobile } from "@/redux/store/use-mobile";
 
 interface SidebarProps {
   isOpen: boolean;

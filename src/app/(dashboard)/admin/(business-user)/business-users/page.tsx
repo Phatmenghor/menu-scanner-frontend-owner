@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 
-import { usePagination } from "@/app/redux/store/use-pagination";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
@@ -20,31 +19,35 @@ import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { AppToast } from "@/components/shared/common/app-toast";
 import {
   ACCOUNT_STATUS_FILTER,
   USER_BUSINESS_ROLE_FILTER,
 } from "@/constants/AppResource/status/filter-status";
 
-// Redux imports
-import {
-  useUsers,
-  fetchUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-  toggleUserStatus,
-  setSearchFilter,
-  setAccountStatusFilter,
-  setRoleFilter,
-  setPageNo,
-  UpdateUserRequest,
-  CreateUserRequest,
-} from "@/store/features/users";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { UserBusinessDetailModal } from "@/components/dashboard/users/business-user/user-business-detail-modal";
 import UserBusinessModal from "@/components/dashboard/users/business-user/user-business-modal";
 import { userBusinessTableColumns } from "@/constants/AppResource/table/users/user-business-table";
+import { useUsersState } from "@/redux/features/auth/state/users-state";
+import { usePagination } from "@/redux/store/use-pagination";
+import {
+  createUser,
+  deleteUser,
+  fetchUsers,
+  toggleUserStatus,
+  updateUser,
+} from "@/redux/features/auth/thunks/users-thunks";
+import { showToast } from "@/components/shared/common/app-toast";
+import {
+  setAccountStatusFilter,
+  setPageNo,
+  setRoleFilter,
+  setSearchFilter,
+} from "@/redux/features/auth/slice/users-slice";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "@/redux/features/auth/models/request/users-request";
 
 export default function UserPage() {
   const searchParams = useSearchParams();
@@ -58,7 +61,7 @@ export default function UserPage() {
     operations,
     pagination,
     dispatch,
-  } = useUsers();
+  } = useUsersState();
 
   // Local UI state for modals
   const [modalState, setModalState] = useState({
@@ -169,15 +172,9 @@ export default function UserPage() {
 
     try {
       await dispatch(toggleUserStatus(user)).unwrap();
-      AppToast({
-        type: "success",
-        message: "User status updated successfully",
-      });
+      showToast.success("User status updated successfully");
     } catch (error: any) {
-      AppToast({
-        type: "error",
-        message: error || "Failed to update user status",
-      });
+      showToast.error(error || "Failed to update user status");
     }
   };
 
@@ -195,10 +192,10 @@ export default function UserPage() {
   const columns = useMemo(
     () =>
       userBusinessTableColumns({
-        data: userState.data,
+        data: userState,
         handlers: tableHandlers,
       }),
-    [userState.data, tableHandlers]
+    [userState, tableHandlers]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,12 +240,9 @@ export default function UserPage() {
 
         const response = await dispatch(createUser(createPayload)).unwrap();
 
-        AppToast({
-          type: "success",
-          message: `User "${
-            response.username || formData.email
-          }" created successfully`,
-        });
+        showToast.success(
+          `User "${response.username || response.email}" created successfully`
+        );
 
         closeModal();
       } else {
@@ -272,19 +266,16 @@ export default function UserPage() {
           updateUser({ userId: formData.id, userData: updatePayload })
         ).unwrap();
 
-        AppToast({
-          type: "success",
-          message: `User "${
-            response.username || response.email
-          }" updated successfully`,
-        });
+        showToast.success(
+          `User "${response.username || response.email}" updated successfully`
+        );
 
         closeModal();
       }
     } catch (error: any) {
       const errorMessage = error || "An unexpected error occurred";
       setModalState((prev) => ({ ...prev, error: errorMessage }));
-      AppToast({ type: "error", message: errorMessage });
+      showToast.error(errorMessage);
       throw error;
     }
   };
@@ -294,14 +285,7 @@ export default function UserPage() {
 
     try {
       await dispatch(deleteUser(deleteState.user.id)).unwrap();
-
-      AppToast({
-        type: "success",
-        message: `User "${
-          deleteState.user.fullName ?? ""
-        }" deleted successfully`,
-      });
-
+      showToast.success("User deleted successfully");
       closeDeleteModal();
 
       // Navigate to previous page if this was the last item
@@ -311,10 +295,7 @@ export default function UserPage() {
         updateUrlWithPage(newPage);
       }
     } catch (error: any) {
-      AppToast({
-        type: "error",
-        message: error || "Failed to delete user",
-      });
+      showToast.error(error || "Failed to delete user");
     }
   };
 

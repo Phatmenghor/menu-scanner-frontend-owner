@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
-
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
@@ -14,7 +13,6 @@ import {
 } from "@/constants/AppResource/status/status";
 import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
 import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
-
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
@@ -22,7 +20,6 @@ import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confir
 import { userPlatformTableColumns } from "@/constants/AppResource/table/users/user-platform-table";
 import {
   ACCOUNT_STATUS_FILTER,
-  STATUS_FILTER,
   USER_PLATFORM_ROLE_FILTER,
 } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
@@ -30,8 +27,11 @@ import { showToast } from "@/components/shared/common/app-toast";
 import { useUsersState } from "@/redux/features/auth/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
+  createUser,
+  deleteUser,
   fetchUsers,
   toggleUserStatus,
+  updateUser,
 } from "@/redux/features/auth/thunks/users-thunks";
 import {
   setAccountStatusFilter,
@@ -40,6 +40,9 @@ import {
   setSearchFilter,
 } from "@/redux/features/auth/slice/users-slice";
 import { CreateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
+import { UpdateUserRequest } from "@/redux/features/auth/models/request/users-request";
+import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
+import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
 
 export default function UserPage() {
   const searchParams = useSearchParams();

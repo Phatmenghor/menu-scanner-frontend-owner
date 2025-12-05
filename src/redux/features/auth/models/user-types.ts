@@ -1,3 +1,5 @@
+import { AllUserResponse } from "./response/users-response";
+
 export interface UserFilters {
   search: string;
   accountStatus: string;
@@ -12,7 +14,7 @@ export interface OperationStates {
 }
 
 export interface UserManagementState {
-  data: any;
+  data: AllUserResponse | null;
   isLoading: boolean;
   error: string | null;
   filters: UserFilters;

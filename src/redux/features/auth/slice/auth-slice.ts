@@ -4,12 +4,9 @@
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AuthState } from "../models/auth-types";
-import {
-  UserAuthResponseModel,
-  ProfileResponseModel,
-} from "../models/auth-models";
+import { UserAuthResponseModel } from "../models/auth-models";
 import { login, getProfile } from "../thunks/auth-thunks";
+import { AuthState } from "../models/auth-types";
 
 /**
  * Initial auth state
