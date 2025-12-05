@@ -6,12 +6,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AccountStatus, UserRole } from "@/constants/AppResource/status/status";
 import {
-  createUser,
-  deleteUser,
-  fetchUserById,
-  fetchUsers,
-  toggleUserStatus,
-  updateUser,
+  createUserService,
+  deleteUserService,
+  fetchUserByIdService,
+  fetchAllUsersService,
+  toggleUserStatusService,
+  updateUserService,
 } from "../thunks/users-thunks";
 import { UserManagementState } from "../models/user-types";
 
@@ -76,58 +76,58 @@ const usersSlice = createSlice({
   extraReducers: (builder) => {
     // Fetch users handlers
     builder
-      .addCase(fetchUsers.pending, (state) => {
+      .addCase(fetchAllUsersService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUsers.fulfilled, (state, action) => {
+      .addCase(fetchAllUsersService.fulfilled, (state, action) => {
         state.isLoading = false;
         state.data = action.payload;
       })
-      .addCase(fetchUsers.rejected, (state, action) => {
+      .addCase(fetchAllUsersService.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
 
     // Fetch user by ID handlers
     builder
-      .addCase(fetchUserById.pending, (state) => {
+      .addCase(fetchUserByIdService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUserById.fulfilled, (state) => {
+      .addCase(fetchUserByIdService.fulfilled, (state) => {
         state.isLoading = false;
       })
-      .addCase(fetchUserById.rejected, (state, action) => {
+      .addCase(fetchUserByIdService.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
 
     // Create user handlers
     builder
-      .addCase(createUser.pending, (state) => {
+      .addCase(createUserService.pending, (state) => {
         state.operations.isCreating = true;
         state.error = null;
       })
-      .addCase(createUser.fulfilled, (state, action) => {
+      .addCase(createUserService.fulfilled, (state, action) => {
         state.operations.isCreating = false;
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
           state.data.totalElements += 1;
         }
       })
-      .addCase(createUser.rejected, (state, action) => {
+      .addCase(createUserService.rejected, (state, action) => {
         state.operations.isCreating = false;
         state.error = action.payload as string;
       });
 
     // Update user handlers
     builder
-      .addCase(updateUser.pending, (state) => {
+      .addCase(updateUserService.pending, (state) => {
         state.operations.isUpdating = true;
         state.error = null;
       })
-      .addCase(updateUser.fulfilled, (state, action) => {
+      .addCase(updateUserService.fulfilled, (state, action) => {
         state.operations.isUpdating = false;
         if (state.data) {
           state.data.content = state.data.content.map((user) =>
@@ -135,18 +135,18 @@ const usersSlice = createSlice({
           );
         }
       })
-      .addCase(updateUser.rejected, (state, action) => {
+      .addCase(updateUserService.rejected, (state, action) => {
         state.operations.isUpdating = false;
         state.error = action.payload as string;
       });
 
     // Delete user handlers
     builder
-      .addCase(deleteUser.pending, (state) => {
+      .addCase(deleteUserService.pending, (state) => {
         state.operations.isDeleting = true;
         state.error = null;
       })
-      .addCase(deleteUser.fulfilled, (state, action) => {
+      .addCase(deleteUserService.fulfilled, (state, action) => {
         state.operations.isDeleting = false;
         if (state.data) {
           state.data.content = state.data.content.filter(
@@ -155,24 +155,24 @@ const usersSlice = createSlice({
           state.data.totalElements -= 1;
         }
       })
-      .addCase(deleteUser.rejected, (state, action) => {
+      .addCase(deleteUserService.rejected, (state, action) => {
         state.operations.isDeleting = false;
         state.error = action.payload as string;
       });
 
     // Toggle user status handlers
     builder
-      .addCase(toggleUserStatus.pending, (state) => {
+      .addCase(toggleUserStatusService.pending, (state) => {
         state.error = null;
       })
-      .addCase(toggleUserStatus.fulfilled, (state, action) => {
+      .addCase(toggleUserStatusService.fulfilled, (state, action) => {
         if (state.data) {
           state.data.content = state.data.content.map((user) =>
             user.id === action.payload.id ? action.payload : user
           );
         }
       })
-      .addCase(toggleUserStatus.rejected, (state, action) => {
+      .addCase(toggleUserStatusService.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },

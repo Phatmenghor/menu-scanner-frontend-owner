@@ -3,23 +3,18 @@
  * Redux thunks for async auth operations
  */
 
-import { createAsyncThunk } from "@reduxjs/toolkit";
-import { loginService, getProfileService } from "../services/auth-services";
 import { LoginCredentialsRequest } from "../models/request/auth-request";
+import { axiosClient, axiosClientWithAuth } from "@/utils/axios";
+import { createApiThunk } from "@/utils/axios/apiWrapper";
 
 /**
  * Login thunk
- * Dispatches login action and handles loading/error states
  */
-export const login = createAsyncThunk(
+export const loginService = createApiThunk<any, LoginCredentialsRequest>(
   "auth/login",
-  async (credentials: LoginCredentialsRequest, { rejectWithValue }) => {
-    try {
-      const userData = await loginService(credentials);
-      return userData;
-    } catch (error: any) {
-      return rejectWithValue(error || "Login failed");
-    }
+  async (credentials) => {
+    const response = await axiosClient.post("/api/v1/auth/login", credentials);
+    return response.data.data;
   }
 );
 
@@ -27,14 +22,10 @@ export const login = createAsyncThunk(
  * Get profile thunk
  * Fetches user profile information
  */
-export const getProfile = createAsyncThunk(
+export const getProfileService = createApiThunk<any, void>(
   "auth/getProfile",
-  async (_, { rejectWithValue }) => {
-    try {
-      const profile = await getProfileService();
-      return profile;
-    } catch (error: any) {
-      return rejectWithValue(error?.message || "Failed to fetch profile");
-    }
+  async () => {
+    const response = await axiosClientWithAuth.get("/api/v1/users/profile");
+    return response.data.data;
   }
 );

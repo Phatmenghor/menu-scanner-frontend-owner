@@ -39,3 +39,8 @@ export interface AllUserRequest {
   sortBy?: string;
   sortDirection?: string;
 }
+
+export interface UpdateUserParams {
+  userId: string;
+  userData: UpdateUserRequest;
+}

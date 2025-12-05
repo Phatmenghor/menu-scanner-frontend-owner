@@ -25,11 +25,11 @@ import { UserCustomerDetailModal } from "@/redux/features/auth/components/user-c
 import { useUsersState } from "@/redux/features/auth/store/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
-  createUser,
-  deleteUser,
-  fetchUsers,
-  toggleUserStatus,
-  updateUser,
+  createUserService,
+  deleteUserService,
+  fetchAllUsersService,
+  toggleUserStatusService,
+  updateUserService,
 } from "@/redux/features/auth/store/thunks/users-thunks";
 import { showToast } from "@/components/shared/common/app-toast";
 import {
@@ -100,7 +100,7 @@ export default function UserPage() {
   // Fetch users when filters change
   useEffect(() => {
     dispatch(
-      fetchUsers({
+      fetchAllUsersService({
         search: debouncedSearch,
         pageNo: pagination.currentPage,
         roles: [UserRole.CUSTOMER],
@@ -164,7 +164,7 @@ export default function UserPage() {
     if (!user?.id) return;
 
     try {
-      await dispatch(toggleUserStatus(user)).unwrap();
+      await dispatch(toggleUserStatusService(user)).unwrap();
       showToast.success(
         `User "${user.fullName || user.email}" status updated successfully`
       );
@@ -228,7 +228,9 @@ export default function UserPage() {
           notes: formData.notes,
         };
 
-        const response = await dispatch(createUser(createPayload)).unwrap();
+        const response = await dispatch(
+          createUserService(createPayload)
+        ).unwrap();
 
         showToast.success(
           `User "${response.username || response.email}" created successfully`
@@ -253,7 +255,7 @@ export default function UserPage() {
         };
 
         const response = await dispatch(
-          updateUser({ userId: formData.id, userData: updatePayload })
+          updateUserService({ userId: formData.id, userData: updatePayload })
         ).unwrap();
 
         showToast.success(
@@ -274,7 +276,7 @@ export default function UserPage() {
     if (!deleteState.user?.id) return;
 
     try {
-      await dispatch(deleteUser(deleteState.user.id)).unwrap();
+      await dispatch(deleteUserService(deleteState.user.id)).unwrap();
 
       showToast.success("User deleted successfully");
 

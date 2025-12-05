@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import { showToast } from "@/components/shared/common/app-toast";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
-import { login } from "@/redux/features/auth/store/thunks/auth-thunks";
+import { loginService } from "@/redux/features/auth/store/thunks/auth-thunks";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -50,7 +50,7 @@ export default function LoginPage() {
   async function onSubmit(values: FormData) {
     try {
       const result = await dispatch(
-        login({
+        loginService({
           userIdentifier: values.userIdentifier || "",
           password: values.password,
         })

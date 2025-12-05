@@ -20,8 +20,3 @@ export interface UserManagementState {
   filters: UserFilters;
   operations: OperationStates;
 }
-
-export interface UpdateUserParams {
-  userId: string;
-  userData: any;
-}

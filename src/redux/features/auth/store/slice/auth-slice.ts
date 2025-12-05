@@ -5,8 +5,11 @@
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserAuthResponseModel } from "../models/auth-models";
-import { login, getProfile } from "../thunks/auth-thunks";
+import { loginService, getProfileService } from "../thunks/auth-thunks";
 import { AuthState } from "../models/auth-types";
+import { storeToken } from "@/utils/local-storage/token";
+import { storeUserInfo } from "@/utils/local-storage/userInfo";
+import { storeRoles } from "@/utils/local-storage/roles";
 
 /**
  * Initial auth state
@@ -61,16 +64,37 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     // Login thunk handlers
     builder
-      .addCase(login.pending, (state) => {
+      .addCase(loginService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action) => {
+      .addCase(loginService.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = !!action.payload.accessToken;
+
+        // Store authentication data in local storage (side effects)
+        if (action.payload.accessToken) {
+          storeToken(action.payload.accessToken);
+        }
+
+        if (action.payload) {
+          storeUserInfo({
+            userId: action.payload.userId || "",
+            userIdentifier: action.payload.userIdentifier || "",
+            profileImageUrl: action.payload.profileImageUrl || "",
+            email: action.payload.email || "",
+            fullName: action.payload.fullName || "",
+            businessId: action.payload.businessId || "",
+            userType: action.payload.userType || "",
+          });
+        }
+
+        if (action.payload.roles) {
+          storeRoles(action.payload.roles);
+        }
       })
-      .addCase(login.rejected, (state, action) => {
+      .addCase(loginService.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
         state.isAuthenticated = false;
@@ -78,15 +102,15 @@ const authSlice = createSlice({
 
     // Get profile thunk handlers
     builder
-      .addCase(getProfile.pending, (state) => {
+      .addCase(getProfileService.pending, (state) => {
         state.isProfileLoading = true;
         state.error = null;
       })
-      .addCase(getProfile.fulfilled, (state, action) => {
+      .addCase(getProfileService.fulfilled, (state, action) => {
         state.isProfileLoading = false;
         state.profile = action.payload;
       })
-      .addCase(getProfile.rejected, (state, action) => {
+      .addCase(getProfileService.rejected, (state, action) => {
         state.isProfileLoading = false;
         state.error = action.payload as string;
       });

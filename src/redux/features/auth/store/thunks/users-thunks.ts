@@ -3,119 +3,95 @@
  * Redux thunks for user CRUD operations
  */
 
-import { createAsyncThunk } from "@reduxjs/toolkit";
-
 import { Status } from "@/constants/AppResource/status/status";
-import { updateUserService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
-import {
-  createUserService,
-  deleteUserService,
-  getAllUsersService,
-  getUserByIdService,
-} from "../services/users-service";
 import {
   AllUserRequest,
   CreateUserRequest,
+  UpdateUserParams,
 } from "../models/request/users-request";
-import { UpdateUserParams } from "../models/user-types";
 import { UserModel } from "../models/response/users-response";
+import { axiosClientWithAuth } from "@/utils/axios";
+import { createApiThunk } from "@/utils/axios/apiWrapper";
 
 /**
  * Fetch all users
  */
-export const fetchUsers = createAsyncThunk(
+export const fetchAllUsersService = createApiThunk<any, AllUserRequest>(
   "users/fetchAll",
-  async (params: AllUserRequest, { rejectWithValue }) => {
-    try {
-      return await getAllUsersService(params);
-    } catch (error: any) {
-      const errorMsg = error?.message || "Failed to fetch users";
-      return rejectWithValue(errorMsg);
-    }
+  async (params) => {
+    const response = await axiosClientWithAuth.post(
+      "/api/v1/users/all",
+      params
+    );
+    return response.data.data;
   }
 );
 
 /**
  * Fetch user by ID
  */
-export const fetchUserById = createAsyncThunk(
+export const fetchUserByIdService = createApiThunk<any, string>(
   "users/fetchById",
-  async (userId: string, { rejectWithValue }) => {
-    try {
-      return await getUserByIdService(userId);
-    } catch (error: any) {
-      const errorMsg = error?.message || "Failed to fetch user";
-      return rejectWithValue(errorMsg);
-    }
+  async (userId) => {
+    const response = await axiosClientWithAuth.get(`/api/v1/users/${userId}`);
+    return response.data.data;
   }
 );
 
 /**
  * Create user
  */
-export const createUser = createAsyncThunk(
+export const createUserService = createApiThunk<any, CreateUserRequest>(
   "users/create",
-  async (userData: CreateUserRequest, { rejectWithValue }) => {
-    try {
-      return await createUserService(userData);
-    } catch (error: any) {
-      const errorMsg = error?.message || "Failed to create user";
-      return rejectWithValue(errorMsg);
-    }
+  async (userData) => {
+    const response = await axiosClientWithAuth.post("/api/v1/users", userData);
+    return response.data.data;
   }
 );
 
 /**
  * Update user
  */
-export const updateUser = createAsyncThunk(
+export const updateUserService = createApiThunk<any, UpdateUserParams>(
   "users/update",
-  async ({ userId, userData }: UpdateUserParams, { rejectWithValue }) => {
-    try {
-      return await updateUserService(userId, userData);
-    } catch (error: any) {
-      const errorMsg = error?.message || "Failed to update user";
-      return rejectWithValue(errorMsg);
-    }
+  async ({ userId, userData }) => {
+    const response = await axiosClientWithAuth.put(
+      `/api/v1/users/${userId}`,
+      userData
+    );
+    return response.data.data;
   }
 );
 
 /**
  * Delete user
  */
-export const deleteUser = createAsyncThunk(
+export const deleteUserService = createApiThunk<any, string>(
   "users/delete",
-  async (userId: string, { rejectWithValue }) => {
-    try {
-      await deleteUserService(userId);
-      return userId;
-    } catch (error: any) {
-      const errorMsg = error?.message || "Failed to delete user";
-      return rejectWithValue(errorMsg);
-    }
+  async (userId) => {
+    const response = await axiosClientWithAuth.delete(
+      `/api/v1/users/${userId}`
+    );
+    return response.data.data;
   }
 );
 
 /**
  * Toggle user status (Active/Inactive)
  */
-export const toggleUserStatus = createAsyncThunk(
+export const toggleUserStatusService = createApiThunk<any, UserModel>(
   "users/toggleStatus",
-  async (user: UserModel, { rejectWithValue }) => {
-    try {
-      if (!user?.id) {
-        throw new Error("User ID is required");
-      }
-
-      const newStatus =
-        user?.accountStatus === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
-
-      return await updateUserService(user.id, {
-        accountStatus: newStatus,
-      });
-    } catch (error: any) {
-      const errorMsg = error?.message || "Failed to toggle user status";
-      return rejectWithValue(errorMsg);
+  async (user) => {
+    if (!user?.id) {
+      throw new Error("User ID is required");
     }
+
+    const newStatus =
+      user?.accountStatus === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
+
+    const response = await axiosClientWithAuth.put(`/api/v1/users/${user.id}`, {
+      accountStatus: newStatus,
+    });
+    return response.data.data;
   }
 );
