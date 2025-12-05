@@ -20,6 +20,7 @@ import {
 import {
   ACCOUNT_STATUS_CREATE_UPDATE,
   USER_BUSINESS_ROLE_CREATE_UPDATE,
+  USER_CUSTOMER_ROLE_CREATE_UPDATE,
 } from "@/constants/AppResource/status/create-update-status";
 import {
   createUserSchema,
@@ -177,19 +178,11 @@ export default function UserCustomerModal({
     }
   };
 
-  /* ==========================================
-     MODAL CLOSE HANDLER
-     - Resets form state
-     - Calls parent onClose
-  ========================================== */
   const handleClose = () => {
     reset();
     onClose();
   };
 
-  /* ==========================================
-     RENDER: MODAL STRUCTURE
-  ========================================== */
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">
@@ -363,7 +356,7 @@ export default function UserCustomerModal({
                       label="User Role"
                       control={control}
                       error={errors.roles as any}
-                      options={USER_BUSINESS_ROLE_CREATE_UPDATE}
+                      options={USER_CUSTOMER_ROLE_CREATE_UPDATE}
                       placeholder="Select role"
                       required
                       disabled={isSubmitting}
