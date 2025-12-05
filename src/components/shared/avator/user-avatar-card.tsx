@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { X } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState, useRef } from "react";
 import Link from "next/link";
 
@@ -36,8 +36,10 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
   avatarSize = "md",
 }) => {
   const [showPreview, setShowPreview] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const openTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const justOpenedRef = useRef(false);
 
   const sizeClasses = {
     sm: { avatar: "h-8 w-8", indicator: "w-2 h-2" },
@@ -69,64 +71,112 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
       : user.profileImageUrl
     : undefined;
 
-  // Image preview handlers
+  // Image preview handlers - smooth like CustomAvatar
   const handleMouseEnter = () => {
     if (!enableImagePreview || !profileImageUrl) return;
 
+    // Clear any pending close timeout
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
     }
 
+    // Set 600ms delay before opening
     openTimeoutRef.current = setTimeout(() => {
       setShowPreview(true);
+      setImageLoading(true); // Reset loading state when opening
+      justOpenedRef.current = true;
+
+      // Reset the justOpened flag after 500ms to allow closing
+      setTimeout(() => {
+        justOpenedRef.current = false;
+      }, 500);
     }, 600);
   };
 
   const handleMouseLeave = () => {
+    // Don't close if modal just opened
+    if (justOpenedRef.current) return;
+
+    // Clear the open timeout if user leaves before 600ms
     if (openTimeoutRef.current) {
       clearTimeout(openTimeoutRef.current);
     }
 
+    // Delay before closing to allow moving mouse to preview
     closeTimeoutRef.current = setTimeout(() => {
       setShowPreview(false);
-    }, 100);
-  };
-
-  const handleClose = () => {
-    if (openTimeoutRef.current) {
-      clearTimeout(openTimeoutRef.current);
-    }
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-    }
-    setShowPreview(false);
+    }, 4000);
   };
 
   const handlePreviewMouseEnter = () => {
+    // Clear close timeout when hovering preview
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
     }
   };
 
-  // Avatar component
+  // Avatar component with Dialog trigger
   const AvatarComponent = (
     <div className="relative">
-      <Avatar
-        className={`${sizes.avatar} ${
-          enableImagePreview && profileImageUrl
-            ? "cursor-pointer hover:scale-110 transition-transform"
-            : ""
-        }`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        <AvatarImage src={profileImageUrl} alt={displayName} />
-        <AvatarFallback
-          className={`${sizes.avatar} rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm`}
-        >
-          {fallbackLetter}
-        </AvatarFallback>
-      </Avatar>
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogTrigger asChild>
+          <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+            <Avatar
+              className={`${sizes.avatar} ${
+                enableImagePreview && profileImageUrl
+                  ? "cursor-pointer hover:scale-110 transition-transform"
+                  : ""
+              }`}
+            >
+              <AvatarImage src={profileImageUrl} alt={displayName} />
+              <AvatarFallback
+                className={`${sizes.avatar} rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-sm font-bold shadow-sm`}
+              >
+                {fallbackLetter}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        </DialogTrigger>
+
+        {enableImagePreview && profileImageUrl && (
+          <DialogContent
+            className="max-w-fit border-none bg-transparent shadow-none p-0"
+            onMouseEnter={handlePreviewMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            <div className="relative bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-2xl border border-border">
+              <div className="flex flex-col items-center gap-4">
+                {/* Loading spinner */}
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 rounded-2xl z-10">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                      <p className="text-sm text-muted-foreground">
+                        Loading image...
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <img
+                  src={profileImageUrl}
+                  alt={displayName}
+                  className="max-w-[70vw] max-h-[70vh] w-auto h-auto object-contain rounded-lg"
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => setImageLoading(false)}
+                  style={{
+                    opacity: imageLoading ? 0 : 1,
+                    transition: "opacity 0.3s",
+                  }}
+                />
+                <p className="text-lg font-semibold text-center text-gray-900 dark:text-white">
+                  {displayName}
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
 
       {/* Online/Offline indicator */}
       {showOnlineIndicator && (
@@ -144,44 +194,9 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
   // Collapsed view
   if (collapsed) {
     return (
-      <>
-        <div className={`border-t border-border/50 p-2 ${className}`}>
-          <div className="flex justify-center">{AvatarComponent}</div>
-        </div>
-
-        {/* Image Preview */}
-        {profileImageUrl && showPreview && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 z-[9998] animate-in fade-in duration-200"
-              onMouseEnter={handlePreviewMouseEnter}
-              onClick={handleClose}
-            />
-            <div
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] animate-in zoom-in-95 fade-in duration-200"
-              onMouseEnter={handlePreviewMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            >
-              <div className="relative bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-2xl border-4 border-primary/30">
-                <button
-                  onClick={handleClose}
-                  className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-all hover:scale-110 z-10"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-                <img
-                  src={profileImageUrl}
-                  alt={displayName}
-                  className="max-w-[70vw] max-h-[70vh] w-auto h-auto object-contain rounded-lg"
-                />
-                <p className="text-lg font-semibold text-center mt-4 text-gray-900 dark:text-white">
-                  {displayName}
-                </p>
-              </div>
-            </div>
-          </>
-        )}
-      </>
+      <div className={`border-t border-border/50 p-2 ${className}`}>
+        <div className="flex justify-center">{AvatarComponent}</div>
+      </div>
     );
   }
 
@@ -213,47 +228,12 @@ export const UserAvatarCard: React.FC<UserAvatarCardProps> = ({
   );
 
   return (
-    <>
-      <div className={`border-t border-border/50 p-4 ${className}`}>
-        {profileLink ? (
-          <Link href={profileLink}>{CardContent}</Link>
-        ) : (
-          CardContent
-        )}
-      </div>
-
-      {/* Image Preview */}
-      {profileImageUrl && showPreview && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-[9998] animate-in fade-in duration-200"
-            onMouseEnter={handlePreviewMouseEnter}
-            onClick={handleClose}
-          />
-          <div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] animate-in zoom-in-95 fade-in duration-200"
-            onMouseEnter={handlePreviewMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="relative bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-2xl border-4 border-primary/30">
-              <button
-                onClick={handleClose}
-                className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-all hover:scale-110 z-10"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <img
-                src={profileImageUrl}
-                alt={displayName}
-                className="max-w-[70vw] max-h-[70vh] w-auto h-auto object-contain rounded-lg"
-              />
-              <p className="text-lg font-semibold text-center mt-4 text-gray-900 dark:text-white">
-                {displayName}
-              </p>
-            </div>
-          </div>
-        </>
+    <div className={`border-t border-border/50 p-4 ${className}`}>
+      {profileLink ? (
+        <Link href={profileLink}>{CardContent}</Link>
+      ) : (
+        CardContent
       )}
-    </>
+    </div>
   );
 };
