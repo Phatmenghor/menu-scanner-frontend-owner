@@ -106,7 +106,7 @@ export const adminChangePasswordService = createApiThunk<
   AdminChangePasswordRequest
 >("users/adminChangePassword", async (resetParam) => {
   const response = await axiosClientWithAuth.post(
-    `/api/v1/auth/admin/reset-password`,
+    `/api/v1/users/admin/reset-password`,
     resetParam
   );
   return response.data.data;

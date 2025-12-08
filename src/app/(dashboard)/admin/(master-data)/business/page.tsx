@@ -35,8 +35,6 @@ import {
   setRoleFilter,
   setSearchFilter,
 } from "@/redux/features/auth/store/slice/users-slice";
-import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
-import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
 import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
 import { UserBusinessDetailModal } from "@/redux/features/auth/components/user-business-detail-modal";
 import UserBusinessModal from "@/redux/features/auth/components/user-business-modal";
