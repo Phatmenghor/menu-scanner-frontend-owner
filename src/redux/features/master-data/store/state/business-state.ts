@@ -2,6 +2,8 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   selectBusiness,
   selectBusinessContent,
+  selectBusinessState,
+  selectError,
   selectFilters,
   selectIsLoading,
   selectOperations,
@@ -12,17 +14,21 @@ export const useBusinessState = () => {
   const dispatch = useAppDispatch();
 
   // Redux selectors
-  const businesstate = useAppSelector(selectBusiness);
-  const business = useAppSelector(selectBusinessContent);
+  const businessState = useAppSelector(selectBusinessState);
+  const businessData = useAppSelector(selectBusiness);
+  const businessContent = useAppSelector(selectBusinessContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
   const isLoading = useAppSelector(selectIsLoading);
+  const error = useAppSelector(selectError);
 
   return {
-    businesstate,
-    business,
+    businessState,
+    businessData,
+    businessContent,
     isLoading,
+    error,
     filters,
     operations,
     pagination,

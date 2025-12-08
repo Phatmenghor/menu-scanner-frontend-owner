@@ -67,7 +67,7 @@ export function DetailModal({
 
         {/* Content */}
         <ScrollArea className="flex-1 min-h-0">
-          <div className="p-6">{isLoading ? <Loading /> : children}</div>
+          <div className="p-6 ">{isLoading ? <Loading /> : children}</div>
         </ScrollArea>
       </DialogContent>
     </Dialog>

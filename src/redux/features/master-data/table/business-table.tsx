@@ -10,7 +10,7 @@ import {
 
 interface BusinessTableHandlers {
   handleEditBusiness: (business: BusinessResponseModel) => void;
-  handleViewBusinessDetail: (business: BusinessResponseModel) => void;
+  handleBusinessViewDetail: (business: BusinessResponseModel) => void;
   handleDeleteBusiness: (business: BusinessResponseModel) => void;
 }
 
@@ -23,7 +23,7 @@ export const businessTableColumns = ({
   data,
   handlers,
 }: BusinessTableOptions): TableColumn<BusinessResponseModel>[] => {
-  const { handleEditBusiness, handleViewBusinessDetail, handleDeleteBusiness } =
+  const { handleEditBusiness, handleBusinessViewDetail, handleDeleteBusiness } =
     handlers;
 
   return [
@@ -108,7 +108,7 @@ export const businessTableColumns = ({
           <ActionButton
             icon={<Eye className="w-4 h-4" />}
             tooltip="View Details"
-            onClick={() => handleViewBusinessDetail(business)}
+            onClick={() => handleBusinessViewDetail(business)}
           />
           <ActionButton
             icon={<Edit className="w-4 h-4" />}

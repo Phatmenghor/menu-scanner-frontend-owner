@@ -140,9 +140,9 @@ export const BUSINESS_STATUS = [
 ];
 
 export enum SubscriptionStatus {
-  All = "ALL",
+  ALL = "ALL",
   SUBSCRIBED = "SUBSCRIBED",
-  NOT_SUBSCRIBE = "NOT_SUBSCRIBE",
+  NONE_SUBSCRIBE = "NONE_SUBSCRIBE",
 }
 
 export enum PaymentStatus {
@@ -159,13 +159,6 @@ export enum PaymentMethod {
   MOBILE_PAYMENT = "MOBILE_PAYMENT",
   ONLINE = "ONLINE",
 }
-
-// Subscription options for select
-export const subscriptionOptions: SelectOption[] = [
-  { value: SubscriptionStatus.All, label: "All" },
-  { value: SubscriptionStatus.SUBSCRIBED, label: "Subscribed" },
-  { value: SubscriptionStatus.NOT_SUBSCRIBE, label: "Not Subscribed" },
-];
 
 export const PAYMENT_STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },

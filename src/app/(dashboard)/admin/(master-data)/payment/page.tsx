@@ -1,359 +1,231 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { useDebounce } from "@/utils/debounce/debounce";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
-import { usePagination } from "@/app/redux/store/use-pagination";
+import { Plus } from "lucide-react";
+import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
-import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { AppToast } from "@/components/shared/common/app-toast";
+import {
+  AccountStatus,
+  ModalMode,
+  BusinessStatus,
+  SubscriptionStatus,
+} from "@/constants/AppResource/status/status";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
+import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
+import {
+  ACCOUNT_STATUS_FILTER,
+  HAS_SUBSCRIPTION_FILTER,
+} from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
-import { CustomPagination } from "@/components/shared/common/custom-pagination";
-import { ModalMode, Status } from "@/constants/AppResource/status/status";
-import { Plus } from "lucide-react";
+import { showToast } from "@/components/shared/common/app-toast";
+import { usePagination } from "@/redux/store/use-pagination";
 import {
-  AllPayment,
-  PaymentModel,
-} from "@/models/dashboard/payment/payment/payment.response.model";
+  setPageNo,
+  setSearchFilter,
+} from "@/redux/features/auth/store/slice/users-slice";
+import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
+import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
+import { useBusinessState } from "@/redux/features/master-data/store/state/business-state";
+import { BusinessResponseModel } from "@/redux/features/master-data/store/models/response/business-response";
 import {
-  createPaymentService,
-  deletedPaymentService,
-  getAllPaymentService,
-  updatePaymentService,
-} from "@/services/dashboard/payment/payment/payment.service";
-import PaymentModal from "@/components/shared/modal/payment-modal";
+  deleteBusinessService,
+  fetchAllBusinessService,
+} from "@/redux/features/master-data/store/thunks/business-thunks";
+import { businessTableColumns } from "@/redux/features/master-data/table/business-table";
 import {
-  CreatePaymentFormData,
-  UpdatePaymentFormData,
-} from "@/models/dashboard/payment/payment/payment.schema";
-import {
-  CreatePaymentRequest,
-  UpdatePaymentRequest,
-} from "@/models/dashboard/payment/payment/payment.request.model";
-import { createPaymentTableColumns } from "@/constants/AppResource/table/master-data/payment-table";
-import { PaymentDetailModal } from "@/components/dashboard/master-data/payment/payment-detail-modal";
+  setBusinessStatusFilter,
+  setHasSubscriptionFilter,
+} from "@/redux/features/master-data/store/slice/business-slice";
+import { fi } from "date-fns/locale";
+import { BusinessDetailModal } from "@/redux/features/master-data/components/business-detail-modal";
+import BusinessModal from "@/redux/features/master-data/components/business-modal";
 
-const STATUS_FILTER_OPTIONS = [
-  { label: "All Status", value: Status.ALL },
-  { label: "Pending", value: "PENDING" },
-  { label: "Completed", value: "COMPLETED" },
-  { label: "Failed", value: "FAILED" },
-  { label: "Cancelled", value: "CANCELLED" },
-];
-
-const PAYMENT_METHOD_FILTER_OPTIONS = [
-  { label: "All Methods", value: "ALL" },
-  { label: "Cash", value: "CASH" },
-  { label: "Bank Transfer", value: "BANK_TRANSFER" },
-  { label: "Credit Card", value: "CREDIT_CARD" },
-  { label: "Digital Wallet", value: "DIGITAL_WALLET" },
-];
-
-export default function PaymentPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [data, setData] = useState<AllPayment | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Modal states
-  const [modalState, setModalState] = useState<{
-    isOpen: boolean;
-    paymentId: string;
-    isSubmitting: boolean;
-    mode: ModalMode;
-  }>({
-    isOpen: false,
-    paymentId: "",
-    isSubmitting: false,
-    mode: ModalMode.CREATE_MODE,
-  });
-
-  // Detail modal state
-  const [detailModalState, setDetailModalState] = useState<{
-    isOpen: boolean;
-    paymentId: string;
-  }>({
-    isOpen: false,
-    paymentId: "",
-  });
-
-  // Delete modal state
-  const [deleteState, setDeleteState] = useState<{
-    isOpen: boolean;
-    payment: PaymentModel | null;
-    isDeleting: boolean;
-  }>({
-    isOpen: false,
-    payment: null,
-    isDeleting: false,
-  });
-
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("ALL");
-
-  // Debounced search query
-  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+export default function BusinessPage() {
   const searchParams = useSearchParams();
 
-  const { currentPage, updateUrlWithPage, handlePageChange } = usePagination({
-    baseRoute: ROUTES.DASHBOARD.PAYMENT,
-    defaultPageSize: 10,
+  // Redux state
+  const {
+    businessState,
+    businessData,
+    businessContent,
+    isLoading,
+    filters,
+    operations,
+    pagination,
+    dispatch,
+  } = useBusinessState();
+
+  // Local UI state for modals only
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    mode: ModalMode.CREATE_MODE,
+    businessId: "",
   });
 
+  const [detailModalState, setDetailModalState] = useState({
+    isOpen: false,
+    businessId: "",
+  });
+
+  const [deleteState, setDeleteState] = useState({
+    isOpen: false,
+    business: null as BusinessResponseModel | null,
+  });
+
+  const debouncedSearch = useDebounce(filters.search, 400);
+
+  const { updateUrlWithPage, handlePageChange } = usePagination({
+    baseRoute: ROUTES.DASHBOARD.BUSINESS,
+    defaultPageSize: 15,
+  });
+
+  // Initialize URL and Redux state on mount
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
-    if (!pageParam) {
-      updateUrlWithPage(1, true);
-    }
-  }, [searchParams, updateUrlWithPage]);
+    const pageFromUrl = pageParam ? parseInt(pageParam, 10) : 1;
 
-  // Load payments
-  const loadPayments = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await getAllPaymentService({
-        search: debouncedSearchQuery,
-        pageNo: currentPage,
-        pageSize: 10,
-        status: statusFilter === "ALL" ? undefined : statusFilter,
-        paymentMethod:
-          paymentMethodFilter === "ALL" ? undefined : paymentMethodFilter,
-      });
-      setData(response);
-    } catch (error: any) {
-      console.error("Failed to fetch payments: ", error);
-      toast.error("Failed to load payments");
-    } finally {
-      setIsLoading(false);
+    if (pageFromUrl !== pagination.currentPage) {
+      dispatch(setPageNo(pageFromUrl));
     }
-  }, [debouncedSearchQuery, currentPage, statusFilter, paymentMethodFilter]);
+  }, [searchParams, pagination.currentPage, dispatch]);
 
+  // Fetch business when filters change
   useEffect(() => {
-    loadPayments();
-  }, [loadPayments]);
+    dispatch(
+      fetchAllBusinessService({
+        search: debouncedSearch,
+        pageNo: pagination.currentPage,
+        hasActiveSubscription:
+          filters.hasActiveSubscription === SubscriptionStatus.ALL
+            ? undefined
+            : filters.hasActiveSubscription == SubscriptionStatus.SUBSCRIBED
+            ? true
+            : false,
+        status:
+          filters.businessStatus === AccountStatus.ALL
+            ? []
+            : [filters.businessStatus],
+      })
+    );
+  }, [
+    dispatch,
+    debouncedSearch,
+    filters.businessStatus,
+    filters.hasActiveSubscription,
+    pagination.currentPage,
+  ]);
 
-  // Search change handler
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  // Handler functions for table actions
-  const handleEditPayment = useCallback((payment: PaymentModel) => {
+  // Event handlers
+  const handleCreateUser = () => {
     setModalState({
       isOpen: true,
-      paymentId: payment.id || "",
-      isSubmitting: false,
-      mode: ModalMode.UPDATE_MODE,
+      mode: ModalMode.CREATE_MODE,
+      businessId: "",
     });
-  }, []);
+  };
 
-  const handleViewPaymentDetail = useCallback((payment: PaymentModel) => {
+  const handleEditBusiness = (business: BusinessResponseModel) => {
+    setModalState({
+      isOpen: true,
+      mode: ModalMode.UPDATE_MODE,
+      businessId: business?.id || "",
+    });
+  };
+
+  const handleBusinessViewDetail = (business: BusinessResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      paymentId: payment.id || "",
+      businessId: business.id || "",
     });
-  }, []);
+  };
 
-  const handleDeletePayment = useCallback((payment: PaymentModel) => {
+  const handleDeleteBusiness = (business: BusinessResponseModel) => {
     setDeleteState({
       isOpen: true,
-      payment: payment,
-      isDeleting: false,
+      business: business,
     });
-  }, []);
+  };
 
-  // Memoized table handlers
   const tableHandlers = useMemo(
     () => ({
-      handleEditPayment,
-      handleViewPaymentDetail,
-      handleDelete: handleDeletePayment,
+      handleEditBusiness,
+      handleBusinessViewDetail,
+      handleDeleteBusiness,
     }),
-    [handleEditPayment, handleViewPaymentDetail, handleDeletePayment]
+    []
   );
 
-  // Optimized table columns
   const columns = useMemo(
     () =>
-      createPaymentTableColumns({
-        data,
+      businessTableColumns({
+        data: businessData,
         handlers: tableHandlers,
       }),
-    [data?.pageNo, data?.pageSize, data?.content?.length, tableHandlers]
+    [businessState, tableHandlers]
   );
 
-  // Close modals
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSearchFilter(e.target.value));
+  };
+
+  const handleStatusChange = (status: BusinessStatus) => {
+    dispatch(setBusinessStatusFilter(status));
+  };
+
+  const handleSubscriptionChange = (subscription: SubscriptionStatus) => {
+    dispatch(setHasSubscriptionFilter(subscription));
+  };
+
+  const handlePageChangeWrapper = (page: number) => {
+    dispatch(setPageNo(page));
+    handlePageChange(page);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteState.business?.id) return;
+
+    try {
+      await dispatch(deleteBusinessService(deleteState.business.id)).unwrap();
+
+      showToast.success(
+        `Business "${deleteState.business.name ?? ""}" deleted successfully`
+      );
+
+      closeDeleteModal();
+
+      // Navigate to previous page if this was the last item
+      if (businessContent.length === 1 && pagination.currentPage > 1) {
+        const newPage = pagination.currentPage - 1;
+        dispatch(setPageNo(newPage));
+        updateUrlWithPage(newPage);
+      }
+    } catch (error: any) {
+      showToast.error(error || "Failed to delete business");
+    }
+  };
+
   const closeModal = () => {
     setModalState({
       isOpen: false,
-      paymentId: "",
-      isSubmitting: false,
       mode: ModalMode.CREATE_MODE,
+      businessId: "",
     });
   };
 
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      paymentId: "",
+      businessId: "",
     });
   };
 
   const closeDeleteModal = () => {
     setDeleteState({
       isOpen: false,
-      payment: null,
-      isDeleting: false,
+      business: null,
     });
-  };
-
-  // Handle form submission
-  const handleSubmit = async (
-    formData: CreatePaymentFormData | UpdatePaymentFormData
-  ): Promise<void> => {
-    try {
-      setModalState((prev) => ({
-        ...prev,
-        isSubmitting: true,
-      }));
-
-      const isCreate = modalState.mode === ModalMode.CREATE_MODE;
-
-      if (isCreate) {
-        const data = formData as CreatePaymentFormData;
-        const payload: CreatePaymentRequest = {
-          businessId: data.businessId,
-          amount: data.amount,
-          paymentMethod: data.paymentMethod,
-          status: data.status || "PENDING",
-          referenceNumber: data.referenceNumber,
-          notes: data.notes,
-          imageUrl: data.imageUrl,
-          paymentType: data.paymentType || "SUBSCRIPTION",
-        };
-
-        const response = await createPaymentService(payload);
-        if (response) {
-          setData((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  content: [response, ...prev.content],
-                  totalElements: prev.totalElements + 1,
-                }
-              : {
-                  content: [response],
-                  pageNo: 1,
-                  pageSize: 10,
-                  totalElements: 1,
-                  totalPages: 1,
-                  hasNext: false,
-                  hasPrevious: false,
-                  first: true,
-                  last: true,
-                }
-          );
-
-          AppToast({
-            type: "success",
-            message: "Payment created successfully",
-          });
-
-          closeModal();
-        }
-      } else {
-        if (!modalState.paymentId) {
-          throw new Error("Payment ID is required for update");
-        }
-
-        const data = formData as UpdatePaymentFormData;
-        const payload: UpdatePaymentRequest = {
-          amount: data.amount,
-          paymentMethod: data.paymentMethod,
-          status: data.status,
-          referenceNumber: data.referenceNumber,
-          notes: data.notes,
-          imageUrl: data.imageUrl,
-        };
-
-        const response = await updatePaymentService(
-          modalState.paymentId,
-          payload
-        );
-        if (response) {
-          setData((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  content: prev.content.map((payment) =>
-                    payment.id === modalState.paymentId ? response : payment
-                  ),
-                }
-              : prev
-          );
-
-          AppToast({
-            type: "success",
-            message: "Payment updated successfully",
-            duration: 4000,
-            position: "top-right",
-          });
-
-          closeModal();
-        }
-      }
-    } catch (error: any) {
-      console.error("Error saving payment:", error);
-      toast.error(error.message || "An unexpected error occurred");
-    } finally {
-      setModalState((prev) => ({
-        ...prev,
-        isSubmitting: false,
-      }));
-    }
-  };
-
-  // Handle delete
-  const handleDelete = async () => {
-    if (!deleteState.payment?.id) return;
-
-    setDeleteState((prev) => ({ ...prev, isDeleting: true }));
-
-    try {
-      const response = await deletedPaymentService(deleteState.payment.id);
-
-      if (response) {
-        AppToast({
-          type: "success",
-          message: "Payment deleted successfully",
-          duration: 4000,
-          position: "top-right",
-        });
-
-        // Check if we need to go back a page
-        if (data && data.content.length === 1 && currentPage > 1) {
-          updateUrlWithPage(currentPage - 1);
-        } else {
-          await loadPayments();
-        }
-      }
-    } catch (error) {
-      console.error("Error deleting payment:", error);
-      toast.error("Failed to delete payment");
-    } finally {
-      setDeleteState((prev) => ({ ...prev, isDeleting: false }));
-      closeDeleteModal();
-    }
-  };
-
-  // Reset filters
-  const handleResetFilters = () => {
-    setStatusFilter("ALL");
-    setPaymentMethodFilter("ALL");
-    setSearchQuery("");
-    updateUrlWithPage(1, true);
   };
 
   return (
@@ -362,95 +234,77 @@ export default function PaymentPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Payment Management", href: "" },
+            { label: "Business", href: "" },
           ]}
-          title="Payment Management"
-          searchValue={searchQuery}
-          searchPlaceholder="Search payments..."
-          buttonIcon={<Plus className="w-4 h-4" />}
-          buttonText="New Payment"
+          title="Business"
+          searchValue={filters.search}
+          searchPlaceholder="Search business..."
+          buttonIcon={<Plus className="w-3 h-3" />}
+          buttonText="New Business"
           onSearchChange={handleSearchChange}
-          openModal={() => {
-            setModalState({
-              isOpen: true,
-              paymentId: "",
-              isSubmitting: false,
-              mode: ModalMode.CREATE_MODE,
-            });
-          }}
+          openModal={handleCreateUser}
         >
-          <div className="flex flex-wrap items-center justify-between gap-4 w-full">
-            <div className="flex items-center gap-3">
-              <CustomSelect
-                options={STATUS_FILTER_OPTIONS}
-                value={statusFilter}
-                placeholder="Select Status"
-                onValueChange={(value) => setStatusFilter(value as string)}
-              />
-              <CustomSelect
-                options={PAYMENT_METHOD_FILTER_OPTIONS}
-                value={paymentMethodFilter}
-                placeholder="Payment Method"
-                onValueChange={(value) =>
-                  setPaymentMethodFilter(value as string)
-                }
-              />
-            </div>
+          <div className="flex items-center gap-3">
+            <CustomSelect
+              options={ACCOUNT_STATUS_FILTER}
+              value={filters.businessStatus}
+              placeholder="All Status"
+              onValueChange={(value) =>
+                handleStatusChange(value as BusinessStatus)
+              }
+              label="Account Status"
+            />
+            <CustomSelect
+              options={HAS_SUBSCRIPTION_FILTER}
+              value={filters.hasActiveSubscription}
+              placeholder="All Subscription"
+              onValueChange={(value) =>
+                handleSubscriptionChange(value as SubscriptionStatus)
+              }
+              label="Subscription Status"
+            />
           </div>
         </CardHeaderSection>
 
-        <div className="space-y-4">
-          <DataTableWithPagination
-            data={data?.content || []}
-            columns={columns}
-            loading={isLoading}
-            emptyMessage="No payments found"
-            getRowKey={(payment) =>
-              payment.id?.toString() || payment.referenceNumber
-            }
-          />
-
-          {data && data.totalPages > 1 && (
-            <CustomPagination
-              currentPage={currentPage}
-              totalPages={data.totalPages}
-              onPageChange={handlePageChange}
-              size="md"
-            />
-          )}
-        </div>
+        {/* Data Table with Pagination */}
+        <DataTableWithPagination
+          data={businessContent}
+          columns={columns}
+          loading={isLoading}
+          emptyMessage="No business found"
+          getRowKey={(user) => user.id?.toString() || user.email}
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChangeWrapper}
+        />
       </div>
 
-      {/* Create/Edit Modal */}
-      <PaymentModal
+      {/* Modals Add/Edit */}
+      <BusinessModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        isSubmitting={modalState.isSubmitting}
-        onSave={handleSubmit}
-        paymentId={modalState.paymentId}
+        businessId={modalState.businessId}
         mode={modalState.mode}
       />
 
-      {/* Detail Modal */}
-      <PaymentDetailModal
+      {/* Modals business platform Detail */}
+      <BusinessDetailModal
+        businessId={detailModalState.businessId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
-        paymentId={detailModalState.paymentId}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Modals Delete name platform */}
       <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}
-        title="Delete Payment"
-        description="Are you sure you want to delete this payment?"
-        itemName={
-          deleteState.payment
-            ? `${deleteState.payment.referenceNumber || "Payment"}`
-            : "---"
-        }
-        isSubmitting={deleteState.isDeleting}
+        title="Delete Business"
+        description={`Are you sure you want to delete this business ${
+          deleteState.business?.name || deleteState.business?.email
+        }?`}
+        itemName={deleteState.business?.name || deleteState.business?.email}
+        isSubmitting={operations.isDeleting}
       />
     </div>
   );

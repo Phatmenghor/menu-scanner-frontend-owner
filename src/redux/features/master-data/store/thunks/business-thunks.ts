@@ -1,21 +1,21 @@
 /**
  * Business Management - Async Thunks
- * Redux thunks for Business CRUD operations
+ * Redux thunks for business CRUD operations
  */
 
+import { axiosClientWithAuth } from "@/utils/axios";
+import { createApiThunk } from "@/utils/axios/apiWrapper";
 import {
   AllBusinessRequest,
   CreateBusinessRequest,
   UpdateBusinessParams,
 } from "../models/request/business-request";
-import { axiosClientWithAuth } from "@/utils/axios";
-import { createApiThunk } from "@/utils/axios/apiWrapper";
 
 /**
- * Fetch all Business
+ * Fetch all businesses
  */
 export const fetchAllBusinessService = createApiThunk<any, AllBusinessRequest>(
-  "business/fetchAll",
+  "businesses/fetchAll",
   async (params) => {
     const response = await axiosClientWithAuth.post(
       "/api/v1/businesses/all",
@@ -26,37 +26,37 @@ export const fetchAllBusinessService = createApiThunk<any, AllBusinessRequest>(
 );
 
 /**
- * Fetch Business by ID
+ * Fetch businesses by ID
  */
 export const fetchBusinessByIdService = createApiThunk<any, string>(
-  "business/fetchById",
-  async (businessId) => {
+  "businesses/fetchById",
+  async (userId) => {
     const response = await axiosClientWithAuth.get(
-      `/api/v1/businesses/${businessId}`
+      `/api/v1/businesses/${userId}`
     );
     return response.data.data;
   }
 );
 
 /**
- * Create Business
+ * Create businesses
  */
 export const createBusinessService = createApiThunk<any, CreateBusinessRequest>(
-  "business/create",
-  async (businessData) => {
+  "businesses/create",
+  async (userData) => {
     const response = await axiosClientWithAuth.post(
       "/api/v1/businesses",
-      businessData
+      userData
     );
     return response.data.data;
   }
 );
 
 /**
- * Update Business
+ * Update businesses
  */
 export const updateBusinessService = createApiThunk<any, UpdateBusinessParams>(
-  "business/update",
+  "businesses/update",
   async ({ businessId, businessData }) => {
     const response = await axiosClientWithAuth.put(
       `/api/v1/businesses/${businessId}`,
@@ -67,13 +67,13 @@ export const updateBusinessService = createApiThunk<any, UpdateBusinessParams>(
 );
 
 /**
- * Delete Business
+ * Delete businesses
  */
 export const deleteBusinessService = createApiThunk<any, string>(
-  "business/delete",
-  async (businessId) => {
+  "businesses/delete",
+  async (userId) => {
     const response = await axiosClientWithAuth.delete(
-      `/api/v1/businesses/${businessId}`
+      `/api/v1/businesses/${userId}`
     );
     return response.data.data;
   }

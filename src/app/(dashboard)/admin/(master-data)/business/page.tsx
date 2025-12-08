@@ -8,80 +8,77 @@ import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
   AccountStatus,
   ModalMode,
-  UserRole,
-  UserGropeType,
+  BusinessStatus,
+  SubscriptionStatus,
 } from "@/constants/AppResource/status/status";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
-import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { userPlatformTableColumns } from "@/redux/features/auth/table/user-platform-table";
 import {
   ACCOUNT_STATUS_FILTER,
-  USER_PLATFORM_ROLE_FILTER,
+  HAS_SUBSCRIPTION_FILTER,
 } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { showToast } from "@/components/shared/common/app-toast";
-import { useUsersState } from "@/redux/features/auth/store/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
-  deleteUserService,
-  fetchAllUsersService,
-  toggleUserStatusService,
-} from "@/redux/features/auth/store/thunks/users-thunks";
-import {
-  setAccountStatusFilter,
   setPageNo,
-  setRoleFilter,
   setSearchFilter,
 } from "@/redux/features/auth/store/slice/users-slice";
-import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
-import { UserBusinessDetailModal } from "@/redux/features/auth/components/user-business-detail-modal";
-import UserBusinessModal from "@/redux/features/auth/components/user-business-modal";
+import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
+import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
+import { useBusinessState } from "@/redux/features/master-data/store/state/business-state";
+import { BusinessResponseModel } from "@/redux/features/master-data/store/models/response/business-response";
+import {
+  deleteBusinessService,
+  fetchAllBusinessService,
+} from "@/redux/features/master-data/store/thunks/business-thunks";
+import { businessTableColumns } from "@/redux/features/master-data/table/business-table";
+import {
+  setBusinessStatusFilter,
+  setHasSubscriptionFilter,
+} from "@/redux/features/master-data/store/slice/business-slice";
+import { fi } from "date-fns/locale";
+import { BusinessDetailModal } from "@/redux/features/master-data/components/business-detail-modal";
+import BusinessModal from "@/redux/features/master-data/components/business-modal";
 
-export default function UserPage() {
+export default function BusinessPage() {
   const searchParams = useSearchParams();
 
   // Redux state
   const {
-    userState,
-    usersData,
-    usersContent,
+    businessState,
+    businessData,
+    businessContent,
     isLoading,
     filters,
     operations,
     pagination,
     dispatch,
-  } = useUsersState();
+  } = useBusinessState();
 
   // Local UI state for modals only
   const [modalState, setModalState] = useState({
     isOpen: false,
     mode: ModalMode.CREATE_MODE,
-    userId: "",
+    businessId: "",
   });
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    userPlatformId: "",
-  });
-
-  const [resetPasswordState, setResetPasswordState] = useState({
-    isOpen: false,
-    userPlatformId: "",
-    userName: "",
+    businessId: "",
   });
 
   const [deleteState, setDeleteState] = useState({
     isOpen: false,
-    user: null as UserResponseModel | null,
+    business: null as BusinessResponseModel | null,
   });
 
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
-    baseRoute: ROUTES.DASHBOARD.USERS,
-    defaultPageSize: 10,
+    baseRoute: ROUTES.DASHBOARD.BUSINESS,
+    defaultPageSize: 15,
   });
 
   // Initialize URL and Redux state on mount
@@ -94,25 +91,29 @@ export default function UserPage() {
     }
   }, [searchParams, pagination.currentPage, dispatch]);
 
-  // Fetch users when filters change
+  // Fetch business when filters change
   useEffect(() => {
     dispatch(
-      fetchAllUsersService({
+      fetchAllBusinessService({
         search: debouncedSearch,
         pageNo: pagination.currentPage,
-        roles: filters.role === UserRole.ALL ? [] : [filters.role],
-        userTypes: [UserGropeType.PLATFORM_USER],
-        accountStatus:
-          filters.accountStatus === AccountStatus.ALL
+        hasActiveSubscription:
+          filters.hasActiveSubscription === SubscriptionStatus.ALL
+            ? undefined
+            : filters.hasActiveSubscription == SubscriptionStatus.SUBSCRIBED
+            ? true
+            : false,
+        status:
+          filters.businessStatus === AccountStatus.ALL
             ? []
-            : [filters.accountStatus],
+            : [filters.businessStatus],
       })
     );
   }, [
     dispatch,
     debouncedSearch,
-    filters.accountStatus,
-    filters.role,
+    filters.businessStatus,
+    filters.hasActiveSubscription,
     pagination.currentPage,
   ]);
 
@@ -121,81 +122,60 @@ export default function UserPage() {
     setModalState({
       isOpen: true,
       mode: ModalMode.CREATE_MODE,
-      userId: "",
+      businessId: "",
     });
   };
 
-  const handleEditUser = (user: UserResponseModel) => {
+  const handleEditBusiness = (business: BusinessResponseModel) => {
     setModalState({
       isOpen: true,
       mode: ModalMode.UPDATE_MODE,
-      userId: user?.id || "",
+      businessId: business?.id || "",
     });
   };
 
-  const handleViewDetail = (user: UserResponseModel) => {
+  const handleBusinessViewDetail = (business: BusinessResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      userPlatformId: user.id || "",
+      businessId: business.id || "",
     });
   };
 
-  const handleResetPassword = (user: UserResponseModel) => {
-    setResetPasswordState({
-      isOpen: true,
-      userPlatformId: user.id || "",
-      userName: user.fullName || user.email || "",
-    });
-  };
-
-  const handleDeleteUser = (user: UserResponseModel) => {
+  const handleDeleteBusiness = (business: BusinessResponseModel) => {
     setDeleteState({
       isOpen: true,
-      user: user,
+      business: business,
     });
-  };
-
-  const handleToggleStatus = async (user: UserResponseModel) => {
-    if (!user?.id) return;
-
-    try {
-      await dispatch(toggleUserStatusService(user)).unwrap();
-      showToast.success("User status updated successfully");
-    } catch (error: any) {
-      showToast.error(error || "Failed to update user status");
-    }
   };
 
   const tableHandlers = useMemo(
     () => ({
-      handleEditUser,
-      handleViewUserDetail: handleViewDetail,
-      handleResetPassword,
-      handleDeleteUser,
-      handleToggleStatus,
+      handleEditBusiness,
+      handleBusinessViewDetail,
+      handleDeleteBusiness,
     }),
     []
   );
 
   const columns = useMemo(
     () =>
-      userPlatformTableColumns({
-        data: usersData,
+      businessTableColumns({
+        data: businessData,
         handlers: tableHandlers,
       }),
-    [userState, tableHandlers]
+    [businessState, tableHandlers]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchFilter(e.target.value));
   };
 
-  const handleStatusChange = (status: AccountStatus) => {
-    dispatch(setAccountStatusFilter(status));
+  const handleStatusChange = (status: BusinessStatus) => {
+    dispatch(setBusinessStatusFilter(status));
   };
 
-  const handleRoleChange = (role: UserRole) => {
-    dispatch(setRoleFilter(role));
+  const handleSubscriptionChange = (subscription: SubscriptionStatus) => {
+    dispatch(setHasSubscriptionFilter(subscription));
   };
 
   const handlePageChangeWrapper = (page: number) => {
@@ -204,25 +184,25 @@ export default function UserPage() {
   };
 
   const handleDelete = async () => {
-    if (!deleteState.user?.id) return;
+    if (!deleteState.business?.id) return;
 
     try {
-      await dispatch(deleteUserService(deleteState.user.id)).unwrap();
+      await dispatch(deleteBusinessService(deleteState.business.id)).unwrap();
 
       showToast.success(
-        `User "${deleteState.user.fullName ?? ""}" deleted successfully`
+        `Business "${deleteState.business.name ?? ""}" deleted successfully`
       );
 
       closeDeleteModal();
 
       // Navigate to previous page if this was the last item
-      if (usersContent.length === 1 && pagination.currentPage > 1) {
+      if (businessContent.length === 1 && pagination.currentPage > 1) {
         const newPage = pagination.currentPage - 1;
         dispatch(setPageNo(newPage));
         updateUrlWithPage(newPage);
       }
     } catch (error: any) {
-      showToast.error(error || "Failed to delete user");
+      showToast.error(error || "Failed to delete business");
     }
   };
 
@@ -230,29 +210,21 @@ export default function UserPage() {
     setModalState({
       isOpen: false,
       mode: ModalMode.CREATE_MODE,
-      userId: "",
+      businessId: "",
     });
   };
 
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      userPlatformId: "",
-    });
-  };
-
-  const closeResetPasswordModal = () => {
-    setResetPasswordState({
-      isOpen: false,
-      userPlatformId: "",
-      userName: "",
+      businessId: "",
     });
   };
 
   const closeDeleteModal = () => {
     setDeleteState({
       isOpen: false,
-      user: null,
+      business: null,
     });
   };
 
@@ -262,42 +234,44 @@ export default function UserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Platform Users", href: "" },
+            { label: "Business", href: "" },
           ]}
-          title="Platform Users"
+          title="Business"
           searchValue={filters.search}
-          searchPlaceholder="Search users..."
+          searchPlaceholder="Search business..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New User"
+          buttonText="New Business"
           onSearchChange={handleSearchChange}
           openModal={handleCreateUser}
         >
           <div className="flex items-center gap-3">
             <CustomSelect
               options={ACCOUNT_STATUS_FILTER}
-              value={filters.accountStatus}
+              value={filters.businessStatus}
               placeholder="All Status"
               onValueChange={(value) =>
-                handleStatusChange(value as AccountStatus)
+                handleStatusChange(value as BusinessStatus)
               }
               label="Account Status"
             />
             <CustomSelect
-              options={USER_PLATFORM_ROLE_FILTER}
-              value={filters.role}
-              placeholder="All Roles"
-              onValueChange={(value) => handleRoleChange(value as UserRole)}
-              label="Platform Role"
+              options={HAS_SUBSCRIPTION_FILTER}
+              value={filters.hasActiveSubscription}
+              placeholder="All Subscription"
+              onValueChange={(value) =>
+                handleSubscriptionChange(value as SubscriptionStatus)
+              }
+              label="Subscription Status"
             />
           </div>
         </CardHeaderSection>
 
-        {/* Data Table with Your Custom Pagination */}
+        {/* Data Table with Pagination */}
         <DataTableWithPagination
-          data={usersContent}
+          data={businessContent}
           columns={columns}
           loading={isLoading}
-          emptyMessage="No users platform found"
+          emptyMessage="No business found"
           getRowKey={(user) => user.id?.toString() || user.email}
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
@@ -306,38 +280,30 @@ export default function UserPage() {
       </div>
 
       {/* Modals Add/Edit */}
-      <UserBusinessModal
+      <BusinessModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        userId={modalState.userId}
+        businessId={modalState.businessId}
         mode={modalState.mode}
       />
 
-      {/* Modals User Detail */}
-      <UserBusinessDetailModal
-        userId={detailModalState.userPlatformId}
+      {/* Modals business platform Detail */}
+      <BusinessDetailModal
+        businessId={detailModalState.businessId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
 
-      {/* Modals Reset Password */}
-      <ResetPasswordModal
-        isOpen={resetPasswordState.isOpen}
-        userName={resetPasswordState.userName}
-        onClose={closeResetPasswordModal}
-        userId={resetPasswordState.userPlatformId}
-      />
-
-      {/* Modals Delete User */}
+      {/* Modals Delete name platform */}
       <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}
-        title="Delete User"
-        description={`Are you sure you want to delete this user ${
-          deleteState.user?.fullName || deleteState.user?.email
+        title="Delete Business"
+        description={`Are you sure you want to delete this business ${
+          deleteState.business?.name || deleteState.business?.email
         }?`}
-        itemName={deleteState.user?.fullName || deleteState.user?.email}
+        itemName={deleteState.business?.name || deleteState.business?.email}
         isSubmitting={operations.isDeleting}
       />
     </div>

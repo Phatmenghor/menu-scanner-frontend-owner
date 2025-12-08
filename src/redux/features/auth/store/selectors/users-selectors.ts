@@ -5,7 +5,8 @@ export const selectUsersState = (state: RootState) => state.users;
 
 export const selectUsers = (state: RootState) => state.users.data;
 
-export const selectSelectedUser = (state: RootState) => state.users.selectedUser;
+export const selectSelectedUser = (state: RootState) =>
+  state.users.selectedUser;
 
 export const selectUsersContent = (state: RootState) =>
   state.users.data?.content || [];
@@ -37,11 +38,3 @@ export const selectPagination = createSelector([selectUsers], (data) => ({
   hasNext: data?.hasNext || false,
   hasPrevious: data?.hasPrevious || false,
 }));
-
-/**
- * Select a specific user by ID from the list
- */
-export const selectUserById = (userId: string) =>
-  createSelector([selectUsersContent], (users) =>
-    users.find((user) => user.id === userId)
-  );

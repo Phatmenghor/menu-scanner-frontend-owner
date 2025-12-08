@@ -1,4 +1,10 @@
-import { AccountStatus, BusinessStatus, Status, UserRole } from "./status";
+import {
+  AccountStatus,
+  BusinessStatus,
+  Status,
+  SubscriptionStatus,
+  UserRole,
+} from "./status";
 
 export const USER_PLATFORM_ROLE_FILTER = [
   { value: UserRole.ALL, label: "All Roles" },
@@ -24,6 +30,12 @@ export const BUSINESS_FILTER = [
   { value: BusinessStatus.PENDING, label: "Pending" },
   { value: BusinessStatus.INACTIVE, label: "Inactive" },
   { value: BusinessStatus.SUSPENDED, label: "Subspended" },
+];
+
+export const HAS_SUBSCRIPTION_FILTER = [
+  { value: SubscriptionStatus.ALL, label: "All" },
+  { value: SubscriptionStatus.SUBSCRIBED, label: "Subscribed" },
+  { value: SubscriptionStatus.NONE_SUBSCRIBE, label: "None Subscription" },
 ];
 
 // Auto renew filter options

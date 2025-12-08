@@ -10,14 +10,15 @@ export interface AllBusinessRequest {
 
 export interface CreateBusinessRequest {
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
   address?: string;
   description?: string;
+  status?: string;
 }
 
 export interface UpdateBusinessRequest {
-  name?: string;
+  name: string;
   email?: string;
   phone?: string;
   address?: string;

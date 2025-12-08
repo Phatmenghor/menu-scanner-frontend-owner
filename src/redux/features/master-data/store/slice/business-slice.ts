@@ -1,11 +1,14 @@
 /**
  * Business Management - Redux Slice
- * Manages Business state: data, loading, errors, filters, operations
+ * Manages business state: data, loading, errors, filters, operations
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { BusinessStatus } from "@/constants/AppResource/status/status";
-import { BusinessManagementState } from "../type/business-type";
+import {
+  BusinessStatus,
+  SubscriptionStatus,
+} from "@/constants/AppResource/status/status";
+import { BusinessManagementState } from "../models/business-type";
 import {
   createBusinessService,
   deleteBusinessService,
@@ -19,34 +22,48 @@ import {
  */
 const initialState: BusinessManagementState = {
   data: null,
+  selectedBusiness: null,
   isLoading: false,
   error: null,
   filters: {
     search: "",
     businessStatus: BusinessStatus.ALL,
+    hasActiveSubscription: SubscriptionStatus.ALL,
     pageNo: 1,
   },
   operations: {
     isCreating: false,
     isUpdating: false,
     isDeleting: false,
+    isResettingPassword: false,
+    isFetchingDetail: false,
   },
 };
 
 /**
- * Business slice
+ * Users slice
  */
 const businessSlice = createSlice({
-  name: "users",
+  name: "businesses",
   initialState,
   reducers: {
     // Filter actions
     setSearchFilter: (state, action: PayloadAction<string>) => {
       state.filters.search = action.payload;
+      state.filters.pageNo = 1;
     },
 
-    setStatusFilter: (state, action: PayloadAction<BusinessStatus>) => {
+    setBusinessStatusFilter: (state, action: PayloadAction<BusinessStatus>) => {
       state.filters.businessStatus = action.payload;
+      state.filters.pageNo = 1;
+    },
+
+    setHasSubscriptionFilter: (
+      state,
+      action: PayloadAction<SubscriptionStatus>
+    ) => {
+      state.filters.hasActiveSubscription = action.payload;
+      state.filters.pageNo = 1;
     },
 
     setPageNo: (state, action: PayloadAction<number>) => {
@@ -56,6 +73,10 @@ const businessSlice = createSlice({
     // Utility actions
     clearError: (state) => {
       state.error = null;
+    },
+
+    clearSelectedBusiness: (state) => {
+      state.selectedBusiness = null;
     },
 
     resetFilters: (state) => {
@@ -68,7 +89,7 @@ const businessSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-    // Fetch Business handlers
+    // Fetch business handlers - ONLY affects list loading
     builder
       .addCase(fetchAllBusinessService.pending, (state) => {
         state.isLoading = true;
@@ -83,21 +104,33 @@ const businessSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Fetch Business by ID handlers
+    // Fetch business by ID handlers - USE SEPARATE LOADING STATE
     builder
       .addCase(fetchBusinessByIdService.pending, (state) => {
-        state.isLoading = true;
+        state.operations.isFetchingDetail = true;
         state.error = null;
+        state.selectedBusiness = null;
       })
-      .addCase(fetchBusinessByIdService.fulfilled, (state) => {
-        state.isLoading = false;
+      .addCase(fetchBusinessByIdService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedBusiness = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
       })
       .addCase(fetchBusinessByIdService.rejected, (state, action) => {
-        state.isLoading = false;
+        state.operations.isFetchingDetail = false;
         state.error = action.payload as string;
       });
 
-    // Create Business handlers
+    // Create business handlers
     builder
       .addCase(createBusinessService.pending, (state) => {
         state.operations.isCreating = true;
@@ -108,6 +141,9 @@ const businessSlice = createSlice({
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
           state.data.totalElements += 1;
+          state.data.totalPages = Math.ceil(
+            state.data.totalElements / state.data.pageSize
+          );
         }
       })
       .addCase(createBusinessService.rejected, (state, action) => {
@@ -115,7 +151,7 @@ const businessSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Update Business handlers
+    // Update business handlers
     builder
       .addCase(updateBusinessService.pending, (state) => {
         state.operations.isUpdating = true;
@@ -123,6 +159,9 @@ const businessSlice = createSlice({
       })
       .addCase(updateBusinessService.fulfilled, (state, action) => {
         state.operations.isUpdating = false;
+        state.selectedBusiness = action.payload;
+
+        // Update in list
         if (state.data) {
           state.data.content = state.data.content.map((user) =>
             user.id === action.payload.id ? action.payload : user
@@ -134,7 +173,7 @@ const businessSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Delete Business handlers
+    // Delete business handlers
     builder
       .addCase(deleteBusinessService.pending, (state) => {
         state.operations.isDeleting = true;
@@ -147,6 +186,12 @@ const businessSlice = createSlice({
             (user) => user.id !== action.payload
           );
           state.data.totalElements -= 1;
+          state.data.totalPages = Math.ceil(
+            state.data.totalElements / state.data.pageSize
+          );
+          state.data.last = state.data.pageNo >= state.data.totalPages;
+          state.data.hasNext = !state.data.last;
+          state.data.hasPrevious = state.data.pageNo > 1;
         }
       })
       .addCase(deleteBusinessService.rejected, (state, action) => {
@@ -158,11 +203,13 @@ const businessSlice = createSlice({
 
 export const {
   setSearchFilter,
-  setStatusFilter,
+  setBusinessStatusFilter,
   setPageNo,
   clearError,
+  clearSelectedBusiness,
   resetFilters,
   resetState,
+  setHasSubscriptionFilter,
 } = businessSlice.actions;
 
 export default businessSlice.reducer;

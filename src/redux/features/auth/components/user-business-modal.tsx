@@ -376,7 +376,7 @@ export default function UserBusinessModal({
                 name="notes"
                 label="Notes"
                 placeholder="Enter any additional notes (optional)"
-                rows={3}
+                rows={5}
                 disabled={isSubmitting}
               />
             </FormBody>

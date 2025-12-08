@@ -1,5 +1,6 @@
 import {
   AccountStatus,
+  BusinessStatus,
   PaymentMethod,
   PaymentStatus,
   Status,
@@ -28,6 +29,13 @@ export const ACCOUNT_STATUS_CREATE_UPDATE = [
   { value: AccountStatus.INACTIVE, label: "Inactive" },
   { value: AccountStatus.LOCKED, label: "Locked" },
   { value: AccountStatus.SUSPENDED, label: "Suspended" },
+];
+
+export const BUSINESS_STATUS_CREATE_UPDATE = [
+  { value: BusinessStatus.ACTIVE, label: "Active" },
+  { value: BusinessStatus.PENDING, label: "Pending" },
+  { value: BusinessStatus.INACTIVE, label: "Inactive" },
+  { value: BusinessStatus.SUSPENDED, label: "Subspended" },
 ];
 
 export const PAYMENT_STATUS_CREATE_UPDATE = [
