@@ -1,17 +1,17 @@
 ﻿/**
- * Auth Feature - State Types Only
- * Local state and UI types for auth feature
+ * Auth State Types
  */
 
-import { UserAuthResponseModel, ProfileResponseModel } from "./auth-models";
+import { UserAuthResponseModel } from "./response/auth-resposne";
+import { UserResponseModel } from "./response/users-response";
 
 /**
- * Auth Redux State
+ * Auth State Interface
  */
 export interface AuthState {
   isAuthenticated: boolean;
   user: UserAuthResponseModel | null;
-  profile: ProfileResponseModel | null;
+  profile: UserResponseModel | null;
   isLoading: boolean;
   isProfileLoading: boolean;
   error: string | null;

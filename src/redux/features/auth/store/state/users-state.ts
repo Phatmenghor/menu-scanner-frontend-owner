@@ -15,8 +15,8 @@ export const useUsersState = () => {
 
   // Redux selectors
   const userState = useAppSelector(selectUsersState);
-  const users = useAppSelector(selectUsersContent);
   const usersData = useAppSelector(selectUsers);
+  const usersContent = useAppSelector(selectUsersContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
@@ -25,8 +25,8 @@ export const useUsersState = () => {
 
   return {
     userState,
-    users,
     usersData,
+    usersContent,
     isLoading,
     error,
     filters,

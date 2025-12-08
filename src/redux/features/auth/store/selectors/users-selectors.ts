@@ -19,6 +19,9 @@ export const selectFilters = (state: RootState) => state.users.filters;
 
 export const selectOperations = (state: RootState) => state.users.operations;
 
+export const selectIsResettingPassword = (state: RootState) =>
+  state.users.operations.isResettingPassword;
+
 /**
  * Select pagination metadata
  */

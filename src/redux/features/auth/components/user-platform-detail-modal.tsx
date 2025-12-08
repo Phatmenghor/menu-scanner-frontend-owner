@@ -21,7 +21,7 @@ import {
   selectIsLoading,
   selectUsers,
 } from "../store/selectors/users-selectors";
-import { UserModel } from "../store/models/response/users-response";
+import { UserResponseModel } from "../store/models/response/users-response";
 
 interface UserDetailModalProps {
   userId?: string;
@@ -43,7 +43,7 @@ export function UserPlatformDetailModal({
   const usersData = useAppSelector(selectUsers);
 
   // Find the current user from the Redux state
-  const userData: UserModel | null =
+  const userData: UserResponseModel | null =
     usersData?.content?.find((user) => user.id === userId) || null;
 
   useEffect(() => {

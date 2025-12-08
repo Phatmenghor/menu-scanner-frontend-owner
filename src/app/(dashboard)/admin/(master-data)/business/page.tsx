@@ -3,85 +3,90 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
-
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
+  AccountStatus,
   ModalMode,
-  BusinessStatus,
+  UserRole,
+  UserGropeType,
 } from "@/constants/AppResource/status/status";
-import { UserFormData } from "@/redux/features/auth/store/models/schema/user.schema";
-
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { BUSINESS_FILTER } from "@/constants/AppResource/status/filter-status";
-
+import { userPlatformTableColumns } from "@/redux/features/auth/table/user-platform-table";
+import {
+  ACCOUNT_STATUS_FILTER,
+  USER_PLATFORM_ROLE_FILTER,
+} from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
+import { showToast } from "@/components/shared/common/app-toast";
+import { useUsersState } from "@/redux/features/auth/store/state/users-state";
+import { usePagination } from "@/redux/store/use-pagination";
+import {
+  deleteUserService,
+  fetchAllUsersService,
+  toggleUserStatusService,
+} from "@/redux/features/auth/store/thunks/users-thunks";
+import {
+  setAccountStatusFilter,
+  setPageNo,
+  setRoleFilter,
+  setSearchFilter,
+} from "@/redux/features/auth/store/slice/users-slice";
+import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
+import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
+import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
 import { UserBusinessDetailModal } from "@/redux/features/auth/components/user-business-detail-modal";
 import UserBusinessModal from "@/redux/features/auth/components/user-business-modal";
-import { usePagination } from "@/redux/store/use-pagination";
-import { showToast } from "@/components/shared/common/app-toast";
-import {
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/redux/features/auth/store/models/request/users-request";
-import {
-  createBusinessService,
-  deleteBusinessService,
-  fetchAllBusinessService,
-} from "@/redux/features/master-data/store/thunks/business-thunks";
-import { useBusinessState } from "@/redux/features/master-data/store/state/business-state";
-import { businessTableColumns } from "@/redux/features/master-data/table/business-table";
-import { BusinessResponseModel } from "@/redux/features/master-data/store/models/response/business-response";
-import {
-  setPageNo,
-  setSearchFilter,
-  setStatusFilter,
-} from "@/redux/features/master-data/store/slice/business-slice";
-import { updateBusinessSchema } from "@/models/dashboard/master-data/business/business.schema";
-import { CreateBusinessRequest } from "@/models/dashboard/master-data/business/business.request.model";
 
 export default function UserPage() {
   const searchParams = useSearchParams();
 
   // Redux state
   const {
-    businesstate,
-    business,
+    userState,
+    usersData,
+    usersContent,
     isLoading,
     filters,
     operations,
     pagination,
     dispatch,
-  } = useBusinessState();
+  } = useUsersState();
 
-  // Local UI state for modals
+  // Local UI state for modals only
   const [modalState, setModalState] = useState({
     isOpen: false,
     mode: ModalMode.CREATE_MODE,
-    businessId: "",
-    error: null as string | null,
+    userId: "",
   });
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    businessId: "",
+    userPlatformId: "",
+  });
+
+  const [resetPasswordState, setResetPasswordState] = useState({
+    isOpen: false,
+    userPlatformId: "",
+    userName: "",
   });
 
   const [deleteState, setDeleteState] = useState({
     isOpen: false,
-    business: null as BusinessResponseModel | null,
+    user: null as UserResponseModel | null,
   });
 
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
-    baseRoute: ROUTES.DASHBOARD.BUSINESS,
+    baseRoute: ROUTES.DASHBOARD.USERS,
+    defaultPageSize: 10,
   });
 
-  // Initialize URL on mount
+  // Initialize URL and Redux state on mount
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
     const pageFromUrl = pageParam ? parseInt(pageParam, 10) : 1;
@@ -89,24 +94,27 @@ export default function UserPage() {
     if (pageFromUrl !== pagination.currentPage) {
       dispatch(setPageNo(pageFromUrl));
     }
-  }, [searchParams]);
+  }, [searchParams, pagination.currentPage, dispatch]);
 
   // Fetch users when filters change
   useEffect(() => {
     dispatch(
-      fetchAllBusinessService({
+      fetchAllUsersService({
         search: debouncedSearch,
         pageNo: pagination.currentPage,
-        status:
-          filters.businessStatus === BusinessStatus.ALL
+        roles: filters.role === UserRole.ALL ? [] : [filters.role],
+        userTypes: [UserGropeType.PLATFORM_USER],
+        accountStatus:
+          filters.accountStatus === AccountStatus.ALL
             ? []
-            : [filters.businessStatus],
+            : [filters.accountStatus],
       })
     );
   }, [
     dispatch,
     debouncedSearch,
-    filters.businessStatus,
+    filters.accountStatus,
+    filters.role,
     pagination.currentPage,
   ]);
 
@@ -115,58 +123,81 @@ export default function UserPage() {
     setModalState({
       isOpen: true,
       mode: ModalMode.CREATE_MODE,
-      businessId: "",
-      error: null,
+      userId: "",
     });
   };
 
-  const handleEditBusiness = (business: BusinessResponseModel) => {
+  const handleEditUser = (user: UserResponseModel) => {
     setModalState({
       isOpen: true,
       mode: ModalMode.UPDATE_MODE,
-      businessId: business?.id || "",
-      error: null,
+      userId: user?.id || "",
     });
   };
 
-  const handleViewBusinessDetail = (business: BusinessResponseModel) => {
+  const handleViewDetail = (user: UserResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      businessId: business.id || "",
+      userPlatformId: user.id || "",
     });
   };
 
-  const handleDeleteBusiness = (business: BusinessResponseModel) => {
+  const handleResetPassword = (user: UserResponseModel) => {
+    setResetPasswordState({
+      isOpen: true,
+      userPlatformId: user.id || "",
+      userName: user.fullName || user.email || "",
+    });
+  };
+
+  const handleDeleteUser = (user: UserResponseModel) => {
     setDeleteState({
       isOpen: true,
-      business: business,
+      user: user,
     });
+  };
+
+  const handleToggleStatus = async (user: UserResponseModel) => {
+    if (!user?.id) return;
+
+    try {
+      await dispatch(toggleUserStatusService(user)).unwrap();
+      showToast.success("User status updated successfully");
+    } catch (error: any) {
+      showToast.error(error || "Failed to update user status");
+    }
   };
 
   const tableHandlers = useMemo(
     () => ({
-      handleEditBusiness,
-      handleViewBusinessDetail,
-      handleDeleteBusiness,
+      handleEditUser,
+      handleViewUserDetail: handleViewDetail,
+      handleResetPassword,
+      handleDeleteUser,
+      handleToggleStatus,
     }),
     []
   );
 
   const columns = useMemo(
     () =>
-      businessTableColumns({
-        data: businesstate,
+      userPlatformTableColumns({
+        data: usersData,
         handlers: tableHandlers,
       }),
-    [businesstate, tableHandlers]
+    [userState, tableHandlers]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchFilter(e.target.value));
   };
 
-  const handleStatusChange = (status: BusinessStatus) => {
-    dispatch(setStatusFilter(status));
+  const handleStatusChange = (status: AccountStatus) => {
+    dispatch(setAccountStatusFilter(status));
+  };
+
+  const handleRoleChange = (role: UserRole) => {
+    dispatch(setRoleFilter(role));
   };
 
   const handlePageChangeWrapper = (page: number) => {
@@ -174,87 +205,20 @@ export default function UserPage() {
     handlePageChange(page);
   };
 
-  const handleSubmit = async (formData: UserFormData): Promise<void> => {
-    try {
-      setModalState((prev) => ({ ...prev, error: null }));
-
-      const isCreate = modalState.mode === ModalMode.CREATE_MODE;
-
-      if (isCreate) {
-        // Ensure all required fields are present (validated by schema)
-        const createPayload: CreateBusinessRequest = {
-          userIdentifier: formData.userIdentifier!,
-          email: formData.email!,
-          password: formData.password!,
-          firstName: formData.firstName!,
-          lastName: formData.lastName!,
-          phoneNumber: formData.phoneNumber!,
-          userType: formData.userType!,
-          accountStatus: formData.accountStatus!,
-          roles: formData.roles!,
-          position: formData.position,
-          address: formData.address,
-          notes: formData.notes,
-        };
-
-        const response = await dispatch(
-          createBusinessService(createPayload)
-        ).unwrap();
-
-        showToast.success(
-          `Business "${
-            response.username || response.email
-          }" created successfully`
-        );
-
-        closeModal();
-      } else {
-        // Update mode
-        if (!formData.id) {
-          throw new Error("Business ID is required for update");
-        }
-
-        const updatePayload: UpdateUserRequest = {
-          firstName: formData.firstName!,
-          lastName: formData.lastName!,
-          phoneNumber: formData.phoneNumber!,
-          accountStatus: formData.accountStatus!,
-          roles: formData.roles!,
-          position: formData.position,
-          address: formData.address,
-          notes: formData.notes,
-        };
-
-        const response = await dispatch(
-          updateBusinessSchema({ userId: formData.id, userData: updatePayload })
-        ).unwrap();
-
-        showToast.success(
-          `Business "${
-            response.username || response.email
-          }" updated successfully`
-        );
-
-        closeModal();
-      }
-    } catch (error: any) {
-      const errorMessage = error || "An unexpected error occurred";
-      setModalState((prev) => ({ ...prev, error: errorMessage }));
-      showToast.error(errorMessage);
-      throw error;
-    }
-  };
-
   const handleDelete = async () => {
-    if (!deleteState.business?.id) return;
+    if (!deleteState.user?.id) return;
 
     try {
-      await dispatch(deleteBusinessService(deleteState.business.id)).unwrap();
-      showToast.success("Business deleted successfully");
+      await dispatch(deleteUserService(deleteState.user.id)).unwrap();
+
+      showToast.success(
+        `User "${deleteState.user.fullName ?? ""}" deleted successfully`
+      );
+
       closeDeleteModal();
 
       // Navigate to previous page if this was the last item
-      if (business.length === 1 && pagination.currentPage > 1) {
+      if (usersContent.length === 1 && pagination.currentPage > 1) {
         const newPage = pagination.currentPage - 1;
         dispatch(setPageNo(newPage));
         updateUrlWithPage(newPage);
@@ -268,22 +232,29 @@ export default function UserPage() {
     setModalState({
       isOpen: false,
       mode: ModalMode.CREATE_MODE,
-      businessId: "",
-      error: null,
+      userId: "",
     });
   };
 
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      businessId: "",
+      userPlatformId: "",
+    });
+  };
+
+  const closeResetPasswordModal = () => {
+    setResetPasswordState({
+      isOpen: false,
+      userPlatformId: "",
+      userName: "",
     });
   };
 
   const closeDeleteModal = () => {
     setDeleteState({
       isOpen: false,
-      business: null,
+      user: null,
     });
   };
 
@@ -293,11 +264,11 @@ export default function UserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Business Users", href: "" },
+            { label: "Platform Users", href: "" },
           ]}
-          title="Business Users"
+          title="Platform Users"
           searchValue={filters.search}
-          searchPlaceholder="Search business users..."
+          searchPlaceholder="Search users..."
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New User"
           onSearchChange={handleSearchChange}
@@ -305,31 +276,31 @@ export default function UserPage() {
         >
           <div className="flex items-center gap-3">
             <CustomSelect
-              options={BUSINESS_FILTER}
-              value={filters.businessStatus}
+              options={ACCOUNT_STATUS_FILTER}
+              value={filters.accountStatus}
               placeholder="All Status"
               onValueChange={(value) =>
-                handleStatusChange(value as BusinessStatus)
+                handleStatusChange(value as AccountStatus)
               }
-              label="Business Status"
+              label="Account Status"
             />
-            {/* <CustomSelect
-              options={USER_BUSINESS_ROLE_FILTER}
+            <CustomSelect
+              options={USER_PLATFORM_ROLE_FILTER}
               value={filters.role}
               placeholder="All Roles"
               onValueChange={(value) => handleRoleChange(value as UserRole)}
-              label="Business Role"
-            /> */}
+              label="Platform Role"
+            />
           </div>
         </CardHeaderSection>
 
-        {/* Merged DataTable with Pagination */}
+        {/* Data Table with Your Custom Pagination */}
         <DataTableWithPagination
-          data={business}
+          data={usersContent}
           columns={columns}
           loading={isLoading}
-          emptyMessage="No business found"
-          getRowKey={(business) => business.id?.toString() || business.email}
+          emptyMessage="No users platform found"
+          getRowKey={(user) => user.id?.toString() || user.email}
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
@@ -340,18 +311,23 @@ export default function UserPage() {
       <UserBusinessModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        isSubmitting={operations.isCreating || operations.isUpdating}
-        onSave={handleSubmit}
-        userId={modalState.businessId}
+        userId={modalState.userId}
         mode={modalState.mode}
-        error={modalState.error}
       />
 
       {/* Modals User Detail */}
       <UserBusinessDetailModal
-        userId={detailModalState.businessId}
+        userId={detailModalState.userPlatformId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
+      />
+
+      {/* Modals Reset Password */}
+      <ResetPasswordModal
+        isOpen={resetPasswordState.isOpen}
+        userName={resetPasswordState.userName}
+        onClose={closeResetPasswordModal}
+        userId={resetPasswordState.userPlatformId}
       />
 
       {/* Modals Delete User */}
@@ -361,9 +337,9 @@ export default function UserPage() {
         onDelete={handleDelete}
         title="Delete User"
         description={`Are you sure you want to delete this user ${
-          deleteState.business?.fullName || deleteState.business?.email
+          deleteState.user?.fullName || deleteState.user?.email
         }?`}
-        itemName={deleteState.business?.fullName || deleteState.business?.email}
+        itemName={deleteState.user?.fullName || deleteState.user?.email}
         isSubmitting={operations.isDeleting}
       />
     </div>

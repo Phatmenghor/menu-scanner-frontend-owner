@@ -4,7 +4,7 @@
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { UserAuthResponseModel } from "../models/auth-models";
+import { UserAuthResponseModel } from "../models/response/auth-resposne";
 import { loginService, getProfileService } from "../thunks/auth-thunks";
 import { AuthState } from "../models/auth-types";
 import { storeToken } from "@/utils/local-storage/token";

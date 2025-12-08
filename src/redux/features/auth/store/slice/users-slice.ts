@@ -12,6 +12,7 @@ import {
   fetchAllUsersService,
   toggleUserStatusService,
   updateUserService,
+  adminChangePasswordService,
 } from "../thunks/users-thunks";
 import { UserManagementState } from "../models/user-types";
 
@@ -32,6 +33,7 @@ const initialState: UserManagementState = {
     isCreating: false,
     isUpdating: false,
     isDeleting: false,
+    isResettingPassword: false,
   },
 };
 
@@ -203,6 +205,20 @@ const usersSlice = createSlice({
         }
       })
       .addCase(toggleUserStatusService.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
+    // Admin change password (Reset password) handlers
+    builder
+      .addCase(adminChangePasswordService.pending, (state) => {
+        state.operations.isResettingPassword = true;
+        state.error = null;
+      })
+      .addCase(adminChangePasswordService.fulfilled, (state) => {
+        state.operations.isResettingPassword = false;
+      })
+      .addCase(adminChangePasswordService.rejected, (state, action) => {
+        state.operations.isResettingPassword = false;
         state.error = action.payload as string;
       });
   },

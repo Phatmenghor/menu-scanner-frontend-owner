@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import {
   AlertTriangle,
   CheckCircle2,
-  RotateCcw,
   User,
   Key,
   Shield,
@@ -24,9 +23,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AdminChangePasswordService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import { AppDefault } from "@/constants/AppResource/default/default";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { adminChangePasswordService } from "@/redux/features/auth/store/thunks/users-thunks";
+import { selectIsResettingPassword } from "@/redux/features/auth/store/selectors/users-selectors";
 
 interface ResetPasswordModalProps {
   userId?: string;
@@ -41,7 +42,11 @@ export default function ResetPasswordModal({
   userName,
   onClose,
 }: ResetPasswordModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useAppDispatch();
+
+  // Get resetting password state from Redux
+  const isResettingPassword = useAppSelector(selectIsResettingPassword);
+
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const defaultPassword = AppDefault.RESET_PASSWORD;
@@ -51,20 +56,21 @@ export default function ResetPasswordModal({
       toast.error("User ID missing");
       return;
     }
-    setIsSubmitting(true);
+
     try {
-      await AdminChangePasswordService({
-        userId: userId,
-        newPassword: defaultPassword,
-        confirmPassword: defaultPassword,
-      });
+      await dispatch(
+        adminChangePasswordService({
+          userId: userId,
+          newPassword: defaultPassword,
+          confirmPassword: defaultPassword,
+        })
+      ).unwrap();
+
       setShowSuccess(true);
       toast.success("Password reset successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Password reset failed:", error);
-      toast.error("Reset failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      toast.error(error || "Reset failed. Please try again.");
     }
   };
 
@@ -245,25 +251,27 @@ export default function ResetPasswordModal({
         {/* Footer */}
         <div className="flex justify-between items-center p-6 border-t bg-muted/30 flex-shrink-0">
           <div className="text-sm text-muted-foreground">
-            {isSubmitting ? "Resetting password..." : "Ready to reset password"}
+            {isResettingPassword
+              ? "Resetting password..."
+              : "Ready to reset password"}
           </div>
           <div className="flex gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={isSubmitting}
+              disabled={isResettingPassword}
             >
               Cancel
             </Button>
             <Button
               type="button"
               onClick={onReset}
-              disabled={isSubmitting}
+              disabled={isResettingPassword}
               variant="destructive"
               className="min-w-[140px]"
             >
-              {isSubmitting ? (
+              {isResettingPassword ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Resetting...

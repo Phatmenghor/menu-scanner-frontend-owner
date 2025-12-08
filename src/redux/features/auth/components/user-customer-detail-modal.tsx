@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
-import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import {
   getUserRoleColor,
   getStatusColor,
@@ -17,6 +15,13 @@ import {
   DetailRow,
   DetailSection,
 } from "@/components/shared/modal/detail-section";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { fetchUserByIdService } from "@/redux/features/auth/store/thunks/users-thunks";
+import {
+  selectIsLoading,
+  selectUsers,
+} from "../store/selectors/users-selectors";
+import { UserResponseModel } from "../store/models/response/users-response";
 
 interface UserDetailModalProps {
   userId?: string;
@@ -29,29 +34,34 @@ export function UserCustomerDetailModal({
   isOpen,
   onClose,
 }: UserDetailModalProps) {
-  const [userData, setUserData] = useState<UserModel | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useAppDispatch();
+
+  // Get loading state from Redux
+  const isLoading = useAppSelector(selectIsLoading);
+
+  // Get users data from Redux state
+  const usersData = useAppSelector(selectUsers);
+
+  // Find the current user from the Redux state
+  const userData: UserResponseModel | null =
+    usersData?.content?.find((user) => user.id === userId) || null;
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId || !isOpen) return;
 
-      setIsLoading(true);
       try {
-        const data = await getUserByIdService(userId);
-        setUserData(data);
+        // Dispatch Redux action to fetch user by ID
+        await dispatch(fetchUserByIdService(userId)).unwrap();
       } catch (error: any) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setIsLoading(false);
+        console.error("Error fetching user customer data:", error);
       }
     };
 
     fetchUserData();
-  }, [userId, isOpen]);
+  }, [userId, isOpen, dispatch]);
 
   const handleClose = () => {
-    setUserData(null);
     onClose();
   };
 
@@ -60,8 +70,8 @@ export function UserCustomerDetailModal({
       isOpen={isOpen}
       onClose={handleClose}
       isLoading={isLoading}
-      title={userData?.fullName || "User Details"}
-      description={userData?.email || "Loading user information..."}
+      title={userData?.fullName || "User Customer Details"}
+      description={userData?.email || "Loading user customer information..."}
       avatarUrl={userData?.profileImageUrl}
       avatarName={userData?.firstName}
       badges={

@@ -5,13 +5,15 @@
 
 import { Status } from "@/constants/AppResource/status/status";
 import {
+  AdminChangePasswordRequest,
   AllUserRequest,
   CreateUserRequest,
   UpdateUserParams,
 } from "../models/request/users-request";
-import { UserModel } from "../models/response/users-response";
+import { UserResponseModel } from "../models/response/users-response";
 import { axiosClientWithAuth } from "@/utils/axios";
 import { createApiThunk } from "@/utils/axios/apiWrapper";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 
 /**
  * Fetch all users
@@ -79,7 +81,7 @@ export const deleteUserService = createApiThunk<any, string>(
 /**
  * Toggle user status (Active/Inactive)
  */
-export const toggleUserStatusService = createApiThunk<any, UserModel>(
+export const toggleUserStatusService = createApiThunk<any, UserResponseModel>(
   "users/toggleStatus",
   async (user) => {
     if (!user?.id) {
@@ -95,3 +97,17 @@ export const toggleUserStatusService = createApiThunk<any, UserModel>(
     return response.data.data;
   }
 );
+
+/**
+ * Admin change user password (Reset password)
+ */
+export const adminChangePasswordService = createApiThunk<
+  any,
+  AdminChangePasswordRequest
+>("users/adminChangePassword", async (resetParam) => {
+  const response = await axiosClientWithAuth.post(
+    `/api/v1/auth/admin/reset-password`,
+    resetParam
+  );
+  return response.data.data;
+});

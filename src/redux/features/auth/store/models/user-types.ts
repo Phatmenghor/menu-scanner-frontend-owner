@@ -1,4 +1,4 @@
-import { AllUserResponse } from "./response/users-response";
+import { AllUserResponseModel } from "./response/users-response";
 
 export interface UserFilters {
   search: string;
@@ -11,10 +11,11 @@ export interface OperationStates {
   isCreating: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
+  isResettingPassword: boolean;
 }
 
 export interface UserManagementState {
-  data: AllUserResponse | null;
+  data: AllUserResponseModel | null;
   isLoading: boolean;
   error: string | null;
   filters: UserFilters;

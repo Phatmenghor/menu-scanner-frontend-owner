@@ -1,10 +1,10 @@
 import { Pagination } from "@/utils/common/pagination";
 
-export interface AllUserResponse extends Pagination {
-  content: UserModel[];
+export interface AllUserResponseModel extends Pagination {
+  content: UserResponseModel[];
 }
 
-export interface UserModel {
+export interface UserResponseModel {
   id: string;
   createdAt: string;
   updatedAt: string;

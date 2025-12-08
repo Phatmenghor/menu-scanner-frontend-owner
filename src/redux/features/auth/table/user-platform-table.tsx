@@ -1,31 +1,28 @@
 import { ActionButton } from "@/components/shared/common/action-button";
-import {
-  AllUserResponse,
-  UserModel,
-} from "@/models/dashboard/user/plateform-user/user.response";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, RotateCw, Trash } from "lucide-react";
 import { CustomAvatar } from "@/components/shared/common/custom-avator";
 import { TableColumn } from "@/components/shared/common/data-table";
+import { AllUserResponseModel, UserResponseModel } from "../store/models/response/users-response";
 
 interface UserTableHandlers {
-  handleEditUser: (user: UserModel) => void;
-  handleViewUserDetail: (user: UserModel) => void;
-  handleResetPassword: (user: UserModel) => void;
-  handleDeleteUser: (user: UserModel) => void;
-  handleToggleStatus: (user: UserModel) => void;
+  handleEditUser: (user: UserResponseModel) => void;
+  handleViewUserDetail: (user: UserResponseModel) => void;
+  handleResetPassword: (user: UserResponseModel) => void;
+  handleDeleteUser: (user: UserResponseModel) => void;
+  handleToggleStatus: (user: UserResponseModel) => void;
 }
 
 interface UserTableOptions {
-  data: AllUserResponse | null;
+  data: AllUserResponseModel | null;
   handlers: UserTableHandlers;
 }
 
 export const userPlatformTableColumns = ({
   data,
   handlers,
-}: UserTableOptions): TableColumn<UserModel>[] => {
+}: UserTableOptions): TableColumn<UserResponseModel>[] => {
   const {
     handleEditUser,
     handleViewUserDetail,

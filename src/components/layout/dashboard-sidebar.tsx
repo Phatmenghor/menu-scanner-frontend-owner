@@ -3,18 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES, sidebarItems } from "@/constants/AppRoutes/routes";
 import Image from "next/image";
-import { ProfileResponseModel } from "@/models/auth/profile-response-model";
-import { getProfileService } from "@/services/auth/login.service";
-import { toast } from "sonner";
 import { UserAvatarCard } from "../shared/avator/user-avatar-card";
 import { useIsMobile } from "@/redux/store/use-mobile";
+import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
+import { getProfileService } from "@/redux/features/auth/store/thunks/auth-thunks";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,29 +22,21 @@ interface SidebarProps {
 export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const isMobile = useIsMobile();
-  const [authUser, setAuthUser] = useState<ProfileResponseModel | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Get auth state from Redux
+  const { profile, isProfileLoading, dispatch } = useAuthState();
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     "Master Data": true,
   });
   const [collapsed, setCollapsed] = useState(false);
 
-  const loadprofileUser = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await getProfileService();
-      setAuthUser(response);
-    } catch (error: any) {
-      console.error("Failed to load user profile:", error);
-      toast.error("Failed to load user profile.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
+  // Fetch profile on mount if not already loaded
   useEffect(() => {
-    loadprofileUser();
-  }, [loadprofileUser]);
+    if (!profile && !isProfileLoading) {
+      dispatch(getProfileService());
+    }
+  }, [profile, isProfileLoading, dispatch]);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({
@@ -238,13 +228,13 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           <nav className="px-4 space-y-2">{renderNavItems(collapsed)}</nav>
         </ScrollArea>
 
-        {/* User Avatar Card - Replaces old footer code */}
-        {authUser && (
+        {/* User Avatar Card */}
+        {profile && (
           <UserAvatarCard
-            user={authUser}
+            user={profile}
             collapsed={collapsed}
             isOnline={true}
-            isLoading={isLoading}
+            isLoading={isProfileLoading}
             profileLink={ROUTES.DASHBOARD.PROFILE}
             showEmail={true}
             showOnlineIndicator={true}

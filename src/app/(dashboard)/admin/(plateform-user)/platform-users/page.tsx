@@ -37,7 +37,7 @@ import {
 } from "@/redux/features/auth/store/slice/users-slice";
 import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
 import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
-import { UserModel } from "@/redux/features/auth/store/models/response/users-response";
+import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
 
 export default function UserPage() {
   const searchParams = useSearchParams();
@@ -45,7 +45,8 @@ export default function UserPage() {
   // Redux state
   const {
     userState,
-    users,
+    usersData,
+    usersContent,
     isLoading,
     filters,
     operations,
@@ -62,18 +63,18 @@ export default function UserPage() {
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    userPlatformId: "",
+    userId: "",
   });
 
   const [resetPasswordState, setResetPasswordState] = useState({
     isOpen: false,
-    userPlatformId: "",
+    userId: "",
     userName: "",
   });
 
   const [deleteState, setDeleteState] = useState({
     isOpen: false,
-    user: null as UserModel | null,
+    user: null as UserResponseModel | null,
   });
 
   const debouncedSearch = useDebounce(filters.search, 400);
@@ -124,7 +125,7 @@ export default function UserPage() {
     });
   };
 
-  const handleEditUser = (user: UserModel) => {
+  const handleEditUser = (user: UserResponseModel) => {
     setModalState({
       isOpen: true,
       mode: ModalMode.UPDATE_MODE,
@@ -132,29 +133,29 @@ export default function UserPage() {
     });
   };
 
-  const handleViewDetail = (user: UserModel) => {
+  const handleViewDetail = (user: UserResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      userPlatformId: user.id || "",
+      userId: user.id || "",
     });
   };
 
-  const handleResetPassword = (user: UserModel) => {
+  const handleResetPassword = (user: UserResponseModel) => {
     setResetPasswordState({
       isOpen: true,
-      userPlatformId: user.id || "",
+      userId: user.id || "",
       userName: user.fullName || user.email || "",
     });
   };
 
-  const handleDeleteUser = (user: UserModel) => {
+  const handleDeleteUser = (user: UserResponseModel) => {
     setDeleteState({
       isOpen: true,
       user: user,
     });
   };
 
-  const handleToggleStatus = async (user: UserModel) => {
+  const handleToggleStatus = async (user: UserResponseModel) => {
     if (!user?.id) return;
 
     try {
@@ -179,7 +180,7 @@ export default function UserPage() {
   const columns = useMemo(
     () =>
       userPlatformTableColumns({
-        data: userState,
+        data: usersData,
         handlers: tableHandlers,
       }),
     [userState, tableHandlers]
@@ -215,7 +216,7 @@ export default function UserPage() {
       closeDeleteModal();
 
       // Navigate to previous page if this was the last item
-      if (users.length === 1 && pagination.currentPage > 1) {
+      if (usersContent.length === 1 && pagination.currentPage > 1) {
         const newPage = pagination.currentPage - 1;
         dispatch(setPageNo(newPage));
         updateUrlWithPage(newPage);
@@ -236,14 +237,14 @@ export default function UserPage() {
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      userPlatformId: "",
+      userId: "",
     });
   };
 
   const closeResetPasswordModal = () => {
     setResetPasswordState({
       isOpen: false,
-      userPlatformId: "",
+      userId: "",
       userName: "",
     });
   };
@@ -265,9 +266,9 @@ export default function UserPage() {
           ]}
           title="Platform Users"
           searchValue={filters.search}
-          searchPlaceholder="Search users..."
+          searchPlaceholder="Search users platform..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New User"
+          buttonText="New Platform"
           onSearchChange={handleSearchChange}
           openModal={handleCreateUser}
         >
@@ -293,7 +294,7 @@ export default function UserPage() {
 
         {/* Data Table with Your Custom Pagination */}
         <DataTableWithPagination
-          data={users}
+          data={usersContent}
           columns={columns}
           loading={isLoading}
           emptyMessage="No users platform found"
@@ -312,9 +313,9 @@ export default function UserPage() {
         mode={modalState.mode}
       />
 
-      {/* Modals User Detail */}
+      {/* Modals User platform Detail */}
       <UserPlatformDetailModal
-        userId={detailModalState.userPlatformId}
+        userId={detailModalState.userId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
@@ -324,16 +325,16 @@ export default function UserPage() {
         isOpen={resetPasswordState.isOpen}
         userName={resetPasswordState.userName}
         onClose={closeResetPasswordModal}
-        userId={resetPasswordState.userPlatformId}
+        userId={resetPasswordState.userId}
       />
 
-      {/* Modals Delete User */}
+      {/* Modals Delete User platform */}
       <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}
         title="Delete User"
-        description={`Are you sure you want to delete this user ${
+        description={`Are you sure you want to delete this platform user ${
           deleteState.user?.fullName || deleteState.user?.email
         }?`}
         itemName={deleteState.user?.fullName || deleteState.user?.email}

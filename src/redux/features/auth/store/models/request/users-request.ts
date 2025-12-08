@@ -68,3 +68,9 @@ export interface ToggleUserStatusRequest {
   id: string;
   accountStatus: string;
 }
+
+export interface AdminChangePasswordRequest {
+  userId: string;
+  newPassword: string;
+  confirmPassword: string;
+}
