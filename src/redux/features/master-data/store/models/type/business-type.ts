@@ -1,7 +1,7 @@
 import {
   AllBusinessResponseModel,
   BusinessResponseModel,
-} from "./response/business-response";
+} from "../response/business-response";
 
 export interface BusinessFilters {
   search: string;
@@ -14,7 +14,6 @@ export interface OperationStates {
   isCreating: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
-  isResettingPassword: boolean;
   isFetchingDetail: boolean;
 }
 

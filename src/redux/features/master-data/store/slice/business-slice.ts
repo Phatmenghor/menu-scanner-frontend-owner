@@ -8,7 +8,7 @@ import {
   BusinessStatus,
   SubscriptionStatus,
 } from "@/constants/AppResource/status/status";
-import { BusinessManagementState } from "../models/business-type";
+import { BusinessManagementState } from "../models/type/business-type";
 import {
   createBusinessService,
   deleteBusinessService,

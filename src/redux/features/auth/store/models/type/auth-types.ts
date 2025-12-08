@@ -2,8 +2,8 @@
  * Auth State Types
  */
 
-import { UserAuthResponseModel } from "./response/auth-resposne";
-import { UserResponseModel } from "./response/users-response";
+import { UserAuthResponseModel } from "../response/auth-resposne";
+import { UserResponseModel } from "../response/users-response";
 
 /**
  * Auth State Interface

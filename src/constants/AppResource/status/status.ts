@@ -145,6 +145,12 @@ export enum SubscriptionStatus {
   NONE_SUBSCRIBE = "NONE_SUBSCRIBE",
 }
 
+export enum ExchangeRateStatus {
+  ALL = "ALL",
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+}
+
 export enum PaymentStatus {
   All = "ALL",
   PENDING = "PENDING",

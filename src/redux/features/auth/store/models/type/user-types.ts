@@ -1,7 +1,7 @@
 import {
   AllUserResponseModel,
   UserResponseModel,
-} from "./response/users-response";
+} from "../response/users-response";
 
 export interface UserFilters {
   search: string;
