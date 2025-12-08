@@ -98,25 +98,27 @@ export function UserPlatformDetailModal({
           {/* Personal Information */}
           <DetailSection title="Personal Information">
             <DetailRow label="Full Name" value={userData?.fullName || "---"} />
+
             <DetailRow label="Email" value={userData?.email || "---"} />
+
             <DetailRow
               label="Phone Number"
               value={userData?.phoneNumber || "---"}
             />
+
             <DetailRow label="Position" value={userData?.position || "---"} />
+
             <DetailRow
               label="Address"
               value={userData?.address || "---"}
               isLast
             />
-          </DetailSection>
 
-          {/* Account Information */}
-          <DetailSection title="Account Information">
             <DetailRow
               label="User Identifier"
               value={userData?.userIdentifier || "---"}
             />
+
             <DetailRow
               label="User Type"
               value={
@@ -131,6 +133,7 @@ export function UserPlatformDetailModal({
                 </Badge>
               }
             />
+
             <DetailRow
               label="Account Status"
               value={
@@ -143,6 +146,7 @@ export function UserPlatformDetailModal({
               }
               isLast={!userData?.businessName}
             />
+
             {userData?.businessName && (
               <DetailRow
                 label="Business"
@@ -150,11 +154,8 @@ export function UserPlatformDetailModal({
                 isLast
               />
             )}
-          </DetailSection>
 
-          {/* Roles */}
-          {userData?.roles && userData?.roles.length > 0 && (
-            <DetailSection title="Assigned Roles">
+            {userData?.roles && userData?.roles.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {userData?.roles?.map((role, index) => (
                   <Badge
@@ -166,17 +167,15 @@ export function UserPlatformDetailModal({
                   </Badge>
                 ))}
               </div>
-            </DetailSection>
-          )}
+            )}
 
-          {/* Notes */}
-          {userData?.notes && (
-            <DetailSection title="Notes">
+            {/* Notes */}
+            {userData?.notes && (
               <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
                 {userData?.notes}
               </p>
-            </DetailSection>
-          )}
+            )}
+          </DetailSection>
 
           {/* System Information */}
           <DetailSection title="System Information">
