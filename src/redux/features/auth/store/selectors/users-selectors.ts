@@ -1,17 +1,19 @@
 import { RootState } from "@/redux/store";
 import { createSelector } from "@reduxjs/toolkit";
 
-// Returns the entire users state slice
 export const selectUsersState = (state: RootState) => state.users;
 
-// Returns just the data (AllUserResponse)
 export const selectUsers = (state: RootState) => state.users.data;
 
-// Returns the content array
+export const selectSelectedUser = (state: RootState) => state.users.selectedUser;
+
 export const selectUsersContent = (state: RootState) =>
   state.users.data?.content || [];
 
 export const selectIsLoading = (state: RootState) => state.users.isLoading;
+
+export const selectIsFetchingDetail = (state: RootState) =>
+  state.users.operations.isFetchingDetail;
 
 export const selectError = (state: RootState) => state.users.error;
 
@@ -37,7 +39,7 @@ export const selectPagination = createSelector([selectUsers], (data) => ({
 }));
 
 /**
- * Select a specific user by ID
+ * Select a specific user by ID from the list
  */
 export const selectUserById = (userId: string) =>
   createSelector([selectUsersContent], (users) =>

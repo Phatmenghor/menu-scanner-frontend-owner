@@ -17,11 +17,11 @@ import {
 } from "@/components/shared/modal/detail-section";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchUserByIdService } from "@/redux/features/auth/store/thunks/users-thunks";
+import { clearSelectedUser } from "@/redux/features/auth/store/slice/users-slice";
 import {
-  selectIsLoading,
-  selectUsers,
+  selectSelectedUser,
+  selectIsFetchingDetail,
 } from "../store/selectors/users-selectors";
-import { UserResponseModel } from "../store/models/response/users-response";
 
 interface UserDetailModalProps {
   userId?: string;
@@ -36,22 +36,18 @@ export function UserPlatformDetailModal({
 }: UserDetailModalProps) {
   const dispatch = useAppDispatch();
 
-  // Get loading state from Redux
-  const isLoading = useAppSelector(selectIsLoading);
+  // Use SEPARATE loading state - won't affect main page
+  const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
 
-  // Get users data from Redux state
-  const usersData = useAppSelector(selectUsers);
-
-  // Find the current user from the Redux state
-  const userData: UserResponseModel | null =
-    usersData?.content?.find((user) => user.id === userId) || null;
+  // Get selected user from Redux
+  const userData = useAppSelector(selectSelectedUser);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId || !isOpen) return;
 
       try {
-        // Dispatch Redux action to fetch user by ID
+        // Fetch fresh data from API
         await dispatch(fetchUserByIdService(userId)).unwrap();
       } catch (error: any) {
         console.error("Error fetching user data:", error);
@@ -62,6 +58,7 @@ export function UserPlatformDetailModal({
   }, [userId, isOpen, dispatch]);
 
   const handleClose = () => {
+    dispatch(clearSelectedUser());
     onClose();
   };
 
@@ -69,7 +66,7 @@ export function UserPlatformDetailModal({
     <DetailModal
       isOpen={isOpen}
       onClose={handleClose}
-      isLoading={isLoading}
+      isLoading={isFetchingDetail} // Use separate loading state
       title={userData?.fullName || "User Details"}
       description={userData?.email || "Loading user information..."}
       avatarUrl={userData?.profileImageUrl}

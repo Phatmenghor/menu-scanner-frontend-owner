@@ -21,6 +21,7 @@ import { UserManagementState } from "../models/user-types";
  */
 const initialState: UserManagementState = {
   data: null,
+  selectedUser: null,
   isLoading: false,
   error: null,
   filters: {
@@ -34,6 +35,7 @@ const initialState: UserManagementState = {
     isUpdating: false,
     isDeleting: false,
     isResettingPassword: false,
+    isFetchingDetail: false,
   },
 };
 
@@ -47,17 +49,17 @@ const usersSlice = createSlice({
     // Filter actions
     setSearchFilter: (state, action: PayloadAction<string>) => {
       state.filters.search = action.payload;
-      state.filters.pageNo = 1; // Reset to first page on search
+      state.filters.pageNo = 1;
     },
 
     setAccountStatusFilter: (state, action: PayloadAction<AccountStatus>) => {
       state.filters.accountStatus = action.payload;
-      state.filters.pageNo = 1; // Reset to first page on filter change
+      state.filters.pageNo = 1;
     },
 
     setRoleFilter: (state, action: PayloadAction<UserRole>) => {
       state.filters.role = action.payload;
-      state.filters.pageNo = 1; // Reset to first page on filter change
+      state.filters.pageNo = 1;
     },
 
     setPageNo: (state, action: PayloadAction<number>) => {
@@ -67,6 +69,10 @@ const usersSlice = createSlice({
     // Utility actions
     clearError: (state) => {
       state.error = null;
+    },
+
+    clearSelectedUser: (state) => {
+      state.selectedUser = null;
     },
 
     resetFilters: (state) => {
@@ -79,7 +85,7 @@ const usersSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-    // Fetch users handlers
+    // Fetch users handlers - ONLY affects list loading
     builder
       .addCase(fetchAllUsersService.pending, (state) => {
         state.isLoading = true;
@@ -94,29 +100,29 @@ const usersSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Fetch user by ID handlers
+    // Fetch user by ID handlers - USE SEPARATE LOADING STATE
     builder
       .addCase(fetchUserByIdService.pending, (state) => {
-        state.isLoading = true;
+        state.operations.isFetchingDetail = true; 
         state.error = null;
+        state.selectedUser = null;
       })
       .addCase(fetchUserByIdService.fulfilled, (state, action) => {
-        state.isLoading = false;
-        // Update the user in the content array if it exists
+        state.operations.isFetchingDetail = false;
+        state.selectedUser = action.payload; 
+
+        // Also update in list if exists (for consistency)
         if (state.data?.content) {
           const index = state.data.content.findIndex(
             (user) => user.id === action.payload.id
           );
           if (index !== -1) {
             state.data.content[index] = action.payload;
-          } else {
-            // Add to content if not found (for detail modal)
-            state.data.content.push(action.payload);
           }
         }
       })
       .addCase(fetchUserByIdService.rejected, (state, action) => {
-        state.isLoading = false;
+        state.operations.isFetchingDetail = false;
         state.error = action.payload as string;
       });
 
@@ -131,8 +137,6 @@ const usersSlice = createSlice({
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
           state.data.totalElements += 1;
-
-          // Recalculate total pages
           state.data.totalPages = Math.ceil(
             state.data.totalElements / state.data.pageSize
           );
@@ -151,6 +155,9 @@ const usersSlice = createSlice({
       })
       .addCase(updateUserService.fulfilled, (state, action) => {
         state.operations.isUpdating = false;
+        state.selectedUser = action.payload; 
+
+        // Update in list
         if (state.data) {
           state.data.content = state.data.content.map((user) =>
             user.id === action.payload.id ? action.payload : user
@@ -175,13 +182,9 @@ const usersSlice = createSlice({
             (user) => user.id !== action.payload
           );
           state.data.totalElements -= 1;
-
-          // Recalculate total pages
           state.data.totalPages = Math.ceil(
             state.data.totalElements / state.data.pageSize
           );
-
-          // Update pagination flags
           state.data.last = state.data.pageNo >= state.data.totalPages;
           state.data.hasNext = !state.data.last;
           state.data.hasPrevious = state.data.pageNo > 1;
@@ -208,7 +211,7 @@ const usersSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Admin change password (Reset password) handlers
+    // Admin change password handlers
     builder
       .addCase(adminChangePasswordService.pending, (state) => {
         state.operations.isResettingPassword = true;
@@ -230,6 +233,7 @@ export const {
   setRoleFilter,
   setPageNo,
   clearError,
+  clearSelectedUser,
   resetFilters,
   resetState,
 } = usersSlice.actions;
