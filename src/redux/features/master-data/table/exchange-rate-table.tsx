@@ -1,30 +1,33 @@
 import { ActionButton } from "@/components/shared/common/action-button";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
-import { Edit, Eye, RotateCw, Trash } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 import { TableColumn } from "@/components/shared/common/data-table";
 import {
-  AllBusinessResponseModel,
-  BusinessResponseModel,
-} from "../store/models/response/business-response";
+  AllExchangeRateResponseModel,
+  ExchangeRateResponseModel,
+} from "../store/models/response/exchange-rate-response";
 
-interface BusinessTableHandlers {
-  handleEditBusiness: (business: BusinessResponseModel) => void;
-  handleBusinessViewDetail: (business: BusinessResponseModel) => void;
-  handleDeleteBusiness: (business: BusinessResponseModel) => void;
+interface ExchangeRateTableHandlers {
+  handleEditExchangeRate: (exchnage: ExchangeRateResponseModel) => void;
+  handleExchangeRateViewDetail: (exchnage: ExchangeRateResponseModel) => void;
+  handleDeleteExchangeRate: (exchnage: ExchangeRateResponseModel) => void;
 }
 
-interface BusinessTableOptions {
-  data: AllBusinessResponseModel | null;
-  handlers: BusinessTableHandlers;
+interface ExchangeRateTableOptions {
+  data: AllExchangeRateResponseModel | null;
+  handlers: ExchangeRateTableHandlers;
 }
 
 export const businessTableColumns = ({
   data,
   handlers,
-}: BusinessTableOptions): TableColumn<BusinessResponseModel>[] => {
-  const { handleEditBusiness, handleBusinessViewDetail, handleDeleteBusiness } =
-    handlers;
+}: ExchangeRateTableOptions): TableColumn<ExchangeRateResponseModel>[] => {
+  const {
+    handleEditExchangeRate,
+    handleExchangeRateViewDetail,
+    handleDeleteExchangeRate,
+  } = handlers;
 
   return [
     {
@@ -39,62 +42,51 @@ export const businessTableColumns = ({
       ),
     },
     {
-      key: "name",
-      label: "Name",
+      key: "usdToKhrRate",
+      label: "USD to KHR Rate",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (business) => (
+      render: (exchange) => (
         <span className="text-xs text-muted-foreground">
-          {business?.name || "---"}
+          {exchange?.usdToKhrRate || "---"}
         </span>
       ),
     },
     {
-      key: "email",
-      label: "Email",
+      key: "notes",
+      label: "Noted",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (business) => (
+      render: (exchange) => (
         <span className="text-xs text-muted-foreground">
-          {business?.email || "---"}
-        </span>
-      ),
-    },
-    {
-      key: "phone",
-      label: "Phone Number",
-      minWidth: "10px",
-      maxWidth: "400px",
-      truncate: true,
-      render: (business) => (
-        <span className="text-xs text-muted-foreground">
-          {business?.phone || "---"}
+          {exchange?.notes || "---"}
         </span>
       ),
     },
 
     {
-      key: "businessStatus",
-      label: "Business Status",
-      minWidth: "10px",
-      maxWidth: "400px",
-      truncate: true,
-      render: (business) => (
-        <span className="text-xs text-muted-foreground">
-          {business?.status || "---"}
-        </span>
-      ),
-    },
-    {
       key: "createdAt",
       label: "Created At",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (business) => (
+      render: (exchange) => (
         <span className="text-sm text-muted-foreground">
-          {dateTimeFormat(business?.createdAt)}
+          {dateTimeFormat(exchange?.createdAt)}
+        </span>
+      ),
+    },
+
+    {
+      key: "createdBy",
+      label: "Created By",
+      minWidth: "10px",
+      maxWidth: "400px",
+      truncate: true,
+      render: (exchange) => (
+        <span className="text-xs text-muted-foreground">
+          {exchange?.createdBy || "---"}
         </span>
       ),
     },
@@ -108,17 +100,17 @@ export const businessTableColumns = ({
           <ActionButton
             icon={<Eye className="w-4 h-4" />}
             tooltip="View Details"
-            onClick={() => handleBusinessViewDetail(business)}
+            onClick={() => handleExchangeRateViewDetail(business)}
           />
           <ActionButton
             icon={<Edit className="w-4 h-4" />}
-            tooltip="Edit Business"
-            onClick={() => handleEditBusiness(business)}
+            tooltip="Edit Exchange Rate"
+            onClick={() => handleEditExchangeRate(business)}
           />
           <ActionButton
             icon={<Trash className="w-4 h-4" />}
-            tooltip="Delete Business"
-            onClick={() => handleDeleteBusiness(business)}
+            tooltip="Delete Exchange Rate"
+            onClick={() => handleDeleteExchangeRate(business)}
             variant="destructive"
           />
         </div>

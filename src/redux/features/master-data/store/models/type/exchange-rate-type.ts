@@ -1,5 +1,5 @@
 import {
-  AllExchnageRateResponseModel,
+  AllExchangeRateResponseModel,
   ExchangeRateResponseModel,
 } from "../response/exchange-rate-response";
 
@@ -17,7 +17,7 @@ export interface OperationStates {
 }
 
 export interface ExchangeRateManagementState {
-  data: AllExchnageRateResponseModel | null;
+  data: AllExchangeRateResponseModel | null;
   selectedExchangeRate: ExchangeRateResponseModel | null;
   isLoading: boolean;
   error: string | null;

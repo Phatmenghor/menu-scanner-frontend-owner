@@ -1,6 +1,6 @@
 import { Pagination } from "@/utils/common/pagination";
 
-export interface AllExchnageRateResponseModel extends Pagination {
+export interface AllExchangeRateResponseModel extends Pagination {
   content: ExchangeRateResponseModel[];
 }
 
