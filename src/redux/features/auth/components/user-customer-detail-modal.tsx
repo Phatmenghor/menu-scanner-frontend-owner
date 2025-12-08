@@ -17,11 +17,11 @@ import {
 } from "@/components/shared/modal/detail-section";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchUserByIdService } from "@/redux/features/auth/store/thunks/users-thunks";
+import { clearSelectedUser } from "@/redux/features/auth/store/slice/users-slice";
 import {
-  selectIsLoading,
-  selectUsers,
+  selectSelectedUser,
+  selectIsFetchingDetail,
 } from "../store/selectors/users-selectors";
-import { UserResponseModel } from "../store/models/response/users-response";
 
 interface UserDetailModalProps {
   userId?: string;
@@ -36,25 +36,18 @@ export function UserCustomerDetailModal({
 }: UserDetailModalProps) {
   const dispatch = useAppDispatch();
 
-  // Get loading state from Redux
-  const isLoading = useAppSelector(selectIsLoading);
+  const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
 
-  // Get users data from Redux state
-  const usersData = useAppSelector(selectUsers);
-
-  // Find the current user from the Redux state
-  const userData: UserResponseModel | null =
-    usersData?.content?.find((user) => user.id === userId) || null;
+  const userData = useAppSelector(selectSelectedUser);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId || !isOpen) return;
 
       try {
-        // Dispatch Redux action to fetch user by ID
         await dispatch(fetchUserByIdService(userId)).unwrap();
       } catch (error: any) {
-        console.error("Error fetching user customer data:", error);
+        console.error("Error fetching user data:", error);
       }
     };
 
@@ -62,6 +55,7 @@ export function UserCustomerDetailModal({
   }, [userId, isOpen, dispatch]);
 
   const handleClose = () => {
+    dispatch(clearSelectedUser());
     onClose();
   };
 
@@ -69,9 +63,9 @@ export function UserCustomerDetailModal({
     <DetailModal
       isOpen={isOpen}
       onClose={handleClose}
-      isLoading={isLoading}
-      title={userData?.fullName || "User Customer Details"}
-      description={userData?.email || "Loading user customer information..."}
+      isLoading={isFetchingDetail}
+      title={userData?.fullName || "User Details"}
+      description={userData?.email || "Loading user information..."}
       avatarUrl={userData?.profileImageUrl}
       avatarName={userData?.firstName}
       badges={
@@ -101,25 +95,27 @@ export function UserCustomerDetailModal({
           {/* Personal Information */}
           <DetailSection title="Personal Information">
             <DetailRow label="Full Name" value={userData?.fullName || "---"} />
+
             <DetailRow label="Email" value={userData?.email || "---"} />
+
             <DetailRow
               label="Phone Number"
               value={userData?.phoneNumber || "---"}
             />
+
             <DetailRow label="Position" value={userData?.position || "---"} />
+
             <DetailRow
               label="Address"
               value={userData?.address || "---"}
               isLast
             />
-          </DetailSection>
 
-          {/* Account Information */}
-          <DetailSection title="Account Information">
             <DetailRow
               label="User Identifier"
               value={userData?.userIdentifier || "---"}
             />
+
             <DetailRow
               label="User Type"
               value={
@@ -134,6 +130,7 @@ export function UserCustomerDetailModal({
                 </Badge>
               }
             />
+
             <DetailRow
               label="Account Status"
               value={
@@ -146,6 +143,7 @@ export function UserCustomerDetailModal({
               }
               isLast={!userData?.businessName}
             />
+
             {userData?.businessName && (
               <DetailRow
                 label="Business"
@@ -153,11 +151,8 @@ export function UserCustomerDetailModal({
                 isLast
               />
             )}
-          </DetailSection>
 
-          {/* Roles */}
-          {userData?.roles && userData?.roles.length > 0 && (
-            <DetailSection title="Assigned Roles">
+            {userData?.roles && userData?.roles.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {userData?.roles?.map((role, index) => (
                   <Badge
@@ -169,17 +164,15 @@ export function UserCustomerDetailModal({
                   </Badge>
                 ))}
               </div>
-            </DetailSection>
-          )}
+            )}
 
-          {/* Notes */}
-          {userData?.notes && (
-            <DetailSection title="Notes">
+            {/* Notes */}
+            {userData?.notes && (
               <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
                 {userData?.notes}
               </p>
-            </DetailSection>
-          )}
+            )}
+          </DetailSection>
 
           {/* System Information */}
           <DetailSection title="System Information">
