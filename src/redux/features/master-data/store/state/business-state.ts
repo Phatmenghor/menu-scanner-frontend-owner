@@ -1,34 +1,28 @@
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
+  selectBusiness,
+  selectBusinessContent,
   selectFilters,
   selectIsLoading,
   selectOperations,
   selectPagination,
-  selectUsers,
-  selectUsersContent,
-  selectUsersState,
-  selectError,
-} from "../selectors/users-selectors";
+} from "../selectors/business-selector";
 
-export const useUsersState = () => {
+export const useBusinessState = () => {
   const dispatch = useAppDispatch();
 
   // Redux selectors
-  const userState = useAppSelector(selectUsersState);
-  const users = useAppSelector(selectUsersContent);
-  const usersData = useAppSelector(selectUsers);
+  const businesstate = useAppSelector(selectBusiness);
+  const business = useAppSelector(selectBusinessContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
   const isLoading = useAppSelector(selectIsLoading);
-  const error = useAppSelector(selectError);
 
   return {
-    userState,
-    users,
-    usersData,
+    businesstate,
+    business,
     isLoading,
-    error,
     filters,
     operations,
     pagination,

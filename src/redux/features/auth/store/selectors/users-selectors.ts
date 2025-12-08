@@ -1,106 +1,42 @@
-/**
- * User Management - Selectors
- * Memoized selectors for user management state
- */
-
 import { RootState } from "@/redux/store";
 import { createSelector } from "@reduxjs/toolkit";
 
-/**
- * Base selector for user state
- */
-const selectUserState = (state: RootState) => state.users;
+// Returns the entire users state slice
+export const selectUsersState = (state: RootState) => state.users;
+
+// Returns just the data (AllUserResponse)
+export const selectUsers = (state: RootState) => state.users.data;
+
+// Returns the content array
+export const selectUsersContent = (state: RootState) =>
+  state.users.data?.content || [];
+
+export const selectIsLoading = (state: RootState) => state.users.isLoading;
+
+export const selectError = (state: RootState) => state.users.error;
+
+export const selectFilters = (state: RootState) => state.users.filters;
+
+export const selectOperations = (state: RootState) => state.users.operations;
 
 /**
- * Select all users data
+ * Select pagination metadata
  */
-export const selectUsers = createSelector(
-  [selectUserState],
-  (state) => state.data
-);
+export const selectPagination = createSelector([selectUsers], (data) => ({
+  currentPage: data?.pageNo || 1,
+  totalPages: data?.totalPages || 1,
+  totalElements: data?.totalElements || 0,
+  pageSize: data?.pageSize || 10,
+  last: data?.last || false,
+  first: data?.first || true,
+  hasNext: data?.hasNext || false,
+  hasPrevious: data?.hasPrevious || false,
+}));
 
 /**
- * Select user content (array of users)
+ * Select a specific user by ID
  */
-export const selectUsersContent = createSelector(
-  [selectUsers],
-  (data) => data?.content || []
-);
-
-/**
- * Select user filters
- */
-export const selectFilters = createSelector(
-  [selectUserState],
-  (state) => state.filters
-);
-
-/**
- * Select operation states
- */
-export const selectOperations = createSelector(
-  [selectUserState],
-  (state) => state.operations
-);
-
-/**
- * Select pagination info
- */
-export const selectPagination = createSelector(
-  [selectUserState, selectUsers],
-  (state, data) => ({
-    currentPage: state.filters.pageNo || 1,
-    totalPages: data?.totalPages || 1,
-    totalElements: data?.totalElements || 0,
-    hasNext: data?.hasNext || false,
-    hasPrevious: data?.hasPrevious || false,
-  })
-);
-
-/**
- * Select loading state
- */
-export const selectIsLoading = createSelector(
-  [selectUserState],
-  (state) => state.isLoading
-);
-
-/**
- * Select is creating
- */
-export const selectIsCreating = createSelector(
-  [selectOperations],
-  (ops) => ops.isCreating
-);
-
-/**
- * Select is updating
- */
-export const selectIsUpdating = createSelector(
-  [selectOperations],
-  (ops) => ops.isUpdating
-);
-
-/**
- * Select is deleting
- */
-export const selectIsDeleting = createSelector(
-  [selectOperations],
-  (ops) => ops.isDeleting
-);
-
-/**
- * Select error
- */
-export const selectError = createSelector(
-  [selectUserState],
-  (state) => state.error
-);
-
-/**
- * Select if any operation is in progress
- */
-export const selectIsOperating = createSelector(
-  [selectOperations],
-  (ops) => ops.isCreating || ops.isUpdating || ops.isDeleting
-);
+export const selectUserById = (userId: string) =>
+  createSelector([selectUsersContent], (users) =>
+    users.find((user) => user.id === userId)
+  );

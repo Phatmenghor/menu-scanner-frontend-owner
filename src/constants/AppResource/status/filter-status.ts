@@ -1,4 +1,4 @@
-import { AccountStatus, Status, UserRole } from "./status";
+import { AccountStatus, BusinessStatus, Status, UserRole } from "./status";
 
 export const USER_PLATFORM_ROLE_FILTER = [
   { value: UserRole.ALL, label: "All Roles" },
@@ -15,6 +15,15 @@ export const USER_BUSINESS_ROLE_FILTER = [
   { value: UserRole.BUSINESS_OWNER, label: "Platform Owner" },
   { value: UserRole.BUSINESS_MANAGER, label: "Platform Admin" },
   { value: UserRole.BUSINESS_STAFF, label: "Platform Manager" },
+];
+
+export const BUSINESS_FILTER = [
+  { value: BusinessStatus.ALL, label: "All Status" },
+
+  { value: BusinessStatus.ACTIVE, label: "Active" },
+  { value: BusinessStatus.PENDING, label: "Pending" },
+  { value: BusinessStatus.INACTIVE, label: "Inactive" },
+  { value: BusinessStatus.SUSPENDED, label: "Subspended" },
 ];
 
 // Auto renew filter options

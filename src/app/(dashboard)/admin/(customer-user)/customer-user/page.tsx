@@ -12,7 +12,7 @@ import {
   UserGropeType,
 } from "@/constants/AppResource/status/status";
 import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
-import { UserFormData } from "@/models/dashboard/user/plateform-user/user.schema";
+import { UserFormData } from "@/redux/features/auth/store/models/schema/user.schema";
 
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";

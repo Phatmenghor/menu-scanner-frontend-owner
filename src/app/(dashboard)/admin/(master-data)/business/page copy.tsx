@@ -70,7 +70,7 @@ export default function BusinessPage() {
   });
 
   const [statusFilter, setStatusFilter] = useState<BusinessStatus>(
-    BusinessStatus.All
+    BusinessStatus.ALL
   );
   const [hasSubscription, setHasSubscription] = useState<SubscriptionStatus>(
     SubscriptionStatus.All
@@ -96,7 +96,7 @@ export default function BusinessPage() {
     setIsLoading(true);
     try {
       const response = await getAllBusinessService({
-        status: statusFilter === BusinessStatus.All ? undefined : statusFilter,
+        status: statusFilter === BusinessStatus.ALL ? undefined : statusFilter,
         hasActiveSubscription:
           hasSubscription === SubscriptionStatus.All
             ? undefined

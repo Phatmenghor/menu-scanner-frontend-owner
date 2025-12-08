@@ -1,17 +1,10 @@
-export interface UpdateUserRequest {
-  id?: string;
-  firstName?: string;
-  lastName?: string;
-  phoneNumber?: string;
-  profileImageUrl?: string;
-  accountStatus?: string;
-  businessId?: string;
-  roles?: string[];
-  position?: string;
-  address?: string;
-  notes?: string;
-}
+/**
+ * User Request Types
+ */
 
+/**
+ * Create User Request
+ */
 export interface CreateUserRequest {
   userIdentifier: string;
   email?: string;
@@ -29,6 +22,26 @@ export interface CreateUserRequest {
   accountStatus?: string;
 }
 
+/**
+ * Update User Request
+ */
+export interface UpdateUserRequest {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  profileImageUrl?: string;
+  accountStatus?: string;
+  businessId?: string;
+  roles?: string[];
+  position?: string;
+  address?: string;
+  notes?: string;
+}
+
+/**
+ * Fetch All Users Request
+ */
 export interface AllUserRequest {
   search?: string;
   accountStatus?: string[];
@@ -40,7 +53,18 @@ export interface AllUserRequest {
   sortDirection?: string;
 }
 
+/**
+ * Update User Params (for thunk)
+ */
 export interface UpdateUserParams {
   userId: string;
   userData: UpdateUserRequest;
+}
+
+/**
+ * Toggle User Status Request
+ */
+export interface ToggleUserStatusRequest {
+  id: string;
+  accountStatus: string;
 }

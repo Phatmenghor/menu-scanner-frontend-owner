@@ -1,13 +1,7 @@
-export interface AllUserResponse {
+import { Pagination } from "@/utils/common/pagination";
+
+export interface AllUserResponse extends Pagination {
   content: UserModel[];
-  pageNo: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-  first: boolean;
-  hasNext: boolean;
-  hasPrevious: boolean;
 }
 
 export interface UserModel {

@@ -27,7 +27,7 @@ import {
   createUserSchema,
   updateUserSchema,
   UserFormData,
-} from "@/models/dashboard/user/plateform-user/user.schema";
+} from "@/redux/features/auth/store/models/schema/user.schema";
 import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";

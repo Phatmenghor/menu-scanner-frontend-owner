@@ -5,6 +5,7 @@
 
 import authReducer from "../features/auth/store/slice/auth-slice";
 import usersReducer from "../features/auth/store/slice/users-slice";
+import businessReducer from "../features/master-data/store/slice/business-slice";
 
 /**
  * Root reducer configuration
@@ -13,4 +14,5 @@ import usersReducer from "../features/auth/store/slice/users-slice";
 export const reducers = {
   auth: authReducer,
   users: usersReducer,
+  business: businessReducer,
 };

@@ -45,14 +45,17 @@ const usersSlice = createSlice({
     // Filter actions
     setSearchFilter: (state, action: PayloadAction<string>) => {
       state.filters.search = action.payload;
+      state.filters.pageNo = 1; // Reset to first page on search
     },
 
     setAccountStatusFilter: (state, action: PayloadAction<AccountStatus>) => {
       state.filters.accountStatus = action.payload;
+      state.filters.pageNo = 1; // Reset to first page on filter change
     },
 
     setRoleFilter: (state, action: PayloadAction<UserRole>) => {
       state.filters.role = action.payload;
+      state.filters.pageNo = 1; // Reset to first page on filter change
     },
 
     setPageNo: (state, action: PayloadAction<number>) => {
@@ -95,8 +98,20 @@ const usersSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUserByIdService.fulfilled, (state) => {
+      .addCase(fetchUserByIdService.fulfilled, (state, action) => {
         state.isLoading = false;
+        // Update the user in the content array if it exists
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          } else {
+            // Add to content if not found (for detail modal)
+            state.data.content.push(action.payload);
+          }
+        }
       })
       .addCase(fetchUserByIdService.rejected, (state, action) => {
         state.isLoading = false;
@@ -114,6 +129,11 @@ const usersSlice = createSlice({
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
           state.data.totalElements += 1;
+
+          // Recalculate total pages
+          state.data.totalPages = Math.ceil(
+            state.data.totalElements / state.data.pageSize
+          );
         }
       })
       .addCase(createUserService.rejected, (state, action) => {
@@ -153,6 +173,16 @@ const usersSlice = createSlice({
             (user) => user.id !== action.payload
           );
           state.data.totalElements -= 1;
+
+          // Recalculate total pages
+          state.data.totalPages = Math.ceil(
+            state.data.totalElements / state.data.pageSize
+          );
+
+          // Update pagination flags
+          state.data.last = state.data.pageNo >= state.data.totalPages;
+          state.data.hasNext = !state.data.last;
+          state.data.hasPrevious = state.data.pageNo > 1;
         }
       })
       .addCase(deleteUserService.rejected, (state, action) => {

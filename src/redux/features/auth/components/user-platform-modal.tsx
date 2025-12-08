@@ -16,23 +16,16 @@ import {
   ModalMode,
   UserGropeType,
   Status,
+  AccountStatus,
 } from "@/constants/AppResource/status/status";
 import {
   ACCOUNT_STATUS_CREATE_UPDATE,
-  USER_BUSINESS_ROLE_CREATE_UPDATE,
   USER_PLATFORM_ROLE_CREATE_UPDATE,
 } from "@/constants/AppResource/status/create-update-status";
-import {
-  createUserSchema,
-  updateUserSchema,
-  UserFormData,
-} from "@/models/dashboard/user/plateform-user/user.schema";
-import { getUserByIdService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
-import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { PasswordField } from "@/components/shared/form-field/password-field";
@@ -40,15 +33,31 @@ import {
   CreateUserRequest,
   UpdateUserRequest,
 } from "../store/models/request/users-request";
+import {
+  createUserSchema,
+  updateUserSchema,
+  UserFormData,
+} from "../store/models/schema/user.schema";
+import {
+  fetchUserByIdService,
+  createUserService,
+  updateUserService,
+} from "../store/thunks/users-thunks";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { showToast } from "@/components/shared/common/app-toast";
+import { clearError } from "../store/slice/users-slice";
+import {
+  selectError,
+  selectIsLoading,
+  selectOperations,
+} from "../store/selectors/users-selectors";
+import { FormFooter } from "@/components/shared/form-field/form-footer";
 
 type Props = {
   mode: ModalMode;
   userId?: string;
   onClose: () => void;
   isOpen: boolean;
-  isSubmitting?: boolean;
-  onSave: (data: CreateUserRequest | UpdateUserRequest) => void;
-  error?: string | null;
 };
 
 export default function UserPlatformModal({
@@ -56,13 +65,17 @@ export default function UserPlatformModal({
   onClose,
   userId,
   mode,
-  onSave,
-  isSubmitting = false,
-  error = null,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+
+  const dispatch = useAppDispatch();
+
+  // Get operations state from Redux
+  const operations = useAppSelector(selectOperations);
+  const isLoadingData = useAppSelector(selectIsLoading);
+  const reduxError = useAppSelector(selectError);
+  const { isCreating, isUpdating } = operations;
 
   const {
     control,
@@ -83,7 +96,7 @@ export default function UserPlatformModal({
       password: "",
       userType: UserGropeType.PLATFORM_USER,
       roles: [],
-      accountStatus: Status.ACTIVE,
+      accountStatus: AccountStatus.ACTIVE,
       position: "",
       address: "",
       notes: "",
@@ -91,39 +104,44 @@ export default function UserPlatformModal({
     mode: "onChange",
   });
 
+  // Fetch user data for edit mode
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId || !isOpen || isCreate) return;
 
-      setIsLoadingData(true);
       try {
-        const data = await getUserByIdService(userId);
+        // Dispatch fetchUserByIdService through Redux
+        const resultAction = await dispatch(fetchUserByIdService(userId));
 
-        // Populate form with fetched data
-        reset({
-          id: data.id,
-          userIdentifier: data.userIdentifier,
-          email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phoneNumber: data.phoneNumber,
-          userType: data.userType,
-          roles: data.roles,
-          accountStatus: data.accountStatus,
-          position: data.position || "",
-          address: data.address || "",
-          notes: data.notes || "",
-        });
+        // Check if the fetch was successful
+        if (fetchUserByIdService.fulfilled.match(resultAction)) {
+          const data = resultAction.payload;
+
+          // Populate form with fetched data
+          reset({
+            id: data.id,
+            userIdentifier: data.userIdentifier,
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phoneNumber: data.phoneNumber,
+            userType: data.userType,
+            roles: data.roles,
+            accountStatus: data.accountStatus,
+            position: data.position || "",
+            address: data.address || "",
+            notes: data.notes || "",
+          });
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
-      } finally {
-        setIsLoadingData(false);
       }
     };
 
     fetchUserData();
-  }, [userId, isOpen, isCreate, reset]);
+  }, [userId, isOpen, isCreate, reset, dispatch]);
 
+  // Reset form for create mode
   useEffect(() => {
     if (isOpen && isCreate) {
       reset({
@@ -135,7 +153,7 @@ export default function UserPlatformModal({
         password: "",
         userType: UserGropeType.PLATFORM_USER,
         roles: [],
-        accountStatus: Status.ACTIVE,
+        accountStatus: AccountStatus.ACTIVE,
         position: "",
         address: "",
         notes: "",
@@ -143,62 +161,98 @@ export default function UserPlatformModal({
     }
   }, [isOpen, isCreate, reset]);
 
-  const onSubmit = (data: UserFormData) => {
-    if (isCreate) {
-      // Create mode: Include all required fields
-      const payload: CreateUserRequest = {
-        userIdentifier: data.userIdentifier!,
-        email: data.email!,
-        password: data.password!,
-        firstName: data.firstName!,
-        lastName: data.lastName!,
-        phoneNumber: data.phoneNumber!,
-        userType: data.userType!,
-        accountStatus: data.accountStatus!,
-        roles: data.roles!,
-        position: data.position,
-        address: data.address,
-        notes: data.notes,
-      };
-      onSave(payload);
-    } else {
-      // Update mode: Only editable fields
-      const payload: UpdateUserRequest = {
-        id: data.id!,
-        firstName: data.firstName!,
-        lastName: data.lastName!,
-        phoneNumber: data.phoneNumber!,
-        accountStatus: data.accountStatus!,
-        roles: data.roles!,
-        position: data.position,
-        address: data.address,
-        notes: data.notes,
-      };
-      onSave(payload);
+  // Clear errors when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(clearError());
+    }
+  }, [isOpen, dispatch]);
+
+  const onSubmit = async (data: UserFormData) => {
+    try {
+      if (isCreate) {
+        // Create mode: Include all required fields
+        const payload: CreateUserRequest = {
+          userIdentifier: data.userIdentifier!,
+          email: data.email!,
+          password: data.password!,
+          firstName: data.firstName!,
+          lastName: data.lastName!,
+          phoneNumber: data.phoneNumber!,
+          userType: data.userType!,
+          accountStatus: data.accountStatus!,
+          roles: data.roles!,
+          position: data.position || undefined,
+          address: data.address || undefined,
+          notes: data.notes || undefined,
+        };
+
+        // Dispatch create action
+        const result = await dispatch(createUserService(payload)).unwrap();
+
+        showToast.success(
+          `User "${result.fullName || result.email}" created successfully`
+        );
+
+        // Close modal on success
+        handleClose();
+      } else {
+        // Update mode: Only editable fields
+        const payload: UpdateUserRequest = {
+          firstName: data.firstName!,
+          lastName: data.lastName!,
+          phoneNumber: data.phoneNumber!,
+          accountStatus: data.accountStatus!,
+          roles: data.roles!,
+          position: data.position || undefined,
+          address: data.address || undefined,
+          notes: data.notes || undefined,
+        };
+
+        // Dispatch update action
+        const result = await dispatch(
+          updateUserService({ userId: data.id!, userData: payload })
+        ).unwrap();
+
+        showToast.success(
+          `User "${result.fullName || result.email}" updated successfully`
+        );
+
+        // Close modal on success
+        handleClose();
+      }
+    } catch (error: any) {
+      // Error is handled by Redux state and displayed in the form
+      console.error("Error saving user:", error);
+      showToast.error(error || "Failed to save user");
     }
   };
 
   const handleClose = () => {
     reset();
+    dispatch(clearError());
     onClose();
   };
 
+  // Determine if form is submitting
+  const isSubmitting = isCreate ? isCreating : isUpdating;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl h-[90vh] p-0 gap-0 flex flex-col">
-        <DialogHeader className="px-6 py-4 border-b bg-muted/30 flex-shrink-0">
-          <div className="flex items-center gap-4 pr-8">
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+          <div className="flex items-center gap-3">
             {/* Icon */}
-            <div className="p-2 bg-primary/10 rounded-full">
+            <div className="p-2 bg-primary/10 rounded-lg">
               <UserPlus className="h-5 w-5 text-primary" />
             </div>
 
             {/* Title & Description */}
-            <div className="flex-1">
+            <div className="flex flex-col gap-1">
               <DialogTitle className="text-xl font-semibold">
                 {isCreate ? "Create New User" : "Edit User"}
               </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
+              <DialogDescription>
                 {isCreate
                   ? "Fill out the form to create a new user account"
                   : "Update user information below"}
@@ -207,208 +261,196 @@ export default function UserPlatformModal({
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="p-6">
-            {/* Loading State - Edit Mode Only */}
-            {!isCreate && isLoadingData ? (
-              <Loading />
-            ) : (
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {error && (
-                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                    <p className="text-sm text-destructive font-medium">
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  {/* Section Header */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-primary rounded-full"></div>
-                    <h3 className="text-base font-semibold">
-                      Basic Information
-                    </h3>
-                  </div>
-
-                  {/* Form Fields Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* User Identifier - Create Only, Non-editable */}
-                    <TextField
-                      name="userIdentifier"
-                      label="User Identifier"
-                      control={control}
-                      error={errors.userIdentifier}
-                      placeholder="johndoe"
-                      required={isCreate}
-                      disabled={isSubmitting || !isCreate}
-                    />
-
-                    {/* Email - Create Only, Non-editable */}
-                    <TextField
-                      name="email"
-                      label="Email Address"
-                      type="email"
-                      control={control}
-                      error={errors.email}
-                      placeholder="email@example.com"
-                      required={isCreate}
-                      disabled={isSubmitting || !isCreate}
-                    />
-
-                    {/* First Name - Always Editable */}
-                    <TextField
-                      name="firstName"
-                      label="First Name"
-                      control={control}
-                      error={errors.firstName}
-                      placeholder="John"
-                      required
-                      disabled={isSubmitting}
-                    />
-
-                    {/* Last Name - Always Editable */}
-                    <TextField
-                      name="lastName"
-                      label="Last Name"
-                      control={control}
-                      error={errors.lastName}
-                      placeholder="Doe"
-                      required
-                      disabled={isSubmitting}
-                    />
-
-                    {/* Phone Number - Always Editable */}
-                    <TextField
-                      name="phoneNumber"
-                      label="Phone Number"
-                      type="tel"
-                      control={control}
-                      error={errors.phoneNumber}
-                      placeholder="+1234567890"
-                      required
-                      disabled={isSubmitting}
-                    />
-
-                    {/* Position - Optional */}
-                    <TextField
-                      name="position"
-                      label="Position"
-                      control={control}
-                      error={errors.position}
-                      placeholder="Job title"
-                      disabled={isSubmitting}
-                    />
-
-                    {/* Address - Optional, Full Width */}
-                    <TextField
-                      name="address"
-                      label="Address"
-                      control={control}
-                      error={errors.address}
-                      placeholder="Street address"
-                      disabled={isSubmitting}
-                      className="md:col-span-2"
-                    />
-
-                    {/* Notes - Optional, Full Width */}
-                    <TextareaField
-                      name="notes"
-                      label="Notes"
-                      control={control}
-                      error={errors.notes}
-                      placeholder="Additional notes"
-                      disabled={isSubmitting}
-                      className="md:col-span-2"
-                    />
-
-                    {/* Password - Create Only, Full Width */}
-                    {isCreate && (
-                      <PasswordField
-                        name="password"
-                        label="Password"
-                        control={control}
-                        error={errors.password}
-                        required
-                        disabled={isSubmitting}
-                        showPassword={showPassword}
-                        onTogglePassword={() => setShowPassword(!showPassword)}
-                        className="md:col-span-2"
-                      />
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Section Header */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-primary rounded-full"></div>
-                    <h3 className="text-base font-semibold">
-                      Account Settings
-                    </h3>
-                  </div>
-
-                  {/* Form Fields Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* User Role - Always Editable */}
-                    <SelectField
-                      name="roles"
-                      label="User Role"
-                      control={control}
-                      error={errors.roles as any}
-                      options={USER_PLATFORM_ROLE_CREATE_UPDATE}
-                      placeholder="Select role"
-                      required
-                      disabled={isSubmitting}
-                      onValueChange={(value: any) => {
-                        // Convert single value to array for roles field
-                        setValue("roles", [value], {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                      }}
-                    />
-
-                    {/* Account Status - Always Editable */}
-                    <SelectField
-                      name="accountStatus"
-                      label="Account Status"
-                      control={control}
-                      error={errors.accountStatus}
-                      options={ACCOUNT_STATUS_CREATE_UPDATE}
-                      placeholder="Select status"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-              </form>
-            )}
+        {/* Loading State - Edit Mode Only */}
+        {!isCreate && isLoadingData ? (
+          <div className="p-6 flex items-center justify-center min-h-[400px]">
+            <Loading />
           </div>
-        </ScrollArea>
+        ) : (
+          <ScrollArea className="max-h-[calc(90vh-180px)]">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="px-6 py-4 space-y-6"
+            >
+              {/* Error Display */}
+              {reduxError && (
+                <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
+                  <p className="text-sm text-destructive font-medium">
+                    {reduxError}
+                  </p>
+                </div>
+              )}
 
-        <FormFooter
-          isSubmitting={isSubmitting}
-          isDirty={isDirty}
-          isCreate={isCreate}
-          createMessage="Creating user..."
-          updateMessage="Updating user..."
-        >
-          {/* Cancel Button */}
-          <CancelButton onClick={handleClose} disabled={isSubmitting} />
+              {/* Section: Basic Information */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-foreground">
+                  Basic Information
+                </h3>
 
-          {/* Submit Button */}
-          <SubmitButton
-            isSubmitting={isSubmitting}
-            isDirty={isDirty}
-            isCreate={isCreate}
-            createText="Create User"
-            updateText="Update User"
-            submittingCreateText="Creating..."
-            submittingUpdateText="Updating..."
-            onClick={handleSubmit(onSubmit)}
-          />
-        </FormFooter>
+                {/* Form Fields Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* User Identifier - Create Only */}
+                  <TextField
+                    control={control}
+                    name="userIdentifier"
+                    label="User Identifier"
+                    placeholder="Enter user identifier"
+                    disabled={!isCreate}
+                    required={isCreate}
+                  />
+
+                  {/* Email - Create Only */}
+                  <TextField
+                    control={control}
+                    name="email"
+                    label="Email"
+                    type="email"
+                    placeholder="Enter email address"
+                    disabled={!isCreate}
+                    required={isCreate}
+                  />
+
+                  {/* First Name */}
+                  <TextField
+                    control={control}
+                    name="firstName"
+                    label="First Name"
+                    placeholder="Enter first name"
+                    required
+                    disabled={isSubmitting}
+                  />
+
+                  {/* Last Name */}
+                  <TextField
+                    control={control}
+                    name="lastName"
+                    label="Last Name"
+                    placeholder="Enter last name"
+                    required
+                    disabled={isSubmitting}
+                  />
+
+                  {/* Phone Number */}
+                  <TextField
+                    control={control}
+                    name="phoneNumber"
+                    label="Phone Number"
+                    placeholder="Enter phone number"
+                    required
+                    disabled={isSubmitting}
+                  />
+
+                  {/* Position */}
+                  <TextField
+                    control={control}
+                    name="position"
+                    label="Position"
+                    placeholder="Enter position (optional)"
+                    disabled={isSubmitting}
+                  />
+
+                  {/* Address - Full Width */}
+                  <TextField
+                    control={control}
+                    name="address"
+                    label="Address"
+                    placeholder="Enter address (optional)"
+                    className="md:col-span-2"
+                    disabled={isSubmitting}
+                  />
+
+                  {/* Notes - Full Width */}
+                  <TextareaField
+                    control={control}
+                    name="notes"
+                    label="Notes"
+                    placeholder="Enter any additional notes (optional)"
+                    className="md:col-span-2"
+                    rows={3}
+                    disabled={isSubmitting}
+                  />
+
+                  {/* Password - Create Only, Full Width */}
+                  {isCreate && (
+                    <PasswordField
+                      control={control}
+                      name="password"
+                      label="Password"
+                      placeholder="Enter password"
+                      required
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
+                      className="md:col-span-2"
+                      disabled={isSubmitting}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Section: Account Settings */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-foreground">
+                  Account Settings
+                </h3>
+
+                {/* Form Fields Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* User Role */}
+                  <SelectField
+                    control={control}
+                    name="roles"
+                    label="User Role"
+                    placeholder="Select user role"
+                    options={USER_PLATFORM_ROLE_CREATE_UPDATE}
+                    required
+                    disabled={isSubmitting}
+                    onValueChange={(value) => {
+                      // Convert single value to array for roles field
+                      setValue("roles", [value], {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                    }}
+                  />
+
+                  {/* Account Status */}
+                  <SelectField
+                    control={control}
+                    name="accountStatus"
+                    label="Account Status"
+                    placeholder="Select account status"
+                    options={ACCOUNT_STATUS_CREATE_UPDATE}
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <FormFooter
+                isSubmitting={isSubmitting}
+                isDirty={isDirty}
+                isCreate={isCreate}
+                createMessage="Creating user..."
+                updateMessage="Updating user..."
+              >
+                {/* Cancel Button */}
+                <CancelButton onClick={handleClose} disabled={isSubmitting} />
+
+                {/* Submit Button */}
+                <SubmitButton
+                  isSubmitting={isSubmitting}
+                  isDirty={isDirty}
+                  isCreate={isCreate}
+                  createText="Create User"
+                  updateText="Update User"
+                  submittingCreateText="Creating..."
+                  submittingUpdateText="Updating..."
+                  onClick={handleSubmit(onSubmit)}
+                />
+              </FormFooter>
+            </form>
+          </ScrollArea>
+        )}
       </DialogContent>
     </Dialog>
   );
