@@ -269,6 +269,7 @@ export default function UserPage() {
           title="Business Users"
           searchValue={filters.search}
           searchPlaceholder="Search users business..."
+          buttonTooltip="Create a new users"
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New Business"
           onSearchChange={handleSearchChange}

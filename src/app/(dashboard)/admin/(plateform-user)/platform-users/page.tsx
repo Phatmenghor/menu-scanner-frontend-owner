@@ -267,6 +267,7 @@ export default function UserPage() {
           title="Platform Users"
           searchValue={filters.search}
           searchPlaceholder="Search users platform..."
+          buttonTooltip="Create a new users"
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New Platform"
           onSearchChange={handleSearchChange}

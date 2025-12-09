@@ -237,6 +237,7 @@ export default function BusinessPage() {
             { label: "Business", href: "" },
           ]}
           title="Business"
+          buttonTooltip="Create a new Business"
           searchValue={filters.search}
           searchPlaceholder="Search business..."
           buttonIcon={<Plus className="w-3 h-3" />}

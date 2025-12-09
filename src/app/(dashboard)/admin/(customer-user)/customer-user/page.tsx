@@ -265,6 +265,7 @@ export default function UserPage() {
           searchPlaceholder="Search users customer..."
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New Customer"
+          buttonTooltip="Create a new Business"
           onSearchChange={handleSearchChange}
           openModal={handleCreateUser}
         >
