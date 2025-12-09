@@ -3,6 +3,7 @@ import {
   BusinessStatus,
   ExchangeRateStatus,
   Status,
+  SubscriptionPlanStatus,
   SubscriptionStatus,
   UserRole,
 } from "./status";
@@ -43,6 +44,12 @@ export const EXCHAGE_RATE_FILTER = [
   { value: ExchangeRateStatus.ALL, label: "All Status" },
   { value: ExchangeRateStatus.ACTIVE, label: "Active" },
   { value: ExchangeRateStatus.INACTIVE, label: "Inactive" },
+];
+
+export const SUBSCRIPTION_PLAN_FILTER = [
+  { value: SubscriptionPlanStatus.ALL, label: "All" },
+  { value: SubscriptionPlanStatus.PUBLIC, label: "Public" },
+  { value: SubscriptionPlanStatus.PRIVATE, label: "Private" },
 ];
 
 // Auto renew filter options

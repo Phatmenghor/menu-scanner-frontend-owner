@@ -4,6 +4,7 @@ import {
   PaymentMethod,
   PaymentStatus,
   Status,
+  SubscriptionPlanStatus,
   UserRole,
 } from "./status";
 
@@ -43,6 +44,11 @@ export const PAYMENT_STATUS_CREATE_UPDATE = [
   { value: PaymentStatus.COMPLETED, label: "Completed" },
   { value: PaymentStatus.FAILED, label: "Failed" },
   { value: PaymentStatus.CANCELLED, label: "Cancelled" },
+];
+
+export const SUBSCRIPTION_PLAN_CREATE_UPDATE = [
+  { value: SubscriptionPlanStatus.PUBLIC, label: "Public" },
+  { value: SubscriptionPlanStatus.PRIVATE, label: "Private" },
 ];
 
 export const PAYMENT_METHODS_CREATE_UPDATE = [

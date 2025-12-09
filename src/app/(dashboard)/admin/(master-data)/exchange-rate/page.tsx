@@ -65,7 +65,7 @@ export default function ExchangeRatePage() {
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
-    baseRoute: ROUTES.DASHBOARD.BUSINESS,
+    baseRoute: ROUTES.DASHBOARD.EXCHANGE_RATE,
     defaultPageSize: 15,
   });
 
