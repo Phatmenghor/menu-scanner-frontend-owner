@@ -10,12 +10,19 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowLeft, RefreshCcw } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Search, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/redux/store/use-mobile";
+import { ActionButton } from "../shared/common/action-button";
 
 interface BreadcrumbItemType {
   label: string;
@@ -30,6 +37,7 @@ interface CardHeaderSectionProps {
   onSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   buttonText?: string;
   buttonIcon?: React.ReactNode;
+  buttonTooltip?: string;
   customAddNewButton?: React.ReactNode;
   buttonHref?: string;
   back?: boolean;
@@ -48,6 +56,7 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
   customAddNewButton,
   onSearchChange,
   buttonText,
+  buttonTooltip,
   children1,
   buttonIcon,
   children,
@@ -101,17 +110,14 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
 
           {/* Title Section with Back Button */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-start mt-4">
-            {back && !isMobile && (
-              <Button
-                type="button"
-                variant="ghost"
+            {(back || isMobile) && (
+              <ActionButton
                 size="icon"
-                className="rounded-full flex-shrink-0 hover:cursor-pointer hover:bg-gray-800 text-gray-400 hover:text-gray-200 transition-all duration-200"
-                asChild
+                icon={<ArrowLeft className="w-10 h-10" />}
+                tooltip="Back"
                 onClick={() => router.back()}
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
+                variant="ghost"
+              />
             )}
 
             {title && (
@@ -148,22 +154,27 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
               )}
 
               {buttonText && buttonHref && (
-                <div className="">
-                  <Link
-                    href={{
-                      pathname: buttonHref,
-                    }}
-                  >
-                    <Button>
-                      {buttonIcon && (
-                        <span className="transition-transform duration-200 group-hover:scale-110">
-                          {buttonIcon}
-                        </span>
-                      )}
-                      {buttonText}
-                    </Button>
-                  </Link>
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href={buttonHref}>
+                        <Button>
+                          {buttonIcon && (
+                            <span className="transition-transform duration-200 group-hover:scale-110">
+                              {buttonIcon}
+                            </span>
+                          )}
+                          {buttonText}
+                        </Button>
+                      </Link>
+                    </TooltipTrigger>
+                    {buttonTooltip && (
+                      <TooltipContent>
+                        <p>{buttonTooltip}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               )}
 
               {children && (
@@ -173,20 +184,29 @@ export const CardHeaderSection: React.FC<CardHeaderSectionProps> = ({
               {customAddNewButton && <div>{customAddNewButton}</div>}
 
               {buttonText && openModal && (
-                <div className="">
-                  <Button
-                    variant="default"
-                    className="text-white border-0 flex gap-2 font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/25 group"
-                    onClick={openModal}
-                  >
-                    {buttonIcon && (
-                      <span className="transition-transform duration-200 group-hover:scale-110">
-                        {buttonIcon}
-                      </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="default"
+                        className="text-white border-0 flex gap-2 font-medium transition-all duration-300  hover:shadow-lg hover:shadow-pink-500/25 group"
+                        onClick={openModal}
+                      >
+                        {buttonIcon && (
+                          <span className="transition-transform duration-200 group-hover:scale-110">
+                            {buttonIcon}
+                          </span>
+                        )}
+                        {buttonText}
+                      </Button>
+                    </TooltipTrigger>
+                    {buttonTooltip && (
+                      <TooltipContent>
+                        <p>{buttonTooltip}</p>
+                      </TooltipContent>
                     )}
-                    {buttonText}
-                  </Button>
-                </div>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
           </div>

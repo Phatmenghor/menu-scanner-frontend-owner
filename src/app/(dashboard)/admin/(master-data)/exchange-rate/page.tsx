@@ -213,10 +213,11 @@ export default function ExchangeRatePage() {
             { label: "Exchange Rate", href: "" },
           ]}
           title="Exchange Rate"
+          buttonTooltip="Create a new exchange rate"
           searchValue={filters.search}
           searchPlaceholder="Search exchange rate..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New Exchange Rate"
+          buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreateUser}
         >

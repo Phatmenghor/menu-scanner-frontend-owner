@@ -240,7 +240,7 @@ export default function BusinessPage() {
           searchValue={filters.search}
           searchPlaceholder="Search business..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New Business"
+          buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreateUser}
         >
