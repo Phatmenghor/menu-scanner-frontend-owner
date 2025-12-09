@@ -27,7 +27,7 @@ const initialState: ExchangeRateManagementState = {
   error: null,
   filters: {
     search: "",
-    isActive: ExchangeRateStatus.ALL,
+    status: ExchangeRateStatus.ALL,
     pageNo: 1,
   },
   operations: {

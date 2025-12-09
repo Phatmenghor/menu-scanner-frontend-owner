@@ -10,7 +10,7 @@ import {
   selectPagination,
 } from "../selectors/exchange-rate-selector";
 
-export const useExchangeState = () => {
+export const useExchangeRateState = () => {
   const dispatch = useAppDispatch();
 
   // Redux selectors
