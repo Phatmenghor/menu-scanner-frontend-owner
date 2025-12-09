@@ -242,7 +242,7 @@ export default function BusinessModal({
                   name="name"
                   label="Name"
                   placeholder="Enter name"
-                  disabled={!isCreate}
+                  disabled={!isSubmitting}
                   required={isCreate}
                 />
 
@@ -252,7 +252,7 @@ export default function BusinessModal({
                   label="Email"
                   type="email"
                   placeholder="Enter email address"
-                  disabled={!isCreate}
+                  disabled={isSubmitting}
                 />
 
                 <TextField

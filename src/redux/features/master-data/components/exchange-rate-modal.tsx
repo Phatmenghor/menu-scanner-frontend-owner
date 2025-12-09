@@ -225,7 +225,7 @@ export default function ExchangeRateModal({
                   name="usdToKhrRate"
                   label="USD To Khr Rate"
                   placeholder="Enter USD To Khr Rate"
-                  disabled={!isCreate}
+                  disabled={isSubmitting}
                   required={isCreate}
                 />
               </div>
