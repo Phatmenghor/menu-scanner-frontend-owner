@@ -27,7 +27,7 @@ const initialState: ExchangeRateManagementState = {
   error: null,
   filters: {
     search: "",
-    status: ExchangeRateStatus.ALL,
+    isActive: ExchangeRateStatus.ALL,
     pageNo: 1,
   },
   operations: {
@@ -53,7 +53,7 @@ const exchangeRateSlice = createSlice({
 
     setExchangeRateStatusFilter: (
       state,
-      action: PayloadAction<BusinessStatus>
+      action: PayloadAction<ExchangeRateStatus>
     ) => {
       state.filters.isActive = action.payload;
       state.filters.pageNo = 1;
@@ -68,7 +68,7 @@ const exchangeRateSlice = createSlice({
       state.error = null;
     },
 
-    clearSelectedBusiness: (state) => {
+    clearSelectedExchangeRate: (state) => {
       state.selectedExchangeRate = null;
     },
 
@@ -199,7 +199,7 @@ export const {
   setExchangeRateStatusFilter,
   setPageNo,
   clearError,
-  clearSelectedBusiness,
+  clearSelectedExchangeRate,
   resetFilters,
   resetState,
 } = exchangeRateSlice.actions;

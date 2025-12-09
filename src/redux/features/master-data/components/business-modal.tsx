@@ -1,27 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ModalMode,
-  UserGropeType,
-  AccountStatus,
   BusinessStatus,
 } from "@/constants/AppResource/status/status";
-import {
-  ACCOUNT_STATUS_CREATE_UPDATE,
-  BUSINESS_STATUS_CREATE_UPDATE,
-  USER_PLATFORM_ROLE_CREATE_UPDATE,
-} from "@/constants/AppResource/status/create-update-status";
+import { BUSINESS_STATUS_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
-import { PasswordField } from "@/components/shared/form-field/password-field";
 import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
@@ -31,7 +24,6 @@ import {
   selectIsFetchingDetail,
   selectOperations,
 } from "../store/selectors/business-selector";
-import { selectSelectedUser } from "../../auth/store/selectors/users-selectors";
 import {
   BusinessFormData,
   createBusinessSchema,
@@ -73,7 +65,6 @@ export default function BusinessModal({
   const operations = useAppSelector(selectOperations);
   const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
   const reduxError = useAppSelector(selectError);
-  const userData = useAppSelector(selectSelectedUser);
   const { isCreating, isUpdating } = operations;
 
   const {
@@ -98,11 +89,7 @@ export default function BusinessModal({
     mode: "onChange",
   });
 
-  // Watch form values for avatar display
-  const firstName = watch("name");
-  const email = watch("email");
-
-  // Fetch user data for edit mode
+  // Fetch business data for edit mode
   useEffect(() => {
     const fetchUserData = async () => {
       if (!businessId || !isOpen || isCreate) return;
@@ -214,15 +201,17 @@ export default function BusinessModal({
         {/* Header */}
         <FormHeader
           title={
-            isCreate ? "Create New business" : firstName || "Edit business"
+            isCreate
+              ? "Create New business"
+              : "Update business information below"
           }
           description={
             isCreate
               ? "Fill out the form to create a new business"
-              : email || "Update business information below"
+              : "Update business information below"
           }
-          avatarName={firstName || email}
-          avatarImageUrl={userData?.profileImageUrl}
+          showAvatar={false}
+          isCreate={isCreate}
         />
 
         {/* Loading State - Edit Mode Only */}
@@ -309,8 +298,8 @@ export default function BusinessModal({
               isSubmitting={isSubmitting}
               isDirty={isDirty}
               isCreate={isCreate}
-              createMessage="Creating user..."
-              updateMessage="Updating user..."
+              createMessage="Creating business..."
+              updateMessage="Updating business..."
             >
               <CancelButton onClick={handleClose} disabled={isSubmitting} />
 
@@ -318,8 +307,8 @@ export default function BusinessModal({
                 isSubmitting={isSubmitting}
                 isDirty={isDirty}
                 isCreate={isCreate}
-                createText="Create User"
-                updateText="Update User"
+                createText="Create Business"
+                updateText="Update Business"
                 submittingCreateText="Creating..."
                 submittingUpdateText="Updating..."
               />

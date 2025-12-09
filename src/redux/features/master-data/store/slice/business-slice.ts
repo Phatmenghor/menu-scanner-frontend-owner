@@ -35,7 +35,6 @@ const initialState: BusinessManagementState = {
     isCreating: false,
     isUpdating: false,
     isDeleting: false,
-    isResettingPassword: false,
     isFetchingDetail: false,
   },
 };

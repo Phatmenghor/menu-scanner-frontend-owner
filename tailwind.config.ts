@@ -10,7 +10,6 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Enhanced brand colors with full scale
         brand: {
           50: "#FDF2F7",
           100: "#FAEAF2",
@@ -23,14 +22,12 @@ const config: Config = {
           800: "#3C142A",
           900: "#1F0A15",
           950: "#0F0509",
-          // Aliases for backward compatibility
           main: "#A23469",
           darker: "#802357",
           lighter: "#D56B9E",
           subtle: "#FFD0E7",
         },
 
-        // Enhanced status colors with scales
         status: {
           error: {
             50: "#FEF2F2",
@@ -38,7 +35,7 @@ const config: Config = {
             200: "#FECACA",
             300: "#FCA5A5",
             400: "#F87171",
-            500: "#D02E2E", // main error
+            500: "#D02E2E",
             600: "#DC2626",
             700: "#B91C1C",
             800: "#991B1B",
@@ -86,20 +83,19 @@ const config: Config = {
           },
         },
 
-        // Enhanced neutral colors
+        //  neutral colors
         neutral: {
           50: "#FAFAFA",
           100: "#F5F5F5",
-          200: "#EAEAEA", // light-1
-          300: "#D4D4D4", // dark-4
+          200: "#EAEAEA",
+          300: "#D4D4D4",
           400: "#A3A3A3",
-          500: "#878787", // dark-3
-          600: "#656565", // dark-2
+          500: "#878787",
+          600: "#656565",
           700: "#525252",
           800: "#404040",
-          900: "#242424", // dark-1
+          900: "#242424",
           950: "#171717",
-          // Aliases for backward compatibility
           "dark-1": "#242424",
           "dark-2": "#656565",
           "dark-3": "#878787",

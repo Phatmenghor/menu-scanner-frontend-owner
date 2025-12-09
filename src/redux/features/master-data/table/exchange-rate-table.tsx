@@ -19,7 +19,7 @@ interface ExchangeRateTableOptions {
   handlers: ExchangeRateTableHandlers;
 }
 
-export const businessTableColumns = ({
+export const exchangeRateTableColumns = ({
   data,
   handlers,
 }: ExchangeRateTableOptions): TableColumn<ExchangeRateResponseModel>[] => {

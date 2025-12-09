@@ -6,20 +6,13 @@ import { Plus } from "lucide-react";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
-  AccountStatus,
   ModalMode,
-  BusinessStatus,
-  SubscriptionStatus,
   ExchangeRateStatus,
 } from "@/constants/AppResource/status/status";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import {
-  ACCOUNT_STATUS_FILTER,
-  EXCHAGE_RATE_FILTER,
-  HAS_SUBSCRIPTION_FILTER,
-} from "@/constants/AppResource/status/filter-status";
+import { EXCHAGE_RATE_FILTER } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { showToast } from "@/components/shared/common/app-toast";
 import { usePagination } from "@/redux/store/use-pagination";
@@ -27,25 +20,15 @@ import {
   setPageNo,
   setSearchFilter,
 } from "@/redux/features/auth/store/slice/users-slice";
-import { useBusinessState } from "@/redux/features/master-data/store/state/business-state";
-import { BusinessResponseModel } from "@/redux/features/master-data/store/models/response/business-response";
-import {
-  deleteBusinessService,
-  fetchAllBusinessService,
-} from "@/redux/features/master-data/store/thunks/business-thunks";
-import { businessTableColumns } from "@/redux/features/master-data/table/business-table";
-import {
-  setBusinessStatusFilter,
-  setHasSubscriptionFilter,
-} from "@/redux/features/master-data/store/slice/business-slice";
-import { fi } from "date-fns/locale";
-import { BusinessDetailModal } from "@/redux/features/master-data/components/business-detail-modal";
-import BusinessModal from "@/redux/features/master-data/components/business-modal";
+
+import { deleteBusinessService } from "@/redux/features/master-data/store/thunks/business-thunks";
 import { useExchangeRateState } from "@/redux/features/master-data/store/state/exchange-rate-state";
 import { fetchAllExchangeRateService } from "@/redux/features/master-data/store/thunks/exchange-rate-thunks";
 import { exchangeRateTableColumns } from "@/redux/features/master-data/table/exchange-rate-table";
 import { ExchangeRateResponseModel } from "@/redux/features/master-data/store/models/response/exchange-rate-response";
 import { setExchangeRateStatusFilter } from "@/redux/features/master-data/store/slice/exchage-rate-slice";
+import ExchangeRateModal from "@/redux/features/master-data/components/exchange-rate-modal";
+import { ExchangeRateDetailModal } from "@/redux/features/master-data/components/exchange-rate-detail-modal";
 
 export default function ExchangeRatePage() {
   const searchParams = useSearchParams();
@@ -169,10 +152,6 @@ export default function ExchangeRatePage() {
     dispatch(setExchangeRateStatusFilter(status));
   };
 
-  const handleSubscriptionChange = (subscription: SubscriptionStatus) => {
-    dispatch(setHasSubscriptionFilter(subscription));
-  };
-
   const handlePageChangeWrapper = (page: number) => {
     dispatch(setPageNo(page));
     handlePageChange(page);
@@ -268,16 +247,16 @@ export default function ExchangeRatePage() {
       </div>
 
       {/* Modals Add/Edit */}
-      <BusinessModal
+      <ExchangeRateModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        businessId={modalState.exchangeRateId}
+        exchangeId={modalState.exchangeRateId}
         mode={modalState.mode}
       />
 
-      {/* Modals business platform Detail */}
-      <BusinessDetailModal
-        businessId={detailModalState.exchangeRateId}
+      {/* Modals exchange rate platform Detail */}
+      <ExchangeRateDetailModal
+        exchangeId={detailModalState.exchangeRateId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />

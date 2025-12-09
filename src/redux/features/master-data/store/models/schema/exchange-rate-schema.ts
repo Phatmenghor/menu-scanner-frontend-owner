@@ -4,8 +4,8 @@ import { z } from "zod";
  * Create Exchange Rate Schema
  */
 export const createExchangeRateSchema = z.object({
-  usdToKhrRate: z.string().min(1, "usdToKhrRate is required").optional(),
-  notes: z.string().optional().nullable(),
+  usdToKhrRate: z.number().min(1, "usdToKhrRate is required").optional(),
+  notes: z.string().optional(),
 });
 
 /**
@@ -19,6 +19,6 @@ export const updateExchangeRateSchema = z.object({
 /**
  * Exchange Rate Form Data Type
  */
-export type BusinessFormData = z.infer<typeof createExchangeRateSchema> & {
+export type ExchangeRateFormData = z.infer<typeof createExchangeRateSchema> & {
   id?: string;
 };

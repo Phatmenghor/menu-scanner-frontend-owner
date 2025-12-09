@@ -7,7 +7,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { CustomAvatar } from "@/components/shared/common/custom-avator";
-import { LucideIcon } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FormHeaderProps {
@@ -16,8 +16,7 @@ interface FormHeaderProps {
   avatarName?: string;
   avatarImageUrl?: string;
   showAvatar?: boolean;
-  icon?: LucideIcon;
-  iconClassName?: string;
+  isCreate?: boolean;
   className?: string;
 }
 
@@ -27,18 +26,24 @@ export function FormHeader({
   avatarName,
   avatarImageUrl,
   showAvatar = true,
-  icon: Icon,
-  iconClassName,
+  isCreate = true,
   className,
 }: FormHeaderProps) {
+  // Determine icon based on mode
+  const Icon = isCreate ? Plus : Edit;
+
   return (
     <DialogHeader
       className={cn("px-6 pt-6 pb-4 border-b flex-shrink-0", className)}
     >
       <div className="flex items-start gap-4">
-        {/* Avatar - Optional */}
-        {showAvatar && (
+        {/* Avatar or Icon - Left side */}
+        {showAvatar ? (
           <CustomAvatar size="xl" name={avatarName} imageUrl={avatarImageUrl} />
+        ) : (
+          <div className="p-3 bg-brand-100 rounded-lg shrink-0">
+            <Icon className="h-6 w-6 text-brand-600" />
+          </div>
         )}
 
         {/* Header Content */}
@@ -50,18 +55,6 @@ export function FormHeader({
             </DialogDescription>
           )}
         </div>
-
-        {/* Icon - Optional */}
-        {Icon && (
-          <div
-            className={cn(
-              "p-2 bg-primary/10 rounded-lg shrink-0",
-              iconClassName
-            )}
-          >
-            <Icon className="h-5 w-5 text-primary" />
-          </div>
-        )}
       </div>
     </DialogHeader>
   );

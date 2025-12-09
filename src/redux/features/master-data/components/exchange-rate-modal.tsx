@@ -1,68 +1,56 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ModalMode,
-  UserGropeType,
-  AccountStatus,
-  BusinessStatus,
-} from "@/constants/AppResource/status/status";
-import {
-  ACCOUNT_STATUS_CREATE_UPDATE,
-  BUSINESS_STATUS_CREATE_UPDATE,
-  USER_PLATFORM_ROLE_CREATE_UPDATE,
-} from "@/constants/AppResource/status/create-update-status";
+import { ModalMode } from "@/constants/AppResource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
-import { SelectField } from "@/components/shared/form-field/select-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
-import { PasswordField } from "@/components/shared/form-field/password-field";
 import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { showToast } from "@/components/shared/common/app-toast";
+import {
+  createExchangeRateSchema,
+  ExchangeRateFormData,
+  updateExchangeRateSchema,
+} from "../store/models/schema/exchange-rate-schema";
+import {
+  createExchangeRateService,
+  fetchExchangeRateByIdService,
+  updateExchangeRateService,
+} from "../store/thunks/exchange-rate-thunks";
+import {
+  clearError,
+  clearSelectedExchangeRate,
+} from "../store/slice/exchage-rate-slice";
+import {
+  CreateExchangeRateRequest,
+  UpdateExchangeRateRequest,
+} from "../store/models/request/exchange-rate-request";
 import {
   selectError,
   selectIsFetchingDetail,
   selectOperations,
-} from "../store/selectors/business-selector";
-import { selectSelectedUser } from "../../auth/store/selectors/users-selectors";
-import {
-  BusinessFormData,
-  createBusinessSchema,
-  updateBusinessSchema,
-} from "../store/models/schema/business-schema";
-import {
-  createBusinessService,
-  fetchBusinessByIdService,
-  updateBusinessService,
-} from "../store/thunks/business-thunks";
-import {
-  clearError,
-  clearSelectedBusiness,
-} from "../store/slice/business-slice";
-import {
-  CreateBusinessRequest,
-  UpdateBusinessRequest,
-} from "../store/models/request/business-request";
-import { showToast } from "@/components/shared/common/app-toast";
+  selectSelectedExchangeRate,
+} from "../store/selectors/exchange-rate-selector";
 
 type Props = {
   mode: ModalMode;
-  businessId?: string;
+  exchangeId?: string;
   onClose: () => void;
   isOpen: boolean;
 };
 
-export default function BusinessModal({
+export default function ExchangeRateModal({
   isOpen,
   onClose,
-  businessId,
+  exchangeId,
   mode,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
@@ -73,7 +61,7 @@ export default function BusinessModal({
   const operations = useAppSelector(selectOperations);
   const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
   const reduxError = useAppSelector(selectError);
-  const userData = useAppSelector(selectSelectedUser);
+  const userData = useAppSelector(selectSelectedExchangeRate);
   const { isCreating, isUpdating } = operations;
 
   const {
@@ -83,66 +71,53 @@ export default function BusinessModal({
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<BusinessFormData>({
+  } = useForm<ExchangeRateFormData>({
     resolver: zodResolver(
-      isCreate ? createBusinessSchema : updateBusinessSchema
+      isCreate ? createExchangeRateSchema : updateExchangeRateSchema
     ) as any,
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      status: BusinessStatus.ACTIVE,
-      address: "",
-      description: "",
+      usdToKhrRate: 0,
+      notes: "",
     },
     mode: "onChange",
   });
 
   // Watch form values for avatar display
-  const firstName = watch("name");
-  const email = watch("email");
+  const usdToKhrRate = watch("usdToKhrRate");
 
-  // Fetch user data for edit mode
+  // Fetch exchange-rate data for edit mode
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!businessId || !isOpen || isCreate) return;
+      if (!exchangeId || !isOpen || isCreate) return;
 
       try {
         const resultAction = await dispatch(
-          fetchBusinessByIdService(businessId)
+          fetchExchangeRateByIdService(exchangeId)
         );
 
-        if (fetchBusinessByIdService.fulfilled.match(resultAction)) {
+        if (fetchExchangeRateByIdService.fulfilled.match(resultAction)) {
           const resposne = resultAction.payload;
 
           reset({
             id: resposne.id,
-            name: resposne.name,
-            email: resposne.email,
-            phone: resposne.phone,
-            status: resposne.status,
-            address: resposne.address,
-            description: resposne.description,
+            usdToKhrRate: resposne.usdToKhrRate,
+            notes: resposne.notes,
           });
         }
       } catch (error) {
-        console.error("Error fetching business data:", error);
+        console.error("Error fetching ex data:", error);
       }
     };
 
     fetchUserData();
-  }, [businessId, isOpen, isCreate, reset, dispatch]);
+  }, [exchangeId, isOpen, isCreate, reset, dispatch]);
 
   // Reset form for create mode
   useEffect(() => {
     if (isOpen && isCreate) {
       reset({
-        name: "",
-        email: "",
-        phone: "",
-        status: BusinessStatus.ACTIVE,
-        address: "",
-        description: "",
+        usdToKhrRate: 0,
+        notes: "",
       });
     }
   }, [isOpen, isCreate, reset]);
@@ -154,55 +129,54 @@ export default function BusinessModal({
     }
   }, [isOpen, dispatch]);
 
-  const onSubmit = async (data: BusinessFormData) => {
+  const onSubmit = async (data: ExchangeRateFormData) => {
     try {
       if (isCreate) {
-        const payload: CreateBusinessRequest = {
-          name: data.name!,
-          email: data.email,
-          phone: data.phone,
-          status: data.status!,
-          address: data.address!,
-          description: data.description,
+        const payload: CreateExchangeRateRequest = {
+          usdToKhrRate: data.usdToKhrRate!,
+          notes: data?.notes,
         };
 
-        const result = await dispatch(createBusinessService(payload)).unwrap();
+        const result = await dispatch(
+          createExchangeRateService(payload)
+        ).unwrap();
 
         showToast.success(
-          `Business "${result.name || result.email}" created successfully`
+          `Exchange Rate "${result.name || result.email}" created successfully`
         );
 
         handleClose();
       } else {
-        const payload: UpdateBusinessRequest = {
-          name: data.name!,
-          email: data.email,
-          phone: data.phone,
-          status: data.status!,
-          address: data.address!,
-          description: data.description,
+        const payload: UpdateExchangeRateRequest = {
+          usdToKhrRate: data.usdToKhrRate!,
+          notes: data?.notes,
         };
 
         const result = await dispatch(
-          updateBusinessService({ businessId: data.id!, businessData: payload })
+          updateExchangeRateService({
+            exchangeRateId: data.id!,
+            exchangeRateData: payload,
+          })
         ).unwrap();
 
         showToast.success(
-          `Business "${result.fullName || result.email}" updated successfully`
+          `Exchange Rate "${
+            result.fullName || result.email
+          }" updated successfully`
         );
 
         handleClose();
       }
     } catch (error: any) {
-      console.error("Error saving business:", error);
-      showToast.error(error || "Failed to save business");
+      console.error("Error saving Exchange Rate:", error);
+      showToast.error(error || "Failed to save Exchange Rate");
     }
   };
 
   const handleClose = () => {
     reset();
     dispatch(clearError());
-    dispatch(clearSelectedBusiness());
+    dispatch(clearSelectedExchangeRate());
     onClose();
   };
 
@@ -213,16 +187,14 @@ export default function BusinessModal({
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
         {/* Header */}
         <FormHeader
-          title={
-            isCreate ? "Create New business" : firstName || "Edit business"
-          }
+          title={isCreate ? "Create Exchange Rate" : "Edit Exchange Rate"}
           description={
             isCreate
-              ? "Fill out the form to create a new business"
-              : email || "Update business information below"
+              ? "Add a new exchange rate to the system"
+              : "Update exchange rate information"
           }
-          avatarName={firstName || email}
-          avatarImageUrl={userData?.profileImageUrl}
+          showAvatar={false}
+          isCreate={isCreate}
         />
 
         {/* Loading State - Edit Mode Only */}
@@ -250,53 +222,18 @@ export default function BusinessModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <TextField
                   control={control}
-                  name="name"
-                  label="Name"
-                  placeholder="Enter name"
+                  name="usdToKhrRate"
+                  label="USD To Khr Rate"
+                  placeholder="Enter USD To Khr Rate"
                   disabled={!isCreate}
                   required={isCreate}
-                />
-
-                <TextField
-                  control={control}
-                  name="email"
-                  label="Email"
-                  type="email"
-                  placeholder="Enter email address"
-                  disabled={!isCreate}
-                />
-
-                <TextField
-                  control={control}
-                  name="phone"
-                  label="Phnoe Number"
-                  placeholder="Enter phone number"
-                  disabled={isSubmitting}
-                />
-
-                <TextField
-                  control={control}
-                  name="address"
-                  label="Address"
-                  placeholder="Enter address"
-                  disabled={isSubmitting}
-                />
-
-                <SelectField
-                  control={control}
-                  name="status"
-                  label="Business Status"
-                  placeholder="Select business status"
-                  options={BUSINESS_STATUS_CREATE_UPDATE}
-                  required
-                  disabled={isSubmitting}
                 />
               </div>
 
               {/* Notes - Separate Row */}
               <TextareaField
                 control={control}
-                name="description"
+                name="notes"
                 label="Notes"
                 placeholder="Enter any additional notes (optional)"
                 rows={5}
@@ -309,8 +246,8 @@ export default function BusinessModal({
               isSubmitting={isSubmitting}
               isDirty={isDirty}
               isCreate={isCreate}
-              createMessage="Creating user..."
-              updateMessage="Updating user..."
+              createMessage="Creating exchange..."
+              updateMessage="Updating exchange..."
             >
               <CancelButton onClick={handleClose} disabled={isSubmitting} />
 
@@ -318,8 +255,8 @@ export default function BusinessModal({
                 isSubmitting={isSubmitting}
                 isDirty={isDirty}
                 isCreate={isCreate}
-                createText="Create User"
-                updateText="Update User"
+                createText="Create Exchange"
+                updateText="Update Exchange"
                 submittingCreateText="Creating..."
                 submittingUpdateText="Updating..."
               />
