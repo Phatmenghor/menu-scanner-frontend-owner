@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useForm, FieldError } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ModalMode,
@@ -128,7 +128,7 @@ export default function UserPlatformModal({
           });
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user platform data:", error);
       }
     };
 
@@ -183,7 +183,9 @@ export default function UserPlatformModal({
 
         const result = await dispatch(createUserService(payload)).unwrap();
         showToast.success(
-          `User "${result.fullName || result.email}" created successfully`
+          `User platform "${
+            result.userIdentifier || result.email
+          }" created successfully`
         );
         handleClose();
       } else {
@@ -203,13 +205,15 @@ export default function UserPlatformModal({
           updateUserService({ userId: data.id, userData: payload })
         ).unwrap();
         showToast.success(
-          `User "${result.fullName || result.email}" updated successfully`
+          `User platform "${
+            result.fullName || result.email
+          }" updated successfully`
         );
         handleClose();
       }
     } catch (error: any) {
       showToast.error(
-        error || `Failed to ${isCreate ? "create" : "update"} user`
+        error || `Failed to ${isCreate ? "create" : "update"} user platform`
       );
     }
   };
@@ -227,11 +231,15 @@ export default function UserPlatformModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
         <FormHeader
-          title={isCreate ? "Create New User" : userIdentifier || "Edit User"}
+          title={
+            isCreate
+              ? "Create New User Platform"
+              : userIdentifier || "Edit User Platform"
+          }
           description={
             isCreate
-              ? "Fill out the form to create a new user account"
-              : email || "Update user information below"
+              ? "Fill out the form to create a new user platform account"
+              : email || "Update user platform information below"
           }
           avatarName={userIdentifier || email}
           avatarImageUrl={userData?.profileImageUrl}

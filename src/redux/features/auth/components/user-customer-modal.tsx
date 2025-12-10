@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserPlus } from "lucide-react";
 import {
   ModalMode,
   UserGropeType,
@@ -12,7 +11,7 @@ import {
 } from "@/constants/AppResource/status/status";
 import {
   ACCOUNT_STATUS_CREATE_UPDATE,
-  USER_PLATFORM_ROLE_CREATE_UPDATE,
+  USER_CUSTOMER_ROLE_CREATE_UPDATE,
 } from "@/constants/AppResource/status/create-update-status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
@@ -47,6 +46,7 @@ import {
 import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
+import { getFieldError } from "@/utils/common/get-field-error";
 
 type Props = {
   mode: ModalMode;
@@ -66,7 +66,6 @@ export default function UserCustomerModal({
 
   const dispatch = useAppDispatch();
 
-  // Get operations state from Redux
   const operations = useAppSelector(selectOperations);
   const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
   const reduxError = useAppSelector(selectError);
@@ -85,13 +84,14 @@ export default function UserCustomerModal({
       isCreate ? createUserSchema : updateUserSchema
     ) as any,
     defaultValues: {
+      id: "",
       userIdentifier: "",
       email: "",
       firstName: "",
       lastName: "",
       phoneNumber: "",
       password: "",
-      userType: UserGropeType.PLATFORM_USER,
+      userType: UserGropeType.CUSTOMER,
       roles: [],
       accountStatus: AccountStatus.ACTIVE,
       position: "",
@@ -101,8 +101,7 @@ export default function UserCustomerModal({
     mode: "onChange",
   });
 
-  // Watch form values for avatar display
-  const firstName = watch("firstName");
+  const userIdentifier = watch("userIdentifier");
   const email = watch("email");
 
   // Fetch user data for edit mode
@@ -118,21 +117,18 @@ export default function UserCustomerModal({
 
           reset({
             id: data.id,
-            userIdentifier: data.userIdentifier,
-            email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            phoneNumber: data.phoneNumber,
-            userType: data.userType,
-            roles: data.roles,
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            phoneNumber: data.phoneNumber || "",
             accountStatus: data.accountStatus,
+            roles: Array.isArray(data.roles) ? data.roles : [],
             position: data.position || "",
             address: data.address || "",
             notes: data.notes || "",
           });
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user customerdata:", error);
       }
     };
 
@@ -149,7 +145,7 @@ export default function UserCustomerModal({
         lastName: "",
         phoneNumber: "",
         password: "",
-        userType: UserGropeType.PLATFORM_USER,
+        userType: UserGropeType.CUSTOMER,
         roles: [],
         accountStatus: AccountStatus.ACTIVE,
         position: "",
@@ -159,7 +155,7 @@ export default function UserCustomerModal({
     }
   }, [isOpen, isCreate, reset]);
 
-  // Clear errors when modal opens/closes
+  // Clear errors when modal opens
   useEffect(() => {
     if (isOpen) {
       dispatch(clearError());
@@ -169,53 +165,56 @@ export default function UserCustomerModal({
   const onSubmit = async (data: UserFormData) => {
     try {
       if (isCreate) {
+        // TypeScript now knows data is CreateUserFormData
         const payload: CreateUserRequest = {
           userIdentifier: data.userIdentifier!,
-          email: data.email!,
+          email: data.email,
           password: data.password!,
-          firstName: data.firstName!,
-          lastName: data.lastName!,
-          phoneNumber: data.phoneNumber!,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phoneNumber,
           userType: data.userType!,
-          accountStatus: data.accountStatus!,
-          roles: data.roles!,
+          accountStatus: data.accountStatus,
+          roles: data.roles,
           position: data.position || undefined,
           address: data.address || undefined,
           notes: data.notes || undefined,
         };
 
         const result = await dispatch(createUserService(payload)).unwrap();
-
         showToast.success(
-          `User "${result.fullName || result.email}" created successfully`
+          `User customer "${
+            result.userIdentifier || result.email
+          }" created successfully`
         );
-
         handleClose();
       } else {
+        // TypeScript now knows data is UpdateUserFormData
         const payload: UpdateUserRequest = {
-          firstName: data.firstName!,
-          lastName: data.lastName!,
-          phoneNumber: data.phoneNumber!,
-          accountStatus: data.accountStatus!,
-          roles: data.roles!,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phoneNumber,
+          accountStatus: data.accountStatus,
+          roles: data.roles,
           position: data.position || undefined,
           address: data.address || undefined,
           notes: data.notes || undefined,
         };
 
         const result = await dispatch(
-          updateUserService({ userId: data.id!, userData: payload })
+          updateUserService({ userId: data.id, userData: payload })
         ).unwrap();
-
         showToast.success(
-          `User "${result.fullName || result.email}" updated successfully`
+          `User customer "${
+            result.userIdentifier || result.email
+          }" updated successfully`
         );
-
         handleClose();
       }
     } catch (error: any) {
-      console.error("Error saving user:", error);
-      showToast.error(error || "Failed to save user");
+      showToast.error(
+        error || `Failed to ${isCreate ? "create" : "update"} user customer`
+      );
     }
   };
 
@@ -231,19 +230,21 @@ export default function UserCustomerModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
-        {/* Header */}
         <FormHeader
-          title={isCreate ? "Create New User" : firstName || "Edit User"}
+          title={
+            isCreate
+              ? "Create New User Customer"
+              : userIdentifier || "Edit User Customer"
+          }
           description={
             isCreate
-              ? "Fill out the form to create a new user account"
-              : email || "Update user information below"
+              ? "Fill out the form to create a new user customer account"
+              : email || "Update user customer information below"
           }
-          avatarName={firstName || email}
+          avatarName={userIdentifier || email}
           avatarImageUrl={userData?.profileImageUrl}
         />
 
-        {/* Loading State - Edit Mode Only */}
         {!isCreate && isFetchingDetail ? (
           <div className="p-6 flex items-center justify-center min-h-[400px] flex-1">
             <Loading />
@@ -253,9 +254,7 @@ export default function UserCustomerModal({
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col flex-1 overflow-hidden"
           >
-            {/* Body */}
             <FormBody>
-              {/* Error Display */}
               {reduxError && (
                 <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
                   <p className="text-sm text-destructive font-medium">
@@ -264,26 +263,31 @@ export default function UserCustomerModal({
                 </div>
               )}
 
-              {/* Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <TextField
-                  control={control}
-                  name="userIdentifier"
-                  label="User Identifier"
-                  placeholder="Enter user identifier"
-                  disabled={!isCreate}
-                  required={isCreate}
-                />
+                {isCreate && (
+                  <>
+                    <TextField
+                      control={control}
+                      name="userIdentifier"
+                      label="User Identifier"
+                      placeholder="Enter user identifier"
+                      required
+                      disabled={isSubmitting}
+                      error={getFieldError(errors.userIdentifier)}
+                    />
 
-                <TextField
-                  control={control}
-                  name="email"
-                  label="Email"
-                  type="email"
-                  placeholder="Enter email address"
-                  disabled={!isCreate}
-                  required={isCreate}
-                />
+                    <TextField
+                      control={control}
+                      name="email"
+                      label="Email"
+                      type="email"
+                      placeholder="Enter email address"
+                      required
+                      disabled={isSubmitting}
+                      error={getFieldError(errors.email)}
+                    />
+                  </>
+                )}
 
                 <TextField
                   control={control}
@@ -292,6 +296,7 @@ export default function UserCustomerModal({
                   placeholder="Enter first name"
                   required
                   disabled={isSubmitting}
+                  error={getFieldError(errors.firstName)}
                 />
 
                 <TextField
@@ -301,6 +306,7 @@ export default function UserCustomerModal({
                   placeholder="Enter last name"
                   required
                   disabled={isSubmitting}
+                  error={getFieldError(errors.lastName)}
                 />
 
                 <TextField
@@ -310,6 +316,7 @@ export default function UserCustomerModal({
                   placeholder="Enter phone number"
                   required
                   disabled={isSubmitting}
+                  error={getFieldError(errors.phoneNumber)}
                 />
 
                 <TextField
@@ -318,6 +325,7 @@ export default function UserCustomerModal({
                   label="Position"
                   placeholder="Enter position (optional)"
                   disabled={isSubmitting}
+                  error={getFieldError(errors.position)}
                 />
 
                 <TextField
@@ -327,6 +335,7 @@ export default function UserCustomerModal({
                   placeholder="Enter address (optional)"
                   className="md:col-span-2"
                   disabled={isSubmitting}
+                  error={getFieldError(errors.address)}
                 />
 
                 {isCreate && (
@@ -340,6 +349,7 @@ export default function UserCustomerModal({
                     onTogglePassword={() => setShowPassword(!showPassword)}
                     className="md:col-span-2"
                     disabled={isSubmitting}
+                    error={getFieldError(errors.password)}
                   />
                 )}
 
@@ -348,9 +358,10 @@ export default function UserCustomerModal({
                   name="roles"
                   label="User Role"
                   placeholder="Select user role"
-                  options={USER_PLATFORM_ROLE_CREATE_UPDATE}
+                  options={USER_CUSTOMER_ROLE_CREATE_UPDATE}
                   required
                   disabled={isSubmitting}
+                  error={getFieldError(errors.roles)}
                   onValueChange={(value) => {
                     setValue("roles", [value], {
                       shouldDirty: true,
@@ -367,10 +378,10 @@ export default function UserCustomerModal({
                   options={ACCOUNT_STATUS_CREATE_UPDATE}
                   required
                   disabled={isSubmitting}
+                  error={getFieldError(errors.accountStatus)}
                 />
               </div>
 
-              {/* Notes - Separate Row */}
               <TextareaField
                 control={control}
                 name="notes"
@@ -378,10 +389,10 @@ export default function UserCustomerModal({
                 placeholder="Enter any additional notes (optional)"
                 rows={5}
                 disabled={isSubmitting}
+                error={getFieldError(errors.notes)}
               />
             </FormBody>
 
-            {/* Footer */}
             <FormFooter
               isSubmitting={isSubmitting}
               isDirty={isDirty}
@@ -390,7 +401,6 @@ export default function UserCustomerModal({
               updateMessage="Updating user..."
             >
               <CancelButton onClick={handleClose} disabled={isSubmitting} />
-
               <SubmitButton
                 isSubmitting={isSubmitting}
                 isDirty={isDirty}
