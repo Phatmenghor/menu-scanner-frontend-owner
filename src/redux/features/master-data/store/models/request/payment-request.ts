@@ -1,32 +1,42 @@
-export interface AllBusinessRequest {
+export interface AllPaymentRequest {
   search?: string;
-  status?: string[];
-  hasActiveSubscription?: boolean;
   pageNo?: number;
   pageSize?: number;
   sortBy?: string;
   sortDirection?: string;
-}
-
-export interface CreateBusinessRequest {
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  description?: string;
+  paymentMethod?: string;
   status?: string;
+  businessId?: string;
+  planId?: string;
+  createdFrom?: string;
+  createdTo?: string;
 }
 
-export interface UpdateBusinessRequest {
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  description?: string;
-  status?: string;
+export interface CreatePaymentRequest {
+  imageUrl?: string;
+  subscriptionId?: string;
+  businessId?: string;
+  amount: number;
+  paymentMethod: string;
+  paymentType: string;
+  status: string;
+  referenceNumber?: string;
+  notes?: string;
 }
 
-export interface UpdateBusinessParams {
-  businessId: string;
-  businessData: UpdateBusinessRequest;
+export interface UpdatePaymentRequest {
+  imageUrl?: string;
+  subscriptionId?: string;
+  businessId?: string;
+  amount: number;
+  paymentMethod: string;
+  paymentType: string;
+  status: string;
+  referenceNumber?: string;
+  notes?: string;
+}
+
+export interface UpdatePaymentParams {
+  paymentId: string;
+  paymentData: UpdatePaymentRequest;
 }

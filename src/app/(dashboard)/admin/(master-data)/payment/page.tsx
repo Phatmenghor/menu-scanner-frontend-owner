@@ -41,37 +41,45 @@ import {
 import { fi } from "date-fns/locale";
 import { BusinessDetailModal } from "@/redux/features/master-data/components/business-detail-modal";
 import BusinessModal from "@/redux/features/master-data/components/business-modal";
+import { usePaymentState } from "@/redux/features/master-data/store/state/payment-state";
+import { PaymentResponseModel } from "@/redux/features/master-data/store/models/response/payment-response";
+import {
+  deletePaymentService,
+  fetchAllPaymentService,
+} from "@/redux/features/master-data/store/thunks/payment-thunks";
+import { paymentTableColumns } from "@/redux/features/master-data/table/payment-table";
+import { PaymentDetailModal } from "@/redux/features/master-data/components/payment-detail-modal";
 
-export default function BusinessPage() {
+export default function PaymentPage() {
   const searchParams = useSearchParams();
 
   // Redux state
   const {
-    businessState,
-    businessData,
-    businessContent,
+    paymentState,
+    paymentData,
+    paymentContent,
     isLoading,
     filters,
     operations,
     pagination,
     dispatch,
-  } = useBusinessState();
+  } = usePaymentState();
 
   // Local UI state for modals only
   const [modalState, setModalState] = useState({
     isOpen: false,
     mode: ModalMode.CREATE_MODE,
-    businessId: "",
+    paymentId: "",
   });
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    businessId: "",
+    paymentId: "",
   });
 
   const [deleteState, setDeleteState] = useState({
     isOpen: false,
-    business: null as BusinessResponseModel | null,
+    payment: null as PaymentResponseModel | null,
   });
 
   const debouncedSearch = useDebounce(filters.search, 400);
@@ -91,79 +99,63 @@ export default function BusinessPage() {
     }
   }, [searchParams, pagination.currentPage, dispatch]);
 
-  // Fetch business when filters change
+  // Fetch payment when filters change
   useEffect(() => {
     dispatch(
-      fetchAllBusinessService({
+      fetchAllPaymentService({
         search: debouncedSearch,
         pageNo: pagination.currentPage,
-        hasActiveSubscription:
-          filters.hasActiveSubscription === SubscriptionStatus.ALL
-            ? undefined
-            : filters.hasActiveSubscription == SubscriptionStatus.SUBSCRIBED
-            ? true
-            : false,
-        status:
-          filters.businessStatus === AccountStatus.ALL
-            ? []
-            : [filters.businessStatus],
       })
     );
-  }, [
-    dispatch,
-    debouncedSearch,
-    filters.businessStatus,
-    filters.hasActiveSubscription,
-    pagination.currentPage,
-  ]);
+  }, [dispatch, debouncedSearch, pagination.currentPage]);
 
   // Event handlers
-  const handleCreateUser = () => {
+  const handleCreatePayment = () => {
     setModalState({
       isOpen: true,
       mode: ModalMode.CREATE_MODE,
-      businessId: "",
+      paymentId: "",
     });
   };
 
-  const handleEditBusiness = (business: BusinessResponseModel) => {
+  const handleEditPayment = (payment: PaymentResponseModel) => {
     setModalState({
       isOpen: true,
       mode: ModalMode.UPDATE_MODE,
-      businessId: business?.id || "",
+      paymentId: payment?.id || "",
     });
   };
 
-  const handleBusinessViewDetail = (business: BusinessResponseModel) => {
+  const handlePaymentViewDetail = (payment: PaymentResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      businessId: business.id || "",
+      paymentId: payment.id || "",
     });
   };
 
-  const handleDeleteBusiness = (business: BusinessResponseModel) => {
+  const handleDeletePayment = (payment: PaymentResponseModel) => {
     setDeleteState({
       isOpen: true,
-      business: business,
+      payment: payment,
     });
   };
 
   const tableHandlers = useMemo(
     () => ({
-      handleEditBusiness,
-      handleBusinessViewDetail,
-      handleDeleteBusiness,
+      handleEditPayment,
+      handlePaymentViewDetail,
+      handleDeletePayment,
     }),
     []
   );
 
   const columns = useMemo(
     () =>
-      businessTableColumns({
-        data: businessData,
+      paymentTableColumns({
+        data: paymentData,
         handlers: tableHandlers,
       }),
-    [businessState, tableHandlers]
+    [paymentState, tableHandlers]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,25 +176,25 @@ export default function BusinessPage() {
   };
 
   const handleDelete = async () => {
-    if (!deleteState.business?.id) return;
+    if (!deleteState.payment?.id) return;
 
     try {
-      await dispatch(deleteBusinessService(deleteState.business.id)).unwrap();
+      await dispatch(deletePaymentService(deleteState.payment.id)).unwrap();
 
       showToast.success(
-        `Business "${deleteState.business.name ?? ""}" deleted successfully`
+        `Payment "${deleteState.payment.amount ?? ""}" deleted successfully`
       );
 
       closeDeleteModal();
 
       // Navigate to previous page if this was the last item
-      if (businessContent.length === 1 && pagination.currentPage > 1) {
+      if (paymentContent.length === 1 && pagination.currentPage > 1) {
         const newPage = pagination.currentPage - 1;
         dispatch(setPageNo(newPage));
         updateUrlWithPage(newPage);
       }
     } catch (error: any) {
-      showToast.error(error || "Failed to delete business");
+      showToast.error(error || "Failed to delete payment. Please try again.");
     }
   };
 
@@ -210,21 +202,21 @@ export default function BusinessPage() {
     setModalState({
       isOpen: false,
       mode: ModalMode.CREATE_MODE,
-      businessId: "",
+      paymentId: "",
     });
   };
 
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      businessId: "",
+      paymentId: "",
     });
   };
 
   const closeDeleteModal = () => {
     setDeleteState({
       isOpen: false,
-      business: null,
+      payment: null,
     });
   };
 
@@ -234,18 +226,18 @@ export default function BusinessPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Business", href: "" },
+            { label: "Payment", href: "" },
           ]}
-          title="Business"
+          title="Payment"
           searchValue={filters.search}
-          searchPlaceholder="Search business..."
+          searchPlaceholder="Search payment..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New Business"
+          buttonText="New"
           onSearchChange={handleSearchChange}
-          openModal={handleCreateUser}
+          openModal={handleCreatePayment}
         >
           <div className="flex items-center gap-3">
-            <CustomSelect
+            {/* <CustomSelect
               options={ACCOUNT_STATUS_FILTER}
               value={filters.businessStatus}
               placeholder="All Status"
@@ -262,17 +254,17 @@ export default function BusinessPage() {
                 handleSubscriptionChange(value as SubscriptionStatus)
               }
               label="Subscription Status"
-            />
+            /> */}
           </div>
         </CardHeaderSection>
 
         {/* Data Table with Pagination */}
         <DataTableWithPagination
-          data={businessContent}
+          data={paymentContent}
           columns={columns}
           loading={isLoading}
-          emptyMessage="No business found"
-          getRowKey={(user) => user.id?.toString() || user.email}
+          emptyMessage="No payment found"
+          getRowKey={(user) => user.id}
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
@@ -283,13 +275,13 @@ export default function BusinessPage() {
       <BusinessModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        businessId={modalState.businessId}
+        businessId={modalState.paymentId}
         mode={modalState.mode}
       />
 
       {/* Modals business platform Detail */}
-      <BusinessDetailModal
-        businessId={detailModalState.businessId}
+      <PaymentDetailModal
+        paymentId={detailModalState.paymentId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
@@ -299,11 +291,9 @@ export default function BusinessPage() {
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}
-        title="Delete Business"
-        description={`Are you sure you want to delete this business ${
-          deleteState.business?.name || deleteState.business?.email
-        }?`}
-        itemName={deleteState.business?.name || deleteState.business?.email}
+        title="Delete Payment"
+        description={`Are you sure you want to delete this business ${deleteState.payment?.amount}?`}
+        itemName={deleteState.payment?.amount?.toString() || ""}
         isSubmitting={operations.isDeleting}
       />
     </div>
