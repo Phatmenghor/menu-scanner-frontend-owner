@@ -4,21 +4,28 @@ import { z } from "zod";
  * Create Exchange Rate Schema
  */
 export const createExchangeRateSchema = z.object({
-  usdToKhrRate: z.number().min(1, "usdToKhrRate is required").optional(),
-  notes: z.string().optional(),
+  usdToKhrRate: z.coerce
+    .number()
+    .min(0.01, "Exchange rate must be greater than 0"),
+  notes: z.string().optional().or(z.literal("")),
 });
 
 /**
  * Update Exchange Rate Schema
  */
 export const updateExchangeRateSchema = z.object({
-  usdToKhrRate: z.string().min(1, "usdToKhrRate is required").optional(),
-  notes: z.string().optional().nullable(),
+  id: z.string().min(1, "Exchange rate ID is required"),
+  usdToKhrRate: z.coerce
+    .number()
+    .min(0.01, "Exchange rate must be greater than 0"),
+  notes: z.string().optional().or(z.literal("")),
 });
 
 /**
- * Exchange Rate Form Data Type
+ * Combined form data type - includes all possible fields
  */
-export type ExchangeRateFormData = z.infer<typeof createExchangeRateSchema> & {
-  id?: string;
+export type ExchangeRateFormData = {
+  id: string;
+  usdToKhrRate: number;
+  notes?: string;
 };

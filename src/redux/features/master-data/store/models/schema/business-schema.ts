@@ -4,29 +4,42 @@ import { z } from "zod";
  * Create Business Schema
  */
 export const createBusinessSchema = z.object({
-  name: z.string().min(1, "First name is required").optional(),
-  email: z.string().min(1, "email is required").optional(),
-  phone: z.string().min(1, "phone number is required").optional(),
-  status: z.string().min(1, "status is required").optional(),
-  address: z.string().optional().nullable(),
-  description: z.string().optional(),
+  name: z.string().min(1, "Business name is required"),
+  email: z.string().min(1, "Email is required").email("Invalid email format"),
+  phone: z
+    .string()
+    .min(1, "Phone number is required")
+    .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format"),
+  status: z.string().min(1, "Status is required"),
+  address: z.string().optional().or(z.literal("")),
+  description: z.string().optional().or(z.literal("")),
 });
 
 /**
  * Update Business Schema
  */
 export const updateBusinessSchema = z.object({
-  name: z.string().min(1, "First name is required").optional(),
-  email: z.string().min(1, "email is required").optional(),
-  phone: z.string().min(1, "phone number is required").optional(),
-  status: z.string().min(1, "status is required").optional(),
-  address: z.string().optional().nullable(),
-  description: z.string().optional(),
+  id: z.string().min(1, "Business ID is required"),
+  name: z.string().min(1, "Business name is required"),
+  email: z.string().min(1, "Email is required").email("Invalid email format"),
+  phone: z
+    .string()
+    .min(1, "Phone number is required")
+    .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format"),
+  status: z.string().min(1, "Status is required"),
+  address: z.string().optional().or(z.literal("")),
+  description: z.string().optional().or(z.literal("")),
 });
 
 /**
- * Business Form Data Type
+ * Combined form data type - includes all possible fields
  */
-export type BusinessFormData = z.infer<typeof createBusinessSchema> & {
-  id?: string;
+export type BusinessFormData = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+  address?: string;
+  description?: string;
 };

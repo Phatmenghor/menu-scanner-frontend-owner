@@ -4,29 +4,39 @@ import { z } from "zod";
  * Create SubscriptionPlan Schema
  */
 export const createSubscriptionPlanSchema = z.object({
-  name: z.string().min(1, "name is required").optional(),
-  description: z.string().optional(),
-  price: z.number().min(1, "price is required").optional(),
-  durationDays: z.number().min(1, "durationDays is required").optional(),
-  status: z.string().min(1, "status is required").optional(),
+  name: z.string().min(1, "Plan name is required"),
+  description: z.string().optional().or(z.literal("")),
+  price: z.coerce.number().min(0, "Price must be 0 or greater"),
+  durationDays: z.coerce
+    .number()
+    .int("Duration must be a whole number")
+    .min(1, "Duration must be at least 1 day"),
+  status: z.string().min(1, "Status is required"),
 });
 
 /**
  * Update SubscriptionPlan Schema
  */
 export const updateSubscriptionPlanSchema = z.object({
-  name: z.string().min(1, "name is required").optional(),
-  description: z.string().optional(),
-  price: z.number().min(1, "price is required").optional(),
-  durationDays: z.number().min(1, "durationDays is required").optional(),
-  status: z.string().min(1, "status is required").optional(),
+  id: z.string().min(1, "Plan ID is required"),
+  name: z.string().min(1, "Plan name is required"),
+  description: z.string().optional().or(z.literal("")),
+  price: z.coerce.number().min(0, "Price must be 0 or greater"),
+  durationDays: z.coerce
+    .number()
+    .int("Duration must be a whole number")
+    .min(1, "Duration must be at least 1 day"),
+  status: z.string().min(1, "Status is required"),
 });
 
 /**
- * SubscriptionPlan Form Data Type
+ * Combined form data type - includes all possible fields
  */
-export type SubscriptionPlanFormData = z.infer<
-  typeof createSubscriptionPlanSchema
-> & {
-  id?: string;
+export type SubscriptionPlanFormData = {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  durationDays: number;
+  status: string;
 };

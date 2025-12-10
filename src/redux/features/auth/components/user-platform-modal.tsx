@@ -231,15 +231,11 @@ export default function UserPlatformModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
         <FormHeader
-          title={
-            isCreate
-              ? "Create New User Platform"
-              : userIdentifier || "Edit User Platform"
-          }
+          title={isCreate ? "Create New User Platform" : "Edit User Platform"}
           description={
             isCreate
               ? "Fill out the form to create a new user platform account"
-              : email || "Update user platform information below"
+              : "Update user platform information below"
           }
           avatarName={userIdentifier || email}
           avatarImageUrl={userData?.profileImageUrl}

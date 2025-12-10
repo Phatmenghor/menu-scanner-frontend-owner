@@ -231,15 +231,11 @@ export default function UserBusinessModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
         <FormHeader
-          title={
-            isCreate
-              ? "Create New User Business"
-              : userIdentifier || "Edit User Business"
-          }
+          title={isCreate ? "Create New User Business" : "Edit User Business"}
           description={
             isCreate
               ? "Fill out the form to create a new user business account"
-              : email || "Update user business information below"
+              : "Update user business information below"
           }
           avatarName={userIdentifier || email}
           avatarImageUrl={userData?.profileImageUrl}

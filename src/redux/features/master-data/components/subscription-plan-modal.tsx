@@ -43,6 +43,7 @@ import {
 } from "../store/models/request/subscription-plan-request";
 import { SelectField } from "@/components/shared/form-field/select-field";
 import { SUBSCRIPTION_PLAN_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
+import { getFieldError } from "@/utils/common/get-field-error";
 
 type Props = {
   mode: ModalMode;
@@ -90,7 +91,7 @@ export default function SubscriptionPlanRateModal({
 
   // Fetch exchange-rate data for edit mode
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetctSubscriptionPlanData = async () => {
       if (!planId || !isOpen || isCreate) return;
 
       try {
@@ -115,7 +116,7 @@ export default function SubscriptionPlanRateModal({
       }
     };
 
-    fetchUserData();
+    fetctSubscriptionPlanData();
   }, [planId, isOpen, isCreate, reset, dispatch]);
 
   // Reset form for create mode
@@ -246,6 +247,7 @@ export default function SubscriptionPlanRateModal({
                   placeholder="Enter Plan Name"
                   disabled={isSubmitting}
                   required={isCreate}
+                  error={getFieldError(errors.name)}
                 />
 
                 <TextField
@@ -255,6 +257,7 @@ export default function SubscriptionPlanRateModal({
                   placeholder="Enter Duration Days"
                   disabled={isSubmitting}
                   required={isCreate}
+                  error={getFieldError(errors.durationDays)}
                 />
 
                 <TextField
@@ -264,6 +267,7 @@ export default function SubscriptionPlanRateModal({
                   placeholder="Enter Price"
                   disabled={isSubmitting}
                   required={isCreate}
+                  error={getFieldError(errors.price)}
                 />
 
                 <SelectField
@@ -274,6 +278,7 @@ export default function SubscriptionPlanRateModal({
                   options={SUBSCRIPTION_PLAN_CREATE_UPDATE}
                   required
                   disabled={isSubmitting}
+                  error={getFieldError(errors.status)}
                 />
               </div>
 
@@ -285,6 +290,7 @@ export default function SubscriptionPlanRateModal({
                 placeholder="Enter any additional description (optional)"
                 rows={5}
                 disabled={isSubmitting}
+                error={getFieldError(errors.description)}
               />
             </FormBody>
 

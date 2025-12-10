@@ -4,33 +4,42 @@ import { z } from "zod";
  * Create Payment Schema
  */
 export const createPaymentSchema = z.object({
-  imageUrl: z.string().optional(),
-  subscriptionId: z.string().optional(),
-  businessId: z.string().optional(),
-  amount: z.number().min(1, "amount is required").optional(),
-  paymentType: z.string().min(1, "paymentType is required").optional(),
-  status: z.string().min(1, "status is required").optional(),
-  referenceNumber: z.string().optional(),
-  notes: z.string().optional(),
+  imageUrl: z.string().url("Invalid image URL").optional().or(z.literal("")),
+  subscriptionId: z.string().optional().or(z.literal("")),
+  businessId: z.string().optional().or(z.literal("")),
+  amount: z.coerce.number().min(0, "Amount must be greater than or equal 0"),
+  paymentType: z.string().min(1, "Payment type is required"),
+  status: z.string().min(1, "Payment status is required"),
+  referenceNumber: z.string().optional().or(z.literal("")),
+  notes: z.string().optional().or(z.literal("")),
 });
 
 /**
  * Update Payment Schema
  */
 export const updatePaymentSchema = z.object({
-  imageUrl: z.string().optional(),
-  subscriptionId: z.string().optional(),
-  businessId: z.string().optional(),
-  amount: z.string().min(1, "amount is required").optional(),
-  paymentType: z.string().min(1, "paymentType is required").optional(),
-  status: z.string().min(1, "status is required").optional(),
-  referenceNumber: z.string().optional(),
-  notes: z.string().optional(),
+  id: z.string().min(1, "Payment ID is required"),
+  imageUrl: z.string().url("Invalid image URL").optional().or(z.literal("")),
+  subscriptionId: z.string().optional().or(z.literal("")),
+  businessId: z.string().optional().or(z.literal("")),
+  amount: z.coerce.number().min(0, "Amount must be greater than or equal 0"),
+  paymentType: z.string().min(1, "Payment type is required"),
+  status: z.string().min(1, "Payment status is required"),
+  referenceNumber: z.string().optional().or(z.literal("")),
+  notes: z.string().optional().or(z.literal("")),
 });
 
 /**
- * Business Form Data Type
+ * Combined form data type - includes all possible fields
  */
-export type PaymentFormData = z.infer<typeof createPaymentSchema> & {
-  id?: string;
+export type PaymentFormData = {
+  id: string;
+  imageUrl?: string;
+  subscriptionId?: string;
+  businessId?: string;
+  amount: number;
+  paymentType: string;
+  status: string;
+  referenceNumber?: string;
+  notes?: string;
 };

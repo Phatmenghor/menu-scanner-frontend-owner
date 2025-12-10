@@ -231,15 +231,11 @@ export default function UserCustomerModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
         <FormHeader
-          title={
-            isCreate
-              ? "Create New User Customer"
-              : userIdentifier || "Edit User Customer"
-          }
+          title={isCreate ? "Create New User Customer" : "Edit User Customer"}
           description={
             isCreate
               ? "Fill out the form to create a new user customer account"
-              : email || "Update user customer information below"
+              : "Update user customer information below"
           }
           avatarName={userIdentifier || email}
           avatarImageUrl={userData?.profileImageUrl}
