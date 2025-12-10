@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import z from "zod";
 import { ChangePasswordService } from "@/services/dashboard/user/plateform-user/plateform-user.service";
-import { AppToast } from "../common/app-toast";
+import { AppToast } from "../common/show-toast";
 
 const changePasswordSchema = z
   .object({

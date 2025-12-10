@@ -36,7 +36,7 @@ import {
   updateUserService,
 } from "../store/thunks/users-thunks";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { showToast } from "@/components/shared/common/app-toast";
+import { showToast } from "@/components/shared/common/show-toast";
 import { clearError, clearSelectedUser } from "../store/slice/users-slice";
 import {
   selectError,

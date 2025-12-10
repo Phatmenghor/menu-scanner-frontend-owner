@@ -28,7 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { adminChangePasswordService } from "@/redux/features/auth/store/thunks/users-thunks";
 import { selectIsResettingPassword } from "@/redux/features/auth/store/selectors/users-selectors";
-import { showToast } from "../common/app-toast";
+import { showToast } from "../common/show-toast";
 
 interface ResetPasswordModalProps {
   userId?: string;

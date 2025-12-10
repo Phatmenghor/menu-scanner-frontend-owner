@@ -14,7 +14,7 @@ import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { showToast } from "@/components/shared/common/app-toast";
+import { showToast } from "@/components/shared/common/show-toast";
 import {
   createExchangeRateSchema,
   ExchangeRateFormData,

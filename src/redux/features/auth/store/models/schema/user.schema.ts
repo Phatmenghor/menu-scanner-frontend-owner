@@ -1,3 +1,4 @@
+// user.schema.ts
 import { z } from "zod";
 
 /**
@@ -8,7 +9,7 @@ export const createUserSchema = z.object({
     .string()
     .min(1, "User identifier is required")
     .min(3, "User identifier must be at least 3 characters"),
-  email: z.string().email("Invalid email format").optional(),
+  email: z.string().min(1, "Email is required").email("Invalid email format"),
   password: z
     .string()
     .min(1, "Password is required")
@@ -17,20 +18,20 @@ export const createUserSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       "Password must contain uppercase, lowercase, and number"
     ),
-  firstName: z.string().min(1, "First name is required").optional(),
-  lastName: z.string().min(1, "Last name is required").optional(),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   phoneNumber: z
     .string()
-    .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format")
-    .optional(),
-  profileImageUrl: z.string().url("Invalid URL").optional().nullable(),
+    .min(1, "Phone number is required")
+    .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format"),
+  profileImageUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   userType: z.string().min(1, "User type is required"),
-  businessId: z.string().optional().nullable(),
+  businessId: z.string().optional().or(z.literal("")),
   roles: z.array(z.string()).min(1, "At least one role is required"),
-  position: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-  accountStatus: z.string().optional(),
+  position: z.string().optional().or(z.literal("")),
+  address: z.string().optional().or(z.literal("")),
+  notes: z.string().optional().or(z.literal("")),
+  accountStatus: z.string().min(1, "Account status is required"),
 });
 
 /**
@@ -38,24 +39,38 @@ export const createUserSchema = z.object({
  */
 export const updateUserSchema = z.object({
   id: z.string().min(1, "User ID is required"),
-  firstName: z.string().min(1, "First name is required").optional(),
-  lastName: z.string().min(1, "Last name is required").optional(),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   phoneNumber: z
     .string()
-    .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format")
-    .optional(),
-  profileImageUrl: z.string().url("Invalid URL").optional().nullable(),
-  accountStatus: z.string().optional(),
-  businessId: z.string().optional().nullable(),
-  roles: z.array(z.string()).min(1, "At least one role is required").optional(),
-  position: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
+    .min(1, "Phone number is required")
+    .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format"),
+  profileImageUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  accountStatus: z.string().min(1, "Account status is required"),
+  businessId: z.string().optional().or(z.literal("")),
+  roles: z.array(z.string()).min(1, "At least one role is required"),
+  position: z.string().optional().or(z.literal("")),
+  address: z.string().optional().or(z.literal("")),
+  notes: z.string().optional().or(z.literal("")),
 });
 
 /**
- * User Form Data Type
+ * Combined form data type - includes all possible fields
  */
-export type UserFormData = z.infer<typeof createUserSchema> & {
-  id?: string;
+export type UserFormData = {
+  id: string;
+  userIdentifier?: string;
+  email?: string;
+  password?: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  profileImageUrl?: string;
+  userType?: string;
+  businessId?: string;
+  roles: string[];
+  position?: string;
+  address?: string;
+  notes?: string;
+  accountStatus: string;
 };

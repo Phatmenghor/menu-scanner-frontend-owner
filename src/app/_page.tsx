@@ -1,3 +1,4 @@
+// _app.tsx - DEBUG VERSION
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -10,6 +11,12 @@ NProgress.configure({
   speed: 500,
   showSpinner: false,
 });
+
+const originalStart = NProgress.start.bind(NProgress);
+NProgress.start = function () {
+  console.trace("🔍 ###NProgress.start() called from:");
+  return originalStart();
+};
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();

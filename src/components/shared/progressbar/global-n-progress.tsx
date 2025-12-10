@@ -33,27 +33,23 @@ export default function PageProgressBar() {
           const url = new URL(anchor.href);
           const currentUrl = new URL(window.location.href);
 
-          // Check if it's a different route on the same domain
           if (
             url.pathname !== currentUrl.pathname &&
             url.origin === currentUrl.origin &&
-            !anchor.hasAttribute("data-no-progress") // Allow opt-out
+            !anchor.hasAttribute("data-no-progress")
           ) {
-            // Add body class for enhanced styling
             document.body.classList.add("route-changing");
 
-            // Start progress with slight delay for smoother UX
             setTimeout(() => {
               NProgress.start();
             }, 50);
 
-            // Fallback to complete progress after reasonable time
             setTimeout(() => {
               if (NProgress.isStarted()) {
                 NProgress.done();
                 document.body.classList.remove("route-changing");
               }
-            }, 10000); // 10 seconds fallback
+            }, 10000);
           }
         } catch (error) {
           console.warn("Invalid URL in progress handler:", anchor.href);
@@ -64,23 +60,26 @@ export default function PageProgressBar() {
     const handleFormSubmit = (e: SubmitEvent) => {
       const form = e.target as HTMLFormElement;
 
-      // Only show progress for forms that navigate away
+      const isInDialog = form.closest('[role="dialog"]');
+      const hasNoProgress = form.hasAttribute("data-no-progress");
+
+      if (isInDialog || hasNoProgress) {
+        return;
+      }
+
       if (form.method === "get" || form.action !== window.location.href) {
         document.body.classList.add("route-changing");
         NProgress.start();
       }
     };
 
-    // Add event listeners
     document.addEventListener("click", handleClick);
     document.addEventListener("submit", handleFormSubmit);
 
-    // Cleanup function
     return () => {
       document.removeEventListener("click", handleClick);
       document.removeEventListener("submit", handleFormSubmit);
 
-      // Clean up any remaining progress and classes
       if (NProgress.isStarted()) {
         NProgress.done();
       }
@@ -88,7 +87,6 @@ export default function PageProgressBar() {
     };
   }, []);
 
-  // Handle browser navigation (back/forward buttons)
   useEffect(() => {
     const handlePopState = () => {
       document.body.classList.add("route-changing");
@@ -99,11 +97,9 @@ export default function PageProgressBar() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // Handle page visibility change (tab switching)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && NProgress.isStarted()) {
-        // Pause progress when tab is hidden
         NProgress.done();
         document.body.classList.remove("route-changing");
       }

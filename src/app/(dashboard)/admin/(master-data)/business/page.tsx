@@ -19,7 +19,7 @@ import {
   HAS_SUBSCRIPTION_FILTER,
 } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
-import { showToast } from "@/components/shared/common/app-toast";
+import { showToast } from "@/components/shared/common/show-toast";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
   setPageNo,

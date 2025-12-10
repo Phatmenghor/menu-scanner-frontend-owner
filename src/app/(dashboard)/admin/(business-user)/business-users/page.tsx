@@ -21,7 +21,7 @@ import {
   USER_PLATFORM_ROLE_FILTER,
 } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
-import { showToast } from "@/components/shared/common/app-toast";
+import { showToast } from "@/components/shared/common/show-toast";
 import { useUsersState } from "@/redux/features/auth/store/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
@@ -271,7 +271,7 @@ export default function UserPage() {
           searchPlaceholder="Search users business..."
           buttonTooltip="Create a new users"
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New Business"
+          buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreateUser}
         >

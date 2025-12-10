@@ -17,7 +17,7 @@ import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { ACCOUNT_STATUS_FILTER } from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
-import { showToast } from "@/components/shared/common/app-toast";
+import { showToast } from "@/components/shared/common/show-toast";
 import { useUsersState } from "@/redux/features/auth/store/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
 import {
@@ -264,7 +264,7 @@ export default function UserPage() {
           searchValue={filters.search}
           searchPlaceholder="Search users customer..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New Customer"
+          buttonText="New"
           buttonTooltip="Create a new Customer"
           onSearchChange={handleSearchChange}
           openModal={handleCreateUser}

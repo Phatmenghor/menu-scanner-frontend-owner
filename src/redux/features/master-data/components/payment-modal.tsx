@@ -4,11 +4,7 @@ import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ModalMode,
-  BusinessStatus,
-} from "@/constants/AppResource/status/status";
-import { BUSINESS_STATUS_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
+import { ModalMode } from "@/constants/AppResource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
@@ -19,7 +15,7 @@ import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { showToast } from "@/components/shared/common/app-toast";
+import { showToast } from "@/components/shared/common/show-toast";
 import {
   createPaymentService,
   fetchPaymentByIdService,
@@ -40,11 +36,10 @@ import {
   CreatePaymentRequest,
   UpdatePaymentRequest,
 } from "../store/models/request/payment-request";
-import { da } from "date-fns/locale";
 
 type Props = {
   mode: ModalMode;
-  businessId?: string;
+  paymentId?: string;
   onClose: () => void;
   isOpen: boolean;
 };
@@ -52,7 +47,7 @@ type Props = {
 export default function PaymentModal({
   isOpen,
   onClose,
-  businessId,
+  paymentId,
   mode,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
@@ -92,7 +87,7 @@ export default function PaymentModal({
   // Fetch business data for edit mode
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!businessId || !isOpen || isCreate) return;
+      if (!paymentId || !isOpen || isCreate) return;
 
       try {
         const resultAction = await dispatch(

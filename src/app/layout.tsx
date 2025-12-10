@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "../styles/globals.css";
 import { ReactNode } from "react";
 import PageProgressBar from "@/components/shared/progressbar/global-n-progress";
-import { ToastProvider } from "@/components/shared/common/app-toast";
 import { ClientProviders } from "@/context/client-provider";
 
 // Font Configuration with optimized settings
@@ -88,11 +87,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       >
         <ClientProviders>
           <PageProgressBar />
-          <ToastProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <div className="flex-1">{children}</div>
-            </div>
-          </ToastProvider>
+          <div className="relative flex min-h-screen flex-col">
+            <div className="flex-1">{children}</div>
+          </div>
         </ClientProviders>
       </body>
     </html>

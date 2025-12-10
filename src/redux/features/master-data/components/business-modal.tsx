@@ -42,7 +42,7 @@ import {
   CreateBusinessRequest,
   UpdateBusinessRequest,
 } from "../store/models/request/business-request";
-import { showToast } from "@/components/shared/common/app-toast";
+import { showToast } from "@/components/shared/common/show-toast";
 
 type Props = {
   mode: ModalMode;
