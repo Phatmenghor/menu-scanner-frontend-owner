@@ -338,7 +338,7 @@ export default function UserPage() {
         onDelete={handleDelete}
         title="Delete User"
         description={`Are you sure you want to delete this user ${
-          deleteState.user?.fullName || deleteState.user?.email
+          deleteState.user?.userIdentifier || deleteState.user?.email
         }?`}
         itemName={deleteState.user?.fullName || deleteState.user?.email}
         isSubmitting={operations.isDeleting}

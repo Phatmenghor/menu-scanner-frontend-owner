@@ -89,14 +89,14 @@ export default function BusinessPage() {
     if (pageFromUrl !== pagination.currentPage) {
       dispatch(setPageNo(pageFromUrl));
     }
-  }, [searchParams, pagination.currentPage, dispatch]);
+  }, [searchParams, filters.pageNo, dispatch]);
 
   // Fetch business when filters change
   useEffect(() => {
     dispatch(
       fetchAllBusinessService({
         search: debouncedSearch,
-        pageNo: pagination.currentPage,
+        pageNo: filters.pageNo,
         hasActiveSubscription:
           filters.hasActiveSubscription === SubscriptionStatus.ALL
             ? undefined
@@ -114,7 +114,7 @@ export default function BusinessPage() {
     debouncedSearch,
     filters.businessStatus,
     filters.hasActiveSubscription,
-    pagination.currentPage,
+    filters.pageNo,
   ]);
 
   // Event handlers
