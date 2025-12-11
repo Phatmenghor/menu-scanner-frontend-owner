@@ -9,6 +9,7 @@ import businessReducer from "../features/master-data/store/slice/business-slice"
 import exchangeRateReducer from "../features/master-data/store/slice/exchage-rate-slice";
 import subscriptionPlanReducer from "../features/master-data/store/slice/subscription-plan-slice";
 import paymentReducer from "../features/master-data/store/slice/payment-slice";
+import subscriptionReducer from "../features/master-data/store/slice/subscription-slice";
 
 /**
  * Root reducer configuration
@@ -21,4 +22,5 @@ export const reducers = {
   exchangeRate: exchangeRateReducer,
   subscriptionPlan: subscriptionPlanReducer,
   payment: paymentReducer,
+  subscription: subscriptionReducer,
 };

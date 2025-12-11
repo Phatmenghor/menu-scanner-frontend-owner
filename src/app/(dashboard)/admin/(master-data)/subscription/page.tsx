@@ -25,8 +25,6 @@ import {
   setPageNo,
   setSearchFilter,
 } from "@/redux/features/auth/store/slice/users-slice";
-import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
-import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
 import { useBusinessState } from "@/redux/features/master-data/store/state/business-state";
 import { BusinessResponseModel } from "@/redux/features/master-data/store/models/response/business-response";
 import {
@@ -38,11 +36,10 @@ import {
   setBusinessStatusFilter,
   setHasSubscriptionFilter,
 } from "@/redux/features/master-data/store/slice/business-slice";
-import { fi } from "date-fns/locale";
 import { BusinessDetailModal } from "@/redux/features/master-data/components/business-detail-modal";
 import BusinessModal from "@/redux/features/master-data/components/business-modal";
 
-export default function BusinessPage() {
+export default function SubscriptionPage() {
   const searchParams = useSearchParams();
 
   // Redux state
