@@ -77,14 +77,14 @@ export default function ExchangeRatePage() {
     if (pageFromUrl !== pagination.currentPage) {
       dispatch(setPageNo(pageFromUrl));
     }
-  }, [searchParams, pagination.currentPage, dispatch]);
+  }, [searchParams, filters.pageNo, dispatch]);
 
   // Fetch exchage rate when filters change
   useEffect(() => {
     dispatch(
       fetchAllExchangeRateService({
         search: debouncedSearch,
-        pageNo: pagination.currentPage,
+        pageNo: filters.pageNo,
         isActive:
           filters.isActive === ExchangeRateStatus.ALL
             ? undefined
@@ -93,7 +93,7 @@ export default function ExchangeRatePage() {
             : false,
       })
     );
-  }, [dispatch, debouncedSearch, filters.isActive, pagination.currentPage]);
+  }, [dispatch, debouncedSearch, filters.isActive, filters.pageNo]);
 
   // Event handlers
   const handleCreateUser = () => {
@@ -240,8 +240,8 @@ export default function ExchangeRatePage() {
           columns={columns}
           loading={isLoading}
           emptyMessage="No Exchange Rate found"
-          getRowKey={(exchange) => exchange.id || exchange.usdToKhrRate}
-          currentPage={pagination.currentPage}
+          getRowKey={(exchange) => exchange.id}
+          currentPage={filters.pageNo}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
         />

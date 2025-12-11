@@ -78,21 +78,21 @@ export default function SubscriptionPlanPage() {
     if (pageFromUrl !== pagination.currentPage) {
       dispatch(setPageNo(pageFromUrl));
     }
-  }, [searchParams, pagination.currentPage, dispatch]);
+  }, [searchParams, filters.pageNo, dispatch]);
 
   // Fetch Subscription Plan when filters change
   useEffect(() => {
     dispatch(
       fetchAllSubscriptionPlanService({
         search: debouncedSearch,
-        pageNo: pagination.currentPage,
+        pageNo: filters.pageNo,
         statuses:
           filters.statuses === SubscriptionPlanStatus.ALL
             ? []
             : [filters.statuses],
       })
     );
-  }, [dispatch, debouncedSearch, filters.statuses, pagination.currentPage]);
+  }, [dispatch, debouncedSearch, filters.statuses, filters.pageNo]);
 
   // Event handlers
   const handleCreatePlan = () => {
@@ -240,8 +240,8 @@ export default function SubscriptionPlanPage() {
           columns={columns}
           loading={isLoading}
           emptyMessage="No Subscription Plan found"
-          getRowKey={(plan) => plan.id?.toString() || plan.name}
-          currentPage={pagination.currentPage}
+          getRowKey={(plan) => plan.id}
+          currentPage={filters.pageNo}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
         />

@@ -81,7 +81,7 @@ export default function UserPage() {
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
     baseRoute: ROUTES.DASHBOARD.USERS,
-    defaultPageSize: 10,
+    defaultPageSize: 15,
   });
 
   // Initialize URL and Redux state on mount
@@ -92,14 +92,14 @@ export default function UserPage() {
     if (pageFromUrl !== pagination.currentPage) {
       dispatch(setPageNo(pageFromUrl));
     }
-  }, [searchParams, pagination.currentPage, dispatch]);
+  }, [searchParams, filters.pageNo, dispatch]);
 
   // Fetch users when filters change
   useEffect(() => {
     dispatch(
       fetchAllUsersService({
         search: debouncedSearch,
-        pageNo: pagination.currentPage,
+        pageNo: filters.pageNo,
         roles: filters.role === UserRole.ALL ? [] : [filters.role],
         userTypes: [UserGropeType.PLATFORM_USER],
         accountStatus:
@@ -113,7 +113,7 @@ export default function UserPage() {
     debouncedSearch,
     filters.accountStatus,
     filters.role,
-    pagination.currentPage,
+    filters.pageNo,
   ]);
 
   // Event handlers
@@ -144,7 +144,7 @@ export default function UserPage() {
     setResetPasswordState({
       isOpen: true,
       userId: user.id || "",
-      userName: user.fullName || user.email || "",
+      userName: user.userIdentifier || "",
     });
   };
 
@@ -199,7 +199,6 @@ export default function UserPage() {
   };
 
   const handlePageChangeWrapper = (page: number) => {
-    dispatch(setPageNo(page));
     handlePageChange(page);
   };
 
@@ -299,8 +298,8 @@ export default function UserPage() {
           columns={columns}
           loading={isLoading}
           emptyMessage="No users platform found"
-          getRowKey={(user) => user.id?.toString() || user.email}
-          currentPage={pagination.currentPage}
+          getRowKey={(user) => user.id}
+          currentPage={filters.pageNo}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
         />
@@ -336,7 +335,7 @@ export default function UserPage() {
         onDelete={handleDelete}
         title="Delete User"
         description={`Are you sure you want to delete this platform user ${
-          deleteState.user?.fullName || deleteState.user?.email
+          deleteState.user?.userIdentifier || deleteState.user?.email
         }?`}
         itemName={deleteState.user?.fullName || deleteState.user?.email}
         isSubmitting={operations.isDeleting}

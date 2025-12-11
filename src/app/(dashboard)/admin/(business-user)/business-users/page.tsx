@@ -92,14 +92,14 @@ export default function UserPage() {
     if (pageFromUrl !== pagination.currentPage) {
       dispatch(setPageNo(pageFromUrl));
     }
-  }, [searchParams, pagination.currentPage, dispatch]);
+  }, [searchParams, filters.pageNo, dispatch]);
 
   // Fetch users when filters change
   useEffect(() => {
     dispatch(
       fetchAllUsersService({
         search: debouncedSearch,
-        pageNo: pagination.currentPage,
+        pageNo: filters.pageNo,
         roles: filters.role === UserRole.ALL ? [] : [filters.role],
         userTypes: [UserGropeType.BUSINESS_USER],
         accountStatus:
@@ -113,7 +113,7 @@ export default function UserPage() {
     debouncedSearch,
     filters.accountStatus,
     filters.role,
-    pagination.currentPage,
+    filters.pageNo,
   ]);
 
   // Event handlers
@@ -144,7 +144,7 @@ export default function UserPage() {
     setResetPasswordState({
       isOpen: true,
       userBusinessId: user.id || "",
-      userName: user.fullName || user.email || "",
+      userName: user.userIdentifier || "",
     });
   };
 
@@ -301,8 +301,8 @@ export default function UserPage() {
           columns={columns}
           loading={isLoading}
           emptyMessage="No users platform found"
-          getRowKey={(user) => user.id?.toString() || user.email}
-          currentPage={pagination.currentPage}
+          getRowKey={(user) => user.id}
+          currentPage={filters.pageNo}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
         />

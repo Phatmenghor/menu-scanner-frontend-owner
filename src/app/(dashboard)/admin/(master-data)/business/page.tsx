@@ -86,14 +86,14 @@ export default function BusinessPage() {
     if (pageFromUrl !== pagination.currentPage) {
       dispatch(setPageNo(pageFromUrl));
     }
-  }, [searchParams, pagination.currentPage, dispatch]);
+  }, [searchParams, filters.pageNo, dispatch]);
 
   // Fetch business when filters change
   useEffect(() => {
     dispatch(
       fetchAllBusinessService({
         search: debouncedSearch,
-        pageNo: pagination.currentPage,
+        pageNo: filters.pageNo,
         hasActiveSubscription:
           filters.hasActiveSubscription === SubscriptionStatus.ALL
             ? undefined
@@ -111,7 +111,7 @@ export default function BusinessPage() {
     debouncedSearch,
     filters.businessStatus,
     filters.hasActiveSubscription,
-    pagination.currentPage,
+    filters.pageNo,
   ]);
 
   // Event handlers
@@ -270,8 +270,8 @@ export default function BusinessPage() {
           columns={columns}
           loading={isLoading}
           emptyMessage="No business found"
-          getRowKey={(user) => user.id?.toString() || user.email}
-          currentPage={pagination.currentPage}
+          getRowKey={(business) => business.id}
+          currentPage={filters.pageNo}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
         />
