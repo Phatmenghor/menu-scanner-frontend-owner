@@ -43,6 +43,7 @@ import {
   UpdateBusinessRequest,
 } from "../store/models/request/business-request";
 import { showToast } from "@/components/shared/common/show-toast";
+import { getFieldError } from "@/utils/common/get-field-error";
 
 type Props = {
   mode: ModalMode;
@@ -243,7 +244,8 @@ export default function BusinessModal({
                   label="Name"
                   placeholder="Enter name"
                   disabled={!isSubmitting}
-                  required={isCreate}
+                  required
+                  error={getFieldError(errors.name)}
                 />
 
                 <TextField
@@ -253,6 +255,8 @@ export default function BusinessModal({
                   type="email"
                   placeholder="Enter email address"
                   disabled={isSubmitting}
+                  required
+                  error={getFieldError(errors.email)}
                 />
 
                 <TextField
@@ -261,6 +265,8 @@ export default function BusinessModal({
                   label="Phnoe Number"
                   placeholder="Enter phone number"
                   disabled={isSubmitting}
+                  required
+                  error={getFieldError(errors.phone)}
                 />
 
                 <TextField
@@ -269,6 +275,7 @@ export default function BusinessModal({
                   label="Address"
                   placeholder="Enter address"
                   disabled={isSubmitting}
+                  error={getFieldError(errors.address)}
                 />
 
                 <SelectField
@@ -279,6 +286,7 @@ export default function BusinessModal({
                   options={BUSINESS_STATUS_CREATE_UPDATE}
                   required
                   disabled={isSubmitting}
+                  error={getFieldError(errors.status)}
                 />
               </div>
 
@@ -286,10 +294,11 @@ export default function BusinessModal({
               <TextareaField
                 control={control}
                 name="description"
-                label="Notes"
-                placeholder="Enter any additional notes (optional)"
+                label="Remark"
+                placeholder="Enter any additional remark (optional)"
                 rows={5}
                 disabled={isSubmitting}
+                error={getFieldError(errors.description)}
               />
             </FormBody>
 

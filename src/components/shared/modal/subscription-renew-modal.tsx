@@ -26,7 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { CreditCard, Upload, RotateCcw, Loader2, X } from "lucide-react";
 import { SubscriptionModel } from "@/models/dashboard/master-data/subscription/subscription.response.model";
 import { getSubscriptionByIdService } from "@/services/dashboard/subscription/subscription.service";
-import { ComboboxSelectPlan } from "../combo-box/combobox-plan";
+import { ComboboxSelectPlan } from "../combo-box/combobox-subscription";
 import type { SubscriptionPlanModel } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
 import type { UploadImageRequest } from "@/models/dashboard/image/image.request.model";
 import { uploadImageService } from "@/services/dashboard/image/image.service";

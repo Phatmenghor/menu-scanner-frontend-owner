@@ -39,6 +39,7 @@ import {
   selectOperations,
   selectSelectedExchangeRate,
 } from "../store/selectors/exchange-rate-selector";
+import { getFieldError } from "@/utils/common/get-field-error";
 
 type Props = {
   mode: ModalMode;
@@ -61,7 +62,6 @@ export default function ExchangeRateModal({
   const operations = useAppSelector(selectOperations);
   const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
   const reduxError = useAppSelector(selectError);
-  const userData = useAppSelector(selectSelectedExchangeRate);
   const { isCreating, isUpdating } = operations;
 
   const {
@@ -81,9 +81,6 @@ export default function ExchangeRateModal({
     },
     mode: "onChange",
   });
-
-  // Watch form values for avatar display
-  const usdToKhrRate = watch("usdToKhrRate");
 
   // Fetch exchange-rate data for edit mode
   useEffect(() => {
@@ -226,7 +223,8 @@ export default function ExchangeRateModal({
                   label="USD To Khr Rate"
                   placeholder="Enter USD To Khr Rate"
                   disabled={isSubmitting}
-                  required={isCreate}
+                  required
+                  error={getFieldError(errors.usdToKhrRate)}
                 />
               </div>
 
@@ -234,10 +232,11 @@ export default function ExchangeRateModal({
               <TextareaField
                 control={control}
                 name="notes"
-                label="Notes"
+                label="Remark"
                 placeholder="Enter any additional notes (optional)"
                 rows={5}
                 disabled={isSubmitting}
+                error={getFieldError(errors.notes)}
               />
             </FormBody>
 

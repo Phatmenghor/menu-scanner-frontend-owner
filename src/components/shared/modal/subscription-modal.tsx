@@ -27,7 +27,7 @@ import {
 } from "@/models/dashboard/master-data/subscription/subscription.schema";
 import { SubscriptionModel } from "@/models/dashboard/master-data/subscription/subscription.response.model";
 import { getSubscriptionByIdService } from "@/services/dashboard/subscription/subscription.service";
-import { ComboboxSelectPlan } from "../combo-box/combobox-plan";
+import { ComboboxSelectPlan } from "../combo-box/combobox-subscription";
 import { SubscriptionPlanModel } from "@/models/dashboard/master-data/subscription-plan/subscription-plan-response";
 import Loading from "@/components/shared/common/loading";
 import { CustomDatePicker } from "../common/custom-date-picker";

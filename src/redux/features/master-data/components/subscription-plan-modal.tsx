@@ -246,7 +246,7 @@ export default function SubscriptionPlanRateModal({
                   label="Plan Name"
                   placeholder="Enter Plan Name"
                   disabled={isSubmitting}
-                  required={isCreate}
+                  required
                   error={getFieldError(errors.name)}
                 />
 
@@ -256,7 +256,7 @@ export default function SubscriptionPlanRateModal({
                   label="Duration Days"
                   placeholder="Enter Duration Days"
                   disabled={isSubmitting}
-                  required={isCreate}
+                  required
                   error={getFieldError(errors.durationDays)}
                 />
 
@@ -266,7 +266,7 @@ export default function SubscriptionPlanRateModal({
                   label="Price"
                   placeholder="Enter Price"
                   disabled={isSubmitting}
-                  required={isCreate}
+                  required
                   error={getFieldError(errors.price)}
                 />
 

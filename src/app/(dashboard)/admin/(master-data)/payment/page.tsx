@@ -85,7 +85,7 @@ export default function PaymentPage() {
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
-    baseRoute: ROUTES.DASHBOARD.BUSINESS,
+    baseRoute: ROUTES.DASHBOARD.PAYMENT,
     defaultPageSize: 15,
   });
 
