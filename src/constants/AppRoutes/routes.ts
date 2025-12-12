@@ -7,6 +7,7 @@ import {
   LucideIcon,
   Database,
   DollarSign,
+  Pin,
 } from "lucide-react";
 
 export const ROUTES = {
@@ -37,6 +38,10 @@ export const ROUTES = {
     PAYMENT: "/admin/payment",
     USERS_BUSINESS: "/admin/users",
     CUSTOMER_USER: "/admin/customer-user",
+    PROVINCE: "/admin/province",
+    DISTRICT: "/admin/district",
+    VILLAGE: "/admin/village",
+    COMMUNE: "/admin/commune",
   },
 } as const;
 
@@ -118,6 +123,29 @@ export const sidebarItems: SidebarItem[] = [
       {
         title: "customers",
         href: ROUTES.DASHBOARD.CUSTOMER_USER,
+      },
+    ],
+  },
+  {
+    title: "Locations",
+    section: "Locations",
+    icon: Pin,
+    subroutes: [
+      {
+        title: "province",
+        href: ROUTES.DASHBOARD.PROVINCE,
+      },
+      {
+        title: "district",
+        href: ROUTES.DASHBOARD.DISTRICT,
+      },
+      {
+        title: "village",
+        href: ROUTES.DASHBOARD.VILLAGE,
+      },
+      {
+        title: "commune",
+        href: ROUTES.DASHBOARD.COMMUNE,
       },
     ],
   },
