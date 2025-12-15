@@ -23,7 +23,7 @@ import { createBusinessService } from "../thunks/business-thunks";
 const initialState: PaymentManagementState = {
   data: null,
   selectedPayment: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",

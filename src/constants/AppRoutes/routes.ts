@@ -140,12 +140,12 @@ export const sidebarItems: SidebarItem[] = [
         href: ROUTES.DASHBOARD.DISTRICT,
       },
       {
-        title: "village",
-        href: ROUTES.DASHBOARD.VILLAGE,
-      },
-      {
         title: "commune",
         href: ROUTES.DASHBOARD.COMMUNE,
+      },
+      {
+        title: "village",
+        href: ROUTES.DASHBOARD.VILLAGE,
       },
     ],
   },

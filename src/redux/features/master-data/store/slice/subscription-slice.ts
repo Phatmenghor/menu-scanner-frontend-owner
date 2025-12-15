@@ -23,7 +23,7 @@ import {
 const initialState: SubscriptionManagementState = {
   data: null,
   selectedSubscription: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",

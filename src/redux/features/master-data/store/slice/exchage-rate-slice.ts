@@ -23,7 +23,7 @@ import {
 const initialState: ExchangeRateManagementState = {
   data: null,
   selectedExchangeRate: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",

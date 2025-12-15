@@ -22,7 +22,7 @@ import {
 const initialState: VillageManagementState = {
   data: null,
   selectedVillage: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",

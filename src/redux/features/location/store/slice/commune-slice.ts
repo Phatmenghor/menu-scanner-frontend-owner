@@ -22,7 +22,7 @@ import {
 const initialState: CommuneManagementState = {
   data: null,
   selectedCommune: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",

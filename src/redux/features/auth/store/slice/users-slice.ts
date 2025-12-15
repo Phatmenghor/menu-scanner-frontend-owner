@@ -22,7 +22,7 @@ import { UserManagementState } from "../models/type/user-types";
 const initialState: UserManagementState = {
   data: null,
   selectedUser: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",

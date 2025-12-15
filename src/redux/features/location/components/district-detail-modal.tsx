@@ -84,16 +84,16 @@ export function DistrictDetailModal({
 
             <DetailRow
               label="Province Code"
-              value={districtData?.province.provinceCode || "---"}
+              value={districtData?.province?.provinceCode || "---"}
             />
             <DetailRow
               label="Province EN"
-              value={districtData?.province.provinceEn || "---"}
+              value={districtData?.province?.provinceEn || "---"}
             />
 
             <DetailRow
               label="Province KH"
-              value={districtData?.province.provinceKh || "---"}
+              value={districtData?.province?.provinceKh || "---"}
             />
           </DetailSection>
 

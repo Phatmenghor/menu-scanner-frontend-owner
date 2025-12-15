@@ -84,7 +84,7 @@ export const districtTableColumns = ({
       truncate: true,
       render: (district) => (
         <span className="text-xs text-muted-foreground">
-          {district?.province.provinceCode || "---"}
+          {district?.province?.provinceCode || "---"}
         </span>
       ),
     },
@@ -97,7 +97,7 @@ export const districtTableColumns = ({
       truncate: true,
       render: (district) => (
         <span className="text-xs text-muted-foreground">
-          {district?.province.provinceEn || "---"}
+          {district?.province?.provinceEn || "---"}
         </span>
       ),
     },

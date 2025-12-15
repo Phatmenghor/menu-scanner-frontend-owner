@@ -18,7 +18,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
   profile: null,
-  isLoading: false,
+  isLoading: true,
   isProfileLoading: false,
   error: null,
 };

@@ -22,7 +22,7 @@ import {
 const initialState: DistrictManagementState = {
   data: null,
   selectedDistrict: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",

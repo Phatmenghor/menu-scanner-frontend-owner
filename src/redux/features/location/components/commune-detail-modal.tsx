@@ -58,7 +58,7 @@ export function CommuneDetailModal({
       isOpen={isOpen}
       onClose={handleClose}
       isLoading={isFetchingDetail}
-      title={"Province Details"}
+      title={"Commune Details"}
       description={communeData?.communeEn || "Loading communt information..."}
     >
       {communeData ? (
@@ -82,32 +82,32 @@ export function CommuneDetailModal({
 
             <DetailRow
               label="District Code"
-              value={communeData?.district.districtCode || "---"}
+              value={communeData?.district?.districtCode || "---"}
             />
 
             <DetailRow
               label="District EN"
-              value={communeData?.district.districtEn || "---"}
+              value={communeData?.district?.districtEn || "---"}
             />
 
             <DetailRow
               label="District KH"
-              value={communeData?.district.districtKh || "---"}
+              value={communeData?.district?.districtKh || "---"}
             />
 
             <DetailRow
               label="Province Code"
-              value={communeData?.district.province.provinceCode || "---"}
+              value={communeData?.district?.province?.provinceCode || "---"}
             />
 
             <DetailRow
               label="Province EN"
-              value={communeData?.district.province.provinceEn || "---"}
+              value={communeData?.district?.province?.provinceEn || "---"}
             />
 
             <DetailRow
               label="Province KH"
-              value={communeData?.district.province.provinceKh || "---"}
+              value={communeData?.district?.province?.provinceKh || "---"}
             />
           </DetailSection>
 

@@ -23,7 +23,7 @@ import {
 const initialState: BusinessManagementState = {
   data: null,
   selectedBusiness: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",

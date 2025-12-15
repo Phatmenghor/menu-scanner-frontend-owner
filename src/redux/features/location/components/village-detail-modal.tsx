@@ -82,49 +82,53 @@ export function VillageDetailModal({
 
             <DetailRow
               label="Commune Code"
-              value={villageData?.commune.communeCode || "---"}
+              value={villageData?.commune?.communeCode || "---"}
             />
 
             <DetailRow
               label="Commune EN"
-              value={villageData?.commune.communeEn || "---"}
+              value={villageData?.commune?.communeEn || "---"}
             />
 
             <DetailRow
               label="Commune KH"
-              value={villageData?.commune.communeKh || "---"}
+              value={villageData?.commune?.communeKh || "---"}
             />
 
             <DetailRow
               label="District Code"
-              value={villageData?.commune.district.districtCode || "---"}
+              value={villageData?.commune?.district?.districtCode || "---"}
             />
 
             <DetailRow
               label="District EN"
-              value={villageData?.commune.district.districtEn || "---"}
+              value={villageData?.commune?.district?.districtEn || "---"}
             />
 
             <DetailRow
               label="District KH"
-              value={villageData?.commune.district.districtKh || "---"}
+              value={villageData?.commune?.district?.districtKh || "---"}
             />
 
             <DetailRow
               label="Province Code"
               value={
-                villageData?.commune.district.province.provinceCode || "---"
+                villageData?.commune?.district?.province?.provinceCode || "---"
               }
             />
 
             <DetailRow
               label="Province EN"
-              value={villageData?.commune.district.province.provinceEn || "---"}
+              value={
+                villageData?.commune?.district?.province?.provinceEn || "---"
+              }
             />
 
             <DetailRow
               label="Province KH"
-              value={villageData?.commune.district.province.provinceKh || "---"}
+              value={
+                villageData?.commune?.district?.province?.provinceKh || "---"
+              }
             />
           </DetailSection>
 

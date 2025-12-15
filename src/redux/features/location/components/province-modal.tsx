@@ -13,11 +13,6 @@ import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import {
-  selectError,
-  selectIsFetchingDetail,
-  selectOperations,
-} from "../store/selectors/commune-selector";
 import { showToast } from "@/components/shared/common/show-toast";
 import { getFieldError } from "@/utils/common/get-field-error";
 import {
@@ -38,6 +33,11 @@ import {
   CreateProvinceRequest,
   UpdateProvinceRequest,
 } from "../store/models/request/province-request";
+import {
+  selectError,
+  selectIsFetchingDetail,
+  selectOperations,
+} from "../store/selectors/province-selector";
 
 type Props = {
   mode: ModalMode;

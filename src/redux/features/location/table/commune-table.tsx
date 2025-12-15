@@ -84,7 +84,7 @@ export const communeTableColumns = ({
       truncate: true,
       render: (commune) => (
         <span className="text-xs text-muted-foreground">
-          {commune?.district.districtCode || "---"}
+          {commune?.district?.districtCode || "---"}
         </span>
       ),
     },
@@ -97,7 +97,7 @@ export const communeTableColumns = ({
       truncate: true,
       render: (commune) => (
         <span className="text-xs text-muted-foreground">
-          {commune?.district.districtEn || "---"}
+          {commune?.district?.districtEn || "---"}
         </span>
       ),
     },
@@ -110,7 +110,7 @@ export const communeTableColumns = ({
       truncate: true,
       render: (commune) => (
         <span className="text-xs text-muted-foreground">
-          {commune?.district.province.provinceCode || "---"}
+          {commune?.district?.province?.provinceCode || "---"}
         </span>
       ),
     },
@@ -123,7 +123,7 @@ export const communeTableColumns = ({
       truncate: true,
       render: (commune) => (
         <span className="text-xs text-muted-foreground">
-          {commune?.district.province.provinceEn || "---"}
+          {commune?.district?.province?.provinceEn || "---"}
         </span>
       ),
     },

@@ -22,7 +22,7 @@ import {
 const initialState: ProvinceManagementState = {
   data: null,
   selectedProvince: null,
-  isLoading: false,
+  isLoading: true,
   error: null,
   filters: {
     search: "",
