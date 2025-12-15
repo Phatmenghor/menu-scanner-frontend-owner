@@ -7,18 +7,17 @@ export interface AllVillageRequest extends GetAllRequest {
 }
 
 export interface CreateVillageRequest {
-  businessId: string;
-  planId: string;
-  startDate: string;
-  autoRenew: boolean;
+  villageCode: string;
+  villageEn: string;
+  villageKh: string;
+  communeCode: string;
 }
 
 export interface UpdateVillageRequest {
-  planId: string;
-  startDate: string;
-  endDate: string;
-  isActive: boolean;
-  autoRenew: boolean;
+  villageCode: string;
+  villageEn: string;
+  villageKh: string;
+  communeCode: string;
 }
 
 export interface UpdateVillageParams {

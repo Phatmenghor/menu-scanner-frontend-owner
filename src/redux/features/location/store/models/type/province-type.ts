@@ -1,8 +1,3 @@
-import { BusinessFilters } from "@/redux/features/master-data/store/models/type/business-type";
-import {
-  AllCommuneResponseModel,
-  CommuneResponseModel,
-} from "../response/commune-response";
 import {
   AllProvinceResponseModel,
   ProvinceResponseModel,
@@ -22,9 +17,9 @@ export interface OperationStates {
 
 export interface ProvinceManagementState {
   data: AllProvinceResponseModel | null;
-  selectedBusiness: ProvinceResponseModel | null;
+  selectedProvince: ProvinceResponseModel | null;
   isLoading: boolean;
   error: string | null;
-  filters: BusinessFilters;
+  filters: ProvinceFilters;
   operations: OperationStates;
 }

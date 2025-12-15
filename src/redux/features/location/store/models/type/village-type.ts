@@ -1,4 +1,3 @@
-import { BusinessFilters } from "@/redux/features/master-data/store/models/type/business-type";
 import {
   AllVillageResponseModel,
   VillageResponseModel,
@@ -18,9 +17,9 @@ export interface OperationStates {
 
 export interface VillageManagementState {
   data: AllVillageResponseModel | null;
-  selectedBusiness: VillageResponseModel | null;
+  selectedVillage: VillageResponseModel | null;
   isLoading: boolean;
   error: string | null;
-  filters: BusinessFilters;
+  filters: VillageFilters;
   operations: OperationStates;
 }

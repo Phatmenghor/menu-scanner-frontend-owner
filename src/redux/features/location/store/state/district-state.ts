@@ -1,21 +1,22 @@
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
+  selectDistrict,
+  selectDistrictContent,
+  selectDistrictState,
   selectError,
   selectFilters,
   selectIsLoading,
   selectOperations,
   selectPagination,
-  selectPayment,
-  selectPaymentContent,
-  selectPaymentState,
-} from "../selectors/vaillage-selector";
-export const usePaymentState = () => {
+} from "../selectors/district-selector";
+
+export const useDistrictState = () => {
   const dispatch = useAppDispatch();
 
   // Redux selectors
-  const paymentState = useAppSelector(selectPaymentState);
-  const paymentData = useAppSelector(selectPayment);
-  const paymentContent = useAppSelector(selectPaymentContent);
+  const districtState = useAppSelector(selectDistrictState);
+  const districtData = useAppSelector(selectDistrict);
+  const districtContent = useAppSelector(selectDistrictContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
@@ -23,9 +24,9 @@ export const usePaymentState = () => {
   const error = useAppSelector(selectError);
 
   return {
-    paymentState,
-    paymentData,
-    paymentContent,
+    districtState,
+    districtData,
+    districtContent,
     isLoading,
     error,
     filters,

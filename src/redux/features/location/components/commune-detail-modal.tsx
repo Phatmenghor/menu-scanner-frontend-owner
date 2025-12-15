@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { getStatusColor, formatEnumToDisplay } from "@/utils/styles/enum-style";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { DetailModal } from "@/components/shared/modal/detail-modal";
 import {
@@ -10,49 +8,48 @@ import {
   DetailSection,
 } from "@/components/shared/modal/detail-section";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { clearSelectedBusiness } from "../store/slice/commune-slice";
-import { fetchExchangeRateByIdService } from "../store/thunks/village-thunks";
+import { fetchCommuneByIdService } from "../store/thunks/commune-thunks";
 import {
   selectIsFetchingDetail,
-  selectSelectedExchangeRate,
-} from "../store/selectors/district-selector";
-import { Status } from "@/constants/AppResource/status/status";
+  selectSelectedCommune,
+} from "../store/selectors/commune-selector";
+import { clearSelectedCommune } from "../store/slice/commune-slice";
 
-interface ExchangeRateDetailModalProps {
-  exchangeId?: string;
+interface CommuneDetailModalProps {
+  communeId?: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function ExchangeRateDetailModal({
-  exchangeId,
+export function CommuneDetailModal({
+  communeId,
   isOpen,
   onClose,
-}: ExchangeRateDetailModalProps) {
+}: CommuneDetailModalProps) {
   const dispatch = useAppDispatch();
 
   // Use SEPARATE loading state - won't affect main page
   const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
 
   // Get selected user from Redux
-  const exchangeData = useAppSelector(selectSelectedExchangeRate);
+  const communeData = useAppSelector(selectSelectedCommune);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!exchangeId || !isOpen) return;
+    const fetctCommuneData = async () => {
+      if (!communeId || !isOpen) return;
 
       try {
-        await dispatch(fetchExchangeRateByIdService(exchangeId)).unwrap();
+        await dispatch(fetchCommuneByIdService(communeId)).unwrap();
       } catch (error: any) {
-        console.error("Error fetching exchange data:", error);
+        console.error("Error fetching commune data:", error);
       }
     };
 
-    fetchUserData();
-  }, [exchangeId, isOpen, dispatch]);
+    fetctCommuneData();
+  }, [communeId, isOpen, dispatch]);
 
   const handleClose = () => {
-    dispatch(clearSelectedBusiness());
+    dispatch(clearSelectedCommune());
     onClose();
   };
 
@@ -61,98 +58,91 @@ export function ExchangeRateDetailModal({
       isOpen={isOpen}
       onClose={handleClose}
       isLoading={isFetchingDetail}
-      title={"Exchange Rate Details"}
-      description={
-        exchangeData?.usdToKhrRate.toString() ||
-        "Loading exchange-rate information..."
-      }
-      badges={
-        exchangeData && (
-          <>
-            <Badge
-              variant="outline"
-              className={getStatusColor(
-                exchangeData?.isActive == true ? Status.ACTIVE : Status.INACTIVE
-              )}
-            >
-              <span className="ml-1.5">
-                {formatEnumToDisplay(
-                  exchangeData?.isActive == true
-                    ? Status.ACTIVE
-                    : Status.INACTIVE
-                )}
-              </span>
-            </Badge>
-          </>
-        )
-      }
+      title={"Province Details"}
+      description={communeData?.communeEn || "Loading communt information..."}
     >
-      {exchangeData ? (
+      {communeData ? (
         <div className="space-y-6">
           {/* Personal Information */}
-          <DetailSection title="Personal Information">
+          <DetailSection title="Commune Information">
             <DetailRow
-              label="USD to KHR Rate"
-              value={exchangeData?.usdToKhrRate || "---"}
+              label="Commune Code"
+              value={communeData?.communeCode || "---"}
             />
 
             <DetailRow
-              label="Status"
-              value={
-                <Badge
-                  variant="outline"
-                  className={getStatusColor(
-                    exchangeData?.isActive == true
-                      ? Status.ACTIVE
-                      : Status.INACTIVE
-                  )}
-                >
-                  <span className="ml-1.5">
-                    {formatEnumToDisplay(
-                      exchangeData?.isActive == true
-                        ? Status.ACTIVE
-                        : Status.INACTIVE
-                    )}
-                  </span>
-                </Badge>
-              }
+              label="Commune EN"
+              value={communeData?.communeEn || "---"}
             />
 
-            <DetailRow label="Noted" value={exchangeData?.notes || "---"} />
+            <DetailRow
+              label="Commune KH"
+              value={communeData?.communeKh || "---"}
+            />
+
+            <DetailRow
+              label="District Code"
+              value={communeData?.district.districtCode || "---"}
+            />
+
+            <DetailRow
+              label="District EN"
+              value={communeData?.district.districtEn || "---"}
+            />
+
+            <DetailRow
+              label="District KH"
+              value={communeData?.district.districtKh || "---"}
+            />
+
+            <DetailRow
+              label="Province Code"
+              value={communeData?.district.province.provinceCode || "---"}
+            />
+
+            <DetailRow
+              label="Province EN"
+              value={communeData?.district.province.provinceEn || "---"}
+            />
+
+            <DetailRow
+              label="Province KH"
+              value={communeData?.district.province.provinceKh || "---"}
+            />
           </DetailSection>
 
           {/* System Information */}
           <DetailSection title="System Information">
             <DetailRow
-              label="Exchange Rate ID"
+              label="Province ID"
               value={
                 <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                  {exchangeData?.id}
+                  {communeData?.id}
                 </span>
               }
             />
             <DetailRow
               label="Created At"
-              value={dateTimeFormat(exchangeData?.createdAt ?? "")}
+              value={dateTimeFormat(communeData?.createdAt ?? "")}
             />
             <DetailRow
               label="Created By"
-              value={exchangeData?.createdBy || "---"}
+              value={communeData?.createdBy || "---"}
             />
             <DetailRow
               label="Last Updated"
-              value={dateTimeFormat(exchangeData?.updatedAt ?? "")}
+              value={dateTimeFormat(communeData?.updatedAt ?? "")}
             />
             <DetailRow
               label="Updated By"
-              value={exchangeData?.updatedBy || "---"}
+              value={communeData?.updatedBy || "---"}
               isLast
             />
           </DetailSection>
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No user data available</p>
+          <p className="text-muted-foreground">No commune data available</p>
         </div>
       )}
     </DetailModal>

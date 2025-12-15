@@ -1,31 +1,31 @@
 import { RootState } from "@/redux/store";
 import { createSelector } from "@reduxjs/toolkit";
 
-export const selectPaymentState = (state: RootState) => state.payment;
+export const selectVillageState = (state: RootState) => state.village;
 
-export const selectPayment = (state: RootState) => state.payment.data;
+export const selectVillage = (state: RootState) => state.village.data;
 
-export const selectSelectedPayment = (state: RootState) =>
-  state.payment.selectedPayment;
+export const selectSelectedVillage = (state: RootState) =>
+  state.village.selectedVillage;
 
-export const selectPaymentContent = (state: RootState) =>
-  state.payment.data?.content || [];
+export const selectVillageContent = (state: RootState) =>
+  state.village.data?.content || [];
 
-export const selectIsLoading = (state: RootState) => state.payment.isLoading;
+export const selectIsLoading = (state: RootState) => state.village.isLoading;
 
 export const selectIsFetchingDetail = (state: RootState) =>
-  state.payment.operations.isFetchingDetail;
+  state.village.operations.isFetchingDetail;
 
-export const selectError = (state: RootState) => state.payment.error;
+export const selectError = (state: RootState) => state.village.error;
 
-export const selectFilters = (state: RootState) => state.payment.filters;
+export const selectFilters = (state: RootState) => state.village.filters;
 
-export const selectOperations = (state: RootState) => state.payment.operations;
+export const selectOperations = (state: RootState) => state.village.operations;
 
 /**
  * Select pagination metadata
  */
-export const selectPagination = createSelector([selectPayment], (data) => ({
+export const selectPagination = createSelector([selectVillage], (data) => ({
   currentPage: data?.pageNo || 1,
   totalPages: data?.totalPages || 1,
   totalElements: data?.totalElements || 0,

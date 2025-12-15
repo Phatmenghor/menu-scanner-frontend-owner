@@ -1,14 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import {
-  getUserRoleColor,
-  getStatusColor,
-  getUserTypeColor,
-  getUserTypeIcon,
-  formatEnumToDisplay,
-} from "@/utils/styles/enum-style";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { DetailModal } from "@/components/shared/modal/detail-modal";
 import {
@@ -16,50 +8,48 @@ import {
   DetailSection,
 } from "@/components/shared/modal/detail-section";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { fetchUserByIdService } from "@/redux/features/auth/store/thunks/users-thunks";
-import { clearSelectedUser } from "@/redux/features/auth/store/slice/users-slice";
 import {
   selectIsFetchingDetail,
-  selectSelectedBusiness,
-} from "../store/selectors/commune-selector";
-import { fetchBusinessByIdService } from "../store/thunks/province-thunks";
-import { clearSelectedBusiness } from "../store/slice/commune-slice";
+  selectSelectedProvince,
+} from "../store/selectors/province-selector";
+import { fetchProvinceByIdService } from "../store/thunks/province-thunks";
+import { clearSelectedProvince } from "../store/slice/province-slice";
 
-interface BusinessDetailModalProps {
-  businessId?: string;
+interface ProvinceDetailModalProps {
+  provinceId?: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function BusinessDetailModal({
-  businessId,
+export function ProvinceDetailModal({
+  provinceId,
   isOpen,
   onClose,
-}: BusinessDetailModalProps) {
+}: ProvinceDetailModalProps) {
   const dispatch = useAppDispatch();
 
   // Use SEPARATE loading state - won't affect main page
   const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
 
   // Get selected user from Redux
-  const businessData = useAppSelector(selectSelectedBusiness);
+  const provinceData = useAppSelector(selectSelectedProvince);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!businessId || !isOpen) return;
+      if (!provinceId || !isOpen) return;
 
       try {
-        await dispatch(fetchBusinessByIdService(businessId)).unwrap();
+        await dispatch(fetchProvinceByIdService(provinceId)).unwrap();
       } catch (error: any) {
-        console.error("Error fetching business data:", error);
+        console.error("Error fetching province data:", error);
       }
     };
 
     fetchUserData();
-  }, [businessId, isOpen, dispatch]);
+  }, [provinceId, isOpen, dispatch]);
 
   const handleClose = () => {
-    dispatch(clearSelectedBusiness());
+    dispatch(clearSelectedProvince());
     onClose();
   };
 
@@ -68,95 +58,63 @@ export function BusinessDetailModal({
       isOpen={isOpen}
       onClose={handleClose}
       isLoading={isFetchingDetail}
-      title={businessData?.name || "Business Details"}
-      description={businessData?.email || "Loading user information..."}
-      avatarUrl={""}
-      avatarName={businessData?.name}
-      badges={
-        businessData && (
-          <>
-            <Badge
-              variant="outline"
-              className={getStatusColor(businessData?.status ?? null)}
-            >
-              <span className="ml-1.5">
-                {formatEnumToDisplay(businessData?.status ?? "")}
-              </span>
-            </Badge>
-          </>
-        )
+      title={"Province Details"}
+      description={
+        provinceData?.provinceEn || "Loading province information..."
       }
     >
-      {businessData ? (
+      {provinceData ? (
         <div className="space-y-6">
           {/* Personal Information */}
           <DetailSection title="Personal Information">
-            <DetailRow label="Full Name" value={businessData?.name || "---"} />
-
-            <DetailRow label="Email" value={businessData?.email || "---"} />
-
             <DetailRow
-              label="Phone Number"
-              value={businessData?.phone || "---"}
+              label="Province Code"
+              value={provinceData?.provinceCode || "---"}
             />
 
-            <DetailRow label="Address" value={businessData?.address || "---"} />
-
             <DetailRow
-              label="Description"
-              value={businessData?.description || "---"}
-              isLast
+              label="Province EN"
+              value={provinceData?.provinceEn || "---"}
             />
 
-            <DetailRow label="Status" value={businessData?.status || "---"} />
-
             <DetailRow
-              label="User Type"
-              value={
-                <Badge
-                  variant="outline"
-                  className={getStatusColor(businessData?.status ?? null)}
-                >
-                  <span className="ml-1.5">
-                    {formatEnumToDisplay(businessData?.status ?? "")}
-                  </span>
-                </Badge>
-              }
+              label="Province KH"
+              value={provinceData?.provinceKh || "---"}
             />
           </DetailSection>
 
           {/* System Information */}
           <DetailSection title="System Information">
             <DetailRow
-              label="Business ID"
+              label="Province ID"
               value={
                 <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                  {businessData?.id}
+                  {provinceData?.id}
                 </span>
               }
             />
             <DetailRow
               label="Created At"
-              value={dateTimeFormat(businessData?.createdAt ?? "")}
+              value={dateTimeFormat(provinceData?.createdAt ?? "")}
             />
             <DetailRow
               label="Created By"
-              value={businessData?.createdBy || "---"}
+              value={provinceData?.createdBy || "---"}
             />
             <DetailRow
               label="Last Updated"
-              value={dateTimeFormat(businessData?.updatedAt ?? "")}
+              value={dateTimeFormat(provinceData?.updatedAt ?? "")}
             />
             <DetailRow
               label="Updated By"
-              value={businessData?.updatedBy || "---"}
+              value={provinceData?.updatedBy || "---"}
               isLast
             />
           </DetailSection>
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No user data available</p>
+          <p className="text-muted-foreground">No province data available</p>
         </div>
       )}
     </DetailModal>

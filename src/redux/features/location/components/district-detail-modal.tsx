@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { getStatusColor, formatEnumToDisplay } from "@/utils/styles/enum-style";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { DetailModal } from "@/components/shared/modal/detail-modal";
 import {
@@ -10,52 +8,48 @@ import {
   DetailSection,
 } from "@/components/shared/modal/detail-section";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { clearSelectedBusiness } from "../store/slice/commune-slice";
-import {
-  Status,
-  SubscriptionPlanStatus,
-} from "@/constants/AppResource/status/status";
 import {
   selectIsFetchingDetail,
-  selectSelectedSubscriptionPlan,
-} from "../store/selectors/subscription-plan-selector";
-import { fetchSubscriptionPlanByIdService } from "../store/thunks/subscription-plan-thunks";
+  selectSelectedDistrict,
+} from "../store/selectors/district-selector";
+import { fetchDistrictByIdService } from "../store/thunks/district-thunks";
+import { clearSelectedDistrict } from "../store/slice/district-slice";
 
-interface SubscriptionPlanDetailModalProps {
-  planId?: string;
+interface DistrictDetailModalProps {
+  districtId?: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function SubscriptionPlanDetailModal({
-  planId,
+export function DistrictDetailModal({
+  districtId,
   isOpen,
   onClose,
-}: SubscriptionPlanDetailModalProps) {
+}: DistrictDetailModalProps) {
   const dispatch = useAppDispatch();
 
   // Use SEPARATE loading state - won't affect main page
   const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
 
-  // Get selected SubscriptionPlan from Redux
-  const subscriptionPlanData = useAppSelector(selectSelectedSubscriptionPlan);
+  // Get selected district from Redux
+  const districtData = useAppSelector(selectSelectedDistrict);
 
   useEffect(() => {
-    const fetctSubscriptionPlanData = async () => {
-      if (!planId || !isOpen) return;
+    const fetchUserData = async () => {
+      if (!districtId || !isOpen) return;
 
       try {
-        await dispatch(fetchSubscriptionPlanByIdService(planId)).unwrap();
+        await dispatch(fetchDistrictByIdService(districtId)).unwrap();
       } catch (error: any) {
-        console.error("Error fetching SubscriptionPlan data:", error);
+        console.error("Error fetching district data:", error);
       }
     };
 
-    fetctSubscriptionPlanData();
-  }, [planId, isOpen, dispatch]);
+    fetchUserData();
+  }, [districtId, isOpen, dispatch]);
 
   const handleClose = () => {
-    dispatch(clearSelectedBusiness());
+    dispatch(clearSelectedDistrict());
     onClose();
   };
 
@@ -64,120 +58,77 @@ export function SubscriptionPlanDetailModal({
       isOpen={isOpen}
       onClose={handleClose}
       isLoading={isFetchingDetail}
-      title={"Exchange Rate Details"}
+      title={"District Details"}
       description={
-        subscriptionPlanData?.name.toString() ||
-        "Loading subscriptio plan  information..."
-      }
-      badges={
-        subscriptionPlanData && (
-          <>
-            <Badge
-              variant="outline"
-              className={getStatusColor(
-                subscriptionPlanData?.status == SubscriptionPlanStatus.PUBLIC
-                  ? Status.ACTIVE
-                  : Status.INACTIVE
-              )}
-            >
-              <span className="ml-1.5">
-                {formatEnumToDisplay(
-                  subscriptionPlanData?.status == SubscriptionPlanStatus.PUBLIC
-                    ? Status.ACTIVE
-                    : Status.INACTIVE
-                )}
-              </span>
-            </Badge>
-          </>
-        )
+        districtData?.districtEn || "Loading district information..."
       }
     >
-      {subscriptionPlanData ? (
+      {districtData ? (
         <div className="space-y-6">
           {/* Personal Information */}
-          <DetailSection title="Personal Information">
+          <DetailSection title="District Information">
             <DetailRow
-              label="Name"
-              value={subscriptionPlanData?.name || "---"}
+              label="District Code"
+              value={districtData?.districtCode || "---"}
             />
 
             <DetailRow
-              label="Price"
-              value={subscriptionPlanData?.price || "---"}
+              label="District EN"
+              value={districtData?.districtEn || "---"}
             />
 
             <DetailRow
-              label="Duration Days"
-              value={subscriptionPlanData?.durationDays || "---"}
+              label="District KH"
+              value={districtData?.districtKh || "---"}
             />
 
             <DetailRow
-              label="Active Subscriptions Count"
-              value={subscriptionPlanData?.activeSubscriptionsCount || "---"}
+              label="Province Code"
+              value={districtData?.province.provinceCode || "---"}
+            />
+            <DetailRow
+              label="Province EN"
+              value={districtData?.province.provinceEn || "---"}
             />
 
             <DetailRow
-              label="Status"
-              value={
-                <Badge
-                  variant="outline"
-                  className={getStatusColor(
-                    subscriptionPlanData?.status ==
-                      SubscriptionPlanStatus.PUBLIC
-                      ? Status.ACTIVE
-                      : Status.INACTIVE
-                  )}
-                >
-                  <span className="ml-1.5">
-                    {formatEnumToDisplay(
-                      subscriptionPlanData?.status ==
-                        SubscriptionPlanStatus.PUBLIC
-                        ? Status.ACTIVE
-                        : Status.INACTIVE
-                    )}
-                  </span>
-                </Badge>
-              }
-            />
-
-            <DetailRow
-              label="Description"
-              value={subscriptionPlanData?.description || "---"}
+              label="Province KH"
+              value={districtData?.province.provinceKh || "---"}
             />
           </DetailSection>
 
           {/* System Information */}
           <DetailSection title="System Information">
             <DetailRow
-              label="Subscription Plan ID"
+              label="District ID"
               value={
                 <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                  {subscriptionPlanData?.id}
+                  {districtData?.id}
                 </span>
               }
             />
             <DetailRow
               label="Created At"
-              value={dateTimeFormat(subscriptionPlanData?.createdAt ?? "")}
+              value={dateTimeFormat(districtData?.createdAt ?? "")}
             />
             <DetailRow
               label="Created By"
-              value={subscriptionPlanData?.createdBy || "---"}
+              value={districtData?.createdBy || "---"}
             />
             <DetailRow
               label="Last Updated"
-              value={dateTimeFormat(subscriptionPlanData?.updatedAt ?? "")}
+              value={dateTimeFormat(districtData?.updatedAt ?? "")}
             />
             <DetailRow
               label="Updated By"
-              value={subscriptionPlanData?.updatedBy || "---"}
+              value={districtData?.updatedBy || "---"}
               isLast
             />
           </DetailSection>
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No user data available</p>
+          <p className="text-muted-foreground">No District data available</p>
         </div>
       )}
     </DetailModal>

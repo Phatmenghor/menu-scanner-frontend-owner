@@ -18,7 +18,7 @@ export interface OperationStates {
 
 export interface CommuneManagementState {
   data: AllCommuneResponseModel | null;
-  selectedBusiness: CommuneResponseModel | null;
+  selectedCommune: CommuneResponseModel | null;
   isLoading: boolean;
   error: string | null;
   filters: CommuneFilters;

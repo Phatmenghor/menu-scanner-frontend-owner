@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * Create Village Schema
  */
-export const createDistrictSchema = z.object({
+export const createVillageSchema = z.object({
   villageCode: z.string().min(1, "Village Code is required"),
   villageEn: z.string().min(1, "Village En is required"),
   villageKh: z.string().min(1, "Village Kh is required"),
@@ -13,7 +13,7 @@ export const createDistrictSchema = z.object({
 /**
  * Update Village Schema
  */
-export const updateDistrictSchema = z.object({
+export const updateVillageSchema = z.object({
   id: z.string().min(1, "Village ID is required"),
   villageCode: z.string().min(1, "Village Code is required"),
   villageEn: z.string().min(1, "Village En is required"),
@@ -24,7 +24,7 @@ export const updateDistrictSchema = z.object({
 /**
  * Combined form data type - includes all possible fields
  */
-export type DistrictFormData = {
+export type VillageFormData = {
   id: string;
   villageCode: string;
   villageEn: string;

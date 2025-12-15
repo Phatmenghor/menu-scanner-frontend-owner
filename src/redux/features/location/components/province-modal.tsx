@@ -4,15 +4,9 @@ import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ModalMode,
-  BusinessStatus,
-} from "@/constants/AppResource/status/status";
-import { BUSINESS_STATUS_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
+import { ModalMode } from "@/constants/AppResource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
-import { TextareaField } from "@/components/shared/form-field/text-area-field";
-import { SelectField } from "@/components/shared/form-field/select-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { FormHeader } from "@/components/shared/form-field/form-header";
@@ -24,38 +18,38 @@ import {
   selectIsFetchingDetail,
   selectOperations,
 } from "../store/selectors/commune-selector";
+import { showToast } from "@/components/shared/common/show-toast";
+import { getFieldError } from "@/utils/common/get-field-error";
 import {
-  BusinessFormData,
-  createBusinessSchema,
-  updateBusinessSchema,
-} from "../store/models/schema/commune-schema";
+  createProvinceSchema,
+  ProvinceFormData,
+  updateProvinceSchema,
+} from "../store/models/schema/province-schema";
 import {
-  createBusinessService,
-  fetchBusinessByIdService,
-  updateBusinessService,
+  createProvinceService,
+  fetchProvinceByIdService,
+  updateProvinceService,
 } from "../store/thunks/province-thunks";
 import {
   clearError,
-  clearSelectedBusiness,
-} from "../store/slice/commune-slice";
+  clearSelectedProvince,
+} from "../store/slice/province-slice";
 import {
-  CreateBusinessRequest,
-  UpdateBusinessRequest,
-} from "../store/models/request/commune-request";
-import { showToast } from "@/components/shared/common/show-toast";
-import { getFieldError } from "@/utils/common/get-field-error";
+  CreateProvinceRequest,
+  UpdateProvinceRequest,
+} from "../store/models/request/province-request";
 
 type Props = {
   mode: ModalMode;
-  businessId?: string;
+  provinceId?: string;
   onClose: () => void;
   isOpen: boolean;
 };
 
-export default function BusinessModal({
+export default function ProvinceModal({
   isOpen,
   onClose,
-  businessId,
+  provinceId,
   mode,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
@@ -75,62 +69,53 @@ export default function BusinessModal({
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<BusinessFormData>({
+  } = useForm<ProvinceFormData>({
     resolver: zodResolver(
-      isCreate ? createBusinessSchema : updateBusinessSchema
+      isCreate ? createProvinceSchema : updateProvinceSchema
     ) as any,
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      status: BusinessStatus.ACTIVE,
-      address: "",
-      description: "",
+      provinceCode: "",
+      provinceEn: "",
+      provinceKh: "",
     },
     mode: "onChange",
   });
 
-  // Fetch business data for edit mode
+  // Fetch province data for edit mode
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!businessId || !isOpen || isCreate) return;
+    const fetctProvinceData = async () => {
+      if (!provinceId || !isOpen || isCreate) return;
 
       try {
         const resultAction = await dispatch(
-          fetchBusinessByIdService(businessId)
+          fetchProvinceByIdService(provinceId)
         );
 
-        if (fetchBusinessByIdService.fulfilled.match(resultAction)) {
+        if (fetchProvinceByIdService.fulfilled.match(resultAction)) {
           const resposne = resultAction.payload;
 
           reset({
             id: resposne.id,
-            name: resposne.name,
-            email: resposne.email,
-            phone: resposne.phone,
-            status: resposne.status,
-            address: resposne.address,
-            description: resposne.description,
+            provinceCode: resposne.provinceCode,
+            provinceEn: resposne.provinceEn,
+            provinceKh: resposne.provinceKh,
           });
         }
       } catch (error) {
-        console.error("Error fetching business data:", error);
+        console.error("Error fetching privince data:", error);
       }
     };
 
-    fetchUserData();
-  }, [businessId, isOpen, isCreate, reset, dispatch]);
+    fetctProvinceData();
+  }, [provinceId, isOpen, isCreate, reset, dispatch]);
 
   // Reset form for create mode
   useEffect(() => {
     if (isOpen && isCreate) {
       reset({
-        name: "",
-        email: "",
-        phone: "",
-        status: BusinessStatus.ACTIVE,
-        address: "",
-        description: "",
+        provinceCode: "",
+        provinceEn: "",
+        provinceKh: "",
       });
     }
   }, [isOpen, isCreate, reset]);
@@ -142,55 +127,49 @@ export default function BusinessModal({
     }
   }, [isOpen, dispatch]);
 
-  const onSubmit = async (data: BusinessFormData) => {
+  const onSubmit = async (data: ProvinceFormData) => {
     try {
       if (isCreate) {
-        const payload: CreateBusinessRequest = {
-          name: data.name!,
-          email: data.email,
-          phone: data.phone,
-          status: data.status!,
-          address: data.address!,
-          description: data.description,
+        const payload: CreateProvinceRequest = {
+          provinceCode: data.provinceCode,
+          provinceEn: data.provinceEn,
+          provinceKh: data.provinceKh,
         };
 
-        const result = await dispatch(createBusinessService(payload)).unwrap();
+        const result = await dispatch(createProvinceService(payload)).unwrap();
 
         showToast.success(
-          `Business "${result.name || result.email}" created successfully`
+          `Province "${result.provinceEn}" created successfully`
         );
 
         handleClose();
       } else {
-        const payload: UpdateBusinessRequest = {
-          name: data.name!,
-          email: data.email,
-          phone: data.phone,
-          status: data.status!,
-          address: data.address!,
-          description: data.description,
+        const payload: UpdateProvinceRequest = {
+          provinceCode: data.provinceCode,
+          provinceEn: data.provinceEn,
+          provinceKh: data.provinceKh,
         };
 
         const result = await dispatch(
-          updateBusinessService({ businessId: data.id!, businessData: payload })
+          updateProvinceService({ provinceId: data.id!, provinceData: payload })
         ).unwrap();
 
         showToast.success(
-          `Business "${result.fullName || result.email}" updated successfully`
+          `Province "${result.provinceEn}" updated successfully`
         );
 
         handleClose();
       }
     } catch (error: any) {
-      console.error("Error saving business:", error);
-      showToast.error(error || "Failed to save business");
+      console.error("Error saving province:", error);
+      showToast.error(error || "Failed to save province");
     }
   };
 
   const handleClose = () => {
     reset();
     dispatch(clearError());
-    dispatch(clearSelectedBusiness());
+    dispatch(clearSelectedProvince());
     onClose();
   };
 
@@ -203,13 +182,13 @@ export default function BusinessModal({
         <FormHeader
           title={
             isCreate
-              ? "Create New business"
-              : "Update business information below"
+              ? "Create New province"
+              : "Update province information below"
           }
           description={
             isCreate
-              ? "Fill out the form to create a new business"
-              : "Update business information below"
+              ? "Fill out the form to create a new province"
+              : "Update province information below"
           }
           showAvatar={false}
           isCreate={isCreate}
@@ -240,66 +219,34 @@ export default function BusinessModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <TextField
                   control={control}
-                  name="name"
-                  label="Name"
-                  placeholder="Enter name"
-                  disabled={!isSubmitting}
+                  name="provinceCode"
+                  label="Province Code"
+                  placeholder="Enter Province Code"
+                  disabled={isSubmitting}
                   required
-                  error={getFieldError(errors.name)}
+                  error={getFieldError(errors.provinceCode)}
                 />
 
                 <TextField
                   control={control}
-                  name="email"
-                  label="Email"
-                  type="email"
-                  placeholder="Enter email address"
+                  name="provinceEn"
+                  label="Province EN"
+                  placeholder="Enter Province EN"
                   disabled={isSubmitting}
                   required
-                  error={getFieldError(errors.email)}
+                  error={getFieldError(errors.provinceEn)}
                 />
 
                 <TextField
                   control={control}
-                  name="phone"
-                  label="Phnoe Number"
-                  placeholder="Enter phone number"
+                  name="provinceKh"
+                  label="Province KH"
+                  placeholder="Enter Province KH"
                   disabled={isSubmitting}
                   required
-                  error={getFieldError(errors.phone)}
-                />
-
-                <TextField
-                  control={control}
-                  name="address"
-                  label="Address"
-                  placeholder="Enter address"
-                  disabled={isSubmitting}
-                  error={getFieldError(errors.address)}
-                />
-
-                <SelectField
-                  control={control}
-                  name="status"
-                  label="Business Status"
-                  placeholder="Select business status"
-                  options={BUSINESS_STATUS_CREATE_UPDATE}
-                  required
-                  disabled={isSubmitting}
-                  error={getFieldError(errors.status)}
+                  error={getFieldError(errors.provinceKh)}
                 />
               </div>
-
-              {/* Notes - Separate Row */}
-              <TextareaField
-                control={control}
-                name="description"
-                label="Remark"
-                placeholder="Enter any additional remark (optional)"
-                rows={5}
-                disabled={isSubmitting}
-                error={getFieldError(errors.description)}
-              />
             </FormBody>
 
             {/* Footer */}
@@ -307,8 +254,8 @@ export default function BusinessModal({
               isSubmitting={isSubmitting}
               isDirty={isDirty}
               isCreate={isCreate}
-              createMessage="Creating business..."
-              updateMessage="Updating business..."
+              createMessage="Creating province..."
+              updateMessage="Updating province..."
             >
               <CancelButton onClick={handleClose} disabled={isSubmitting} />
 
@@ -316,8 +263,8 @@ export default function BusinessModal({
                 isSubmitting={isSubmitting}
                 isDirty={isDirty}
                 isCreate={isCreate}
-                createText="Create Business"
-                updateText="Update Business"
+                createText="Create province"
+                updateText="Update province"
                 submittingCreateText="Creating..."
                 submittingUpdateText="Updating..."
               />

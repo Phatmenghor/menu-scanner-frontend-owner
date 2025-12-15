@@ -5,82 +5,62 @@ import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
-import {
-  AccountStatus,
-  ModalMode,
-  UserRole,
-  UserGropeType,
-} from "@/constants/AppResource/status/status";
+import { ModalMode } from "@/constants/AppResource/status/status";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
-import { CustomSelect } from "@/components/shared/common/custom-select";
-import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { userPlatformTableColumns } from "@/redux/features/auth/table/user-platform-table";
-import {
-  ACCOUNT_STATUS_FILTER,
-  USER_PLATFORM_ROLE_FILTER,
-} from "@/constants/AppResource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { showToast } from "@/components/shared/common/show-toast";
-import { useUsersState } from "@/redux/features/auth/store/state/users-state";
 import { usePagination } from "@/redux/store/use-pagination";
+import { useProvinceState } from "@/redux/features/location/store/state/province-state";
+import { ProvinceResponseModel } from "@/redux/features/location/store/models/response/province-response";
 import {
-  deleteUserService,
-  fetchAllUsersService,
-  toggleUserStatusService,
-} from "@/redux/features/auth/store/thunks/users-thunks";
+  deleteProvinceService,
+  fetchAllProvinceService,
+} from "@/redux/features/location/store/thunks/province-thunks";
+import { provinceTableColumns } from "@/redux/features/location/table/province-table";
 import {
-  setAccountStatusFilter,
   setPageNo,
-  setRoleFilter,
   setSearchFilter,
-} from "@/redux/features/auth/store/slice/users-slice";
-import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
-import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
-import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
+} from "@/redux/features/location/store/slice/province-slice";
+import ProvinceModal from "@/redux/features/location/components/province-modal";
+import { ProvinceDetailModal } from "@/redux/features/location/components/province-detail-modal";
 
-export default function UserPage() {
+export default function ProvincePage() {
   const searchParams = useSearchParams();
 
   // Redux state
   const {
-    userState,
-    usersData,
-    usersContent,
+    provinceState,
+    provinceData,
+    provinceContent,
     isLoading,
     filters,
     operations,
     pagination,
     dispatch,
-  } = useUsersState();
+  } = useProvinceState();
 
   // Local UI state for modals only
   const [modalState, setModalState] = useState({
     isOpen: false,
     mode: ModalMode.CREATE_MODE,
-    userId: "",
+    provinceId: "",
   });
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    userId: "",
-  });
-
-  const [resetPasswordState, setResetPasswordState] = useState({
-    isOpen: false,
-    userId: "",
-    userName: "",
+    provinceId: "",
   });
 
   const [deleteState, setDeleteState] = useState({
     isOpen: false,
-    user: null as UserResponseModel | null,
+    province: null as ProvinceResponseModel | null,
   });
 
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
-    baseRoute: ROUTES.DASHBOARD.USERS,
+    baseRoute: ROUTES.DASHBOARD.PROVINCE,
     defaultPageSize: 15,
   });
 
@@ -94,108 +74,67 @@ export default function UserPage() {
     }
   }, [searchParams, filters.pageNo, dispatch]);
 
-  // Fetch users when filters change
+  // Fetch province when filters change
   useEffect(() => {
     dispatch(
-      fetchAllUsersService({
+      fetchAllProvinceService({
         search: debouncedSearch,
         pageNo: filters.pageNo,
-        roles: filters.role === UserRole.ALL ? [] : [filters.role],
-        userTypes: [UserGropeType.PLATFORM_USER],
-        accountStatus:
-          filters.accountStatus === AccountStatus.ALL
-            ? []
-            : [filters.accountStatus],
       })
     );
-  }, [
-    dispatch,
-    debouncedSearch,
-    filters.accountStatus,
-    filters.role,
-    filters.pageNo,
-  ]);
+  }, [dispatch, debouncedSearch, filters.pageNo]);
 
   // Event handlers
-  const handleCreateUser = () => {
+  const handleCreateProvince = () => {
     setModalState({
       isOpen: true,
       mode: ModalMode.CREATE_MODE,
-      userId: "",
+      provinceId: "",
     });
   };
 
-  const handleEditUser = (user: UserResponseModel) => {
+  const handleEditProvince = (province: ProvinceResponseModel) => {
     setModalState({
       isOpen: true,
       mode: ModalMode.UPDATE_MODE,
-      userId: user?.id || "",
+      provinceId: province?.id || "",
     });
   };
 
-  const handleViewDetail = (user: UserResponseModel) => {
+  const handleProvinceViewDetail = (province: ProvinceResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      userId: user.id || "",
+      provinceId: province.id || "",
     });
   };
 
-  const handleResetPassword = (user: UserResponseModel) => {
-    setResetPasswordState({
-      isOpen: true,
-      userId: user.id || "",
-      userName: user.userIdentifier || "",
-    });
-  };
-
-  const handleDeleteUser = (user: UserResponseModel) => {
+  const handleDeleteProvince = (province: ProvinceResponseModel) => {
     setDeleteState({
       isOpen: true,
-      user: user,
+      province: province,
     });
-  };
-
-  const handleToggleStatus = async (user: UserResponseModel) => {
-    if (!user?.id) return;
-
-    try {
-      await dispatch(toggleUserStatusService(user)).unwrap();
-      showToast.success("User status updated successfully");
-    } catch (error: any) {
-      showToast.error(error || "Failed to update user status");
-    }
   };
 
   const tableHandlers = useMemo(
     () => ({
-      handleEditUser,
-      handleViewUserDetail: handleViewDetail,
-      handleResetPassword,
-      handleDeleteUser,
-      handleToggleStatus,
+      handleEditProvince,
+      handleProvinceViewDetail,
+      handleDeleteProvince,
     }),
     []
   );
 
   const columns = useMemo(
     () =>
-      userPlatformTableColumns({
-        data: usersData,
+      provinceTableColumns({
+        data: provinceData,
         handlers: tableHandlers,
       }),
-    [userState, tableHandlers]
+    [provinceState, tableHandlers]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchFilter(e.target.value));
-  };
-
-  const handleStatusChange = (status: AccountStatus) => {
-    dispatch(setAccountStatusFilter(status));
-  };
-
-  const handleRoleChange = (role: UserRole) => {
-    dispatch(setRoleFilter(role));
   };
 
   const handlePageChangeWrapper = (page: number) => {
@@ -203,25 +142,27 @@ export default function UserPage() {
   };
 
   const handleDelete = async () => {
-    if (!deleteState.user?.id) return;
+    if (!deleteState.province?.id) return;
 
     try {
-      await dispatch(deleteUserService(deleteState.user.id)).unwrap();
+      await dispatch(deleteProvinceService(deleteState.province.id)).unwrap();
 
       showToast.success(
-        `User "${deleteState.user.fullName ?? ""}" deleted successfully`
+        `Province "${
+          deleteState.province.provinceEn ?? ""
+        }" deleted successfully`
       );
 
       closeDeleteModal();
 
       // Navigate to previous page if this was the last item
-      if (usersContent.length === 1 && pagination.currentPage > 1) {
+      if (provinceContent.length === 1 && pagination.currentPage > 1) {
         const newPage = pagination.currentPage - 1;
         dispatch(setPageNo(newPage));
         updateUrlWithPage(newPage);
       }
     } catch (error: any) {
-      showToast.error(error || "Failed to delete user");
+      showToast.error(error || "Failed to delete province");
     }
   };
 
@@ -229,29 +170,21 @@ export default function UserPage() {
     setModalState({
       isOpen: false,
       mode: ModalMode.CREATE_MODE,
-      userId: "",
+      provinceId: "",
     });
   };
 
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      userId: "",
-    });
-  };
-
-  const closeResetPasswordModal = () => {
-    setResetPasswordState({
-      isOpen: false,
-      userId: "",
-      userName: "",
+      provinceId: "",
     });
   };
 
   const closeDeleteModal = () => {
     setDeleteState({
       isOpen: false,
-      user: null,
+      province: null,
     });
   };
 
@@ -261,44 +194,25 @@ export default function UserPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Platform Users", href: "" },
+            { label: "Province", href: "" },
           ]}
-          title="Platform Users"
+          title="Province"
           searchValue={filters.search}
-          searchPlaceholder="Search users platform..."
-          buttonTooltip="Create a new users"
+          searchPlaceholder="Search province..."
+          buttonTooltip="Create a new province"
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New"
           onSearchChange={handleSearchChange}
-          openModal={handleCreateUser}
-        >
-          <div className="flex items-center gap-3">
-            <CustomSelect
-              options={ACCOUNT_STATUS_FILTER}
-              value={filters.accountStatus}
-              placeholder="All Status"
-              onValueChange={(value) =>
-                handleStatusChange(value as AccountStatus)
-              }
-              label="Account Status"
-            />
-            <CustomSelect
-              options={USER_PLATFORM_ROLE_FILTER}
-              value={filters.role}
-              placeholder="All Roles"
-              onValueChange={(value) => handleRoleChange(value as UserRole)}
-              label="Platform Role"
-            />
-          </div>
-        </CardHeaderSection>
+          openModal={handleCreateProvince}
+        ></CardHeaderSection>
 
         {/* Data Table with Your Custom Pagination */}
         <DataTableWithPagination
-          data={usersContent}
+          data={provinceContent}
           columns={columns}
           loading={isLoading}
-          emptyMessage="No users platform found"
-          getRowKey={(user) => user.id}
+          emptyMessage="No Province found"
+          getRowKey={(province) => province.id}
           currentPage={filters.pageNo}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
@@ -306,38 +220,32 @@ export default function UserPage() {
       </div>
 
       {/* Modals Add/Edit */}
-      <UserPlatformModal
+      <ProvinceModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        userId={modalState.userId}
+        provinceId={modalState.provinceId}
         mode={modalState.mode}
       />
 
-      {/* Modals User platform Detail */}
-      <UserPlatformDetailModal
-        userId={detailModalState.userId}
+      {/* Modals Province platform Detail */}
+      <ProvinceDetailModal
+        provinceId={detailModalState.provinceId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
 
-      {/* Modals Reset Password */}
-      <ResetPasswordModal
-        isOpen={resetPasswordState.isOpen}
-        userName={resetPasswordState.userName}
-        onClose={closeResetPasswordModal}
-        userId={resetPasswordState.userId}
-      />
-
-      {/* Modals Delete User platform */}
+      {/* Modals Delete Province platform */}
       <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}
-        title="Delete User"
-        description={`Are you sure you want to delete this platform user ${
-          deleteState.user?.userIdentifier || deleteState.user?.email
+        title="Delete Province"
+        description={`Are you sure you want to delete this province ${
+          deleteState.province?.provinceEn || deleteState.province?.provinceKh
         }?`}
-        itemName={deleteState.user?.fullName || deleteState.user?.email}
+        itemName={
+          deleteState.province?.provinceEn || deleteState.province?.provinceKh
+        }
         isSubmitting={operations.isDeleting}
       />
     </div>

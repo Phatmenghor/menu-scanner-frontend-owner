@@ -7,47 +7,46 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ModalMode } from "@/constants/AppResource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
-import { TextareaField } from "@/components/shared/form-field/text-area-field";
-import { SelectField } from "@/components/shared/form-field/select-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { showToast } from "@/components/shared/common/show-toast";
-import {
-  createPaymentService,
-  fetchPaymentByIdService,
-  updatePaymentService,
-} from "../store/thunks/commune-thunks";
 import {
   selectError,
   selectIsFetchingDetail,
   selectOperations,
-} from "../store/selectors/vaillage-selector";
+} from "../store/selectors/commune-selector";
+import { showToast } from "@/components/shared/common/show-toast";
+import { getFieldError } from "@/utils/common/get-field-error";
 import {
-  createPaymentSchema,
-  PaymentFormData,
-  updatePaymentSchema,
-} from "../store/models/schema/province-schema";
-import { clearError, clearSelectedPayment } from "../store/slice/village-slice";
+  createVillageService,
+  fetchVillageByIdService,
+  updateVillageService,
+} from "../store/thunks/village-thunks";
 import {
-  CreatePaymentRequest,
-  UpdatePaymentRequest,
-} from "../store/models/request/province-request";
+  createVillageSchema,
+  updateVillageSchema,
+  VillageFormData,
+} from "../store/models/schema/village-schema";
+import {
+  CreateVillageRequest,
+  UpdateVillageRequest,
+} from "../store/models/request/village-request";
+import { clearError, clearSelectedVillage } from "../store/slice/village-slice";
 
 type Props = {
   mode: ModalMode;
-  paymentId?: string;
+  villageId?: string;
   onClose: () => void;
   isOpen: boolean;
 };
 
-export default function PaymentModal({
+export default function VillageModal({
   isOpen,
   onClose,
-  paymentId,
+  villageId,
   mode,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
@@ -67,60 +66,54 @@ export default function PaymentModal({
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<PaymentFormData>({
+  } = useForm<VillageFormData>({
     resolver: zodResolver(
-      isCreate ? createPaymentSchema : updatePaymentSchema
+      isCreate ? createVillageSchema : updateVillageSchema
     ) as any,
     defaultValues: {
-      imageUrl: "",
-      subscriptionId: "",
-      businessId: "",
-      amount: 0,
-      paymentType: "",
-      status: "",
-      referenceNumber: "",
-      notes: "",
+      villageCode: "",
+      villageEn: "",
+      villageKh: "",
+      communeCode: "",
     },
     mode: "onChange",
   });
 
   // Fetch business data for edit mode
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!paymentId || !isOpen || isCreate) return;
+    const fetchVillageData = async () => {
+      if (!villageId || !isOpen || isCreate) return;
 
       try {
-        const resultAction = await dispatch(
-          fetchPaymentByIdService(businessId)
-        );
+        const resultAction = await dispatch(fetchVillageByIdService(villageId));
 
-        if (fetchPaymentByIdService.fulfilled.match(resultAction)) {
+        if (fetchVillageByIdService.fulfilled.match(resultAction)) {
           const resposne = resultAction.payload;
 
           reset({
             id: resposne.id,
+            communeCode: resposne.communeCode,
+            villageCode: resposne.villageCode,
+            villageEn: resposne.villageEn,
+            villageKh: resposne.villageKh,
           });
         }
       } catch (error) {
-        console.error("Error fetching payment data:", error);
+        console.error("Error fetching village data:", error);
       }
     };
 
-    fetchUserData();
-  }, [businessId, isOpen, isCreate, reset, dispatch]);
+    fetchVillageData();
+  }, [villageId, isOpen, isCreate, reset, dispatch]);
 
   // Reset form for create mode
   useEffect(() => {
     if (isOpen && isCreate) {
       reset({
-        imageUrl: "",
-        subscriptionId: "",
-        businessId: "",
-        amount: 0,
-        paymentType: "",
-        status: "",
-        referenceNumber: "",
-        notes: "",
+        villageCode: "",
+        villageEn: "",
+        villageKh: "",
+        communeCode: "",
       });
     }
   }, [isOpen, isCreate, reset]);
@@ -132,61 +125,51 @@ export default function PaymentModal({
     }
   }, [isOpen, dispatch]);
 
-  const onSubmit = async (data: PaymentFormData) => {
+  const onSubmit = async (data: VillageFormData) => {
     try {
       if (isCreate) {
-        const payload: CreatePaymentRequest = {
-          imageUrl: data.imageUrl,
-          subscriptionId: data.subscriptionId,
-          businessId: data.businessId,
-          amount: data.amount!,
-          paymentMethod: data.paymentType!,
-          paymentType: data.paymentType!,
-          status: data.status!,
-          referenceNumber: data.referenceNumber,
-          notes: data.notes,
+        const payload: CreateVillageRequest = {
+          communeCode: data.communeCode,
+          villageCode: data.villageCode,
+          villageEn: data.villageEn,
+          villageKh: data.villageKh,
         };
 
-        const result = await dispatch(createPaymentService(payload)).unwrap();
+        const result = await dispatch(createVillageService(payload)).unwrap();
 
         showToast.success(
-          `Payment "${result.name || result.email}" created successfully`
+          `Village "${result.provinceEn}" created successfully`
         );
 
         handleClose();
       } else {
-        const payload: UpdatePaymentRequest = {
-          imageUrl: data.imageUrl,
-          subscriptionId: data.subscriptionId,
-          businessId: data.businessId,
-          amount: data.amount!,
-          status: data.status!,
-          paymentMethod: data.paymentType!,
-          paymentType: data.paymentType!,
-          referenceNumber: data.referenceNumber,
-          notes: data.notes,
+        const payload: UpdateVillageRequest = {
+          communeCode: data.communeCode,
+          villageCode: data.villageCode,
+          villageEn: data.villageEn,
+          villageKh: data.villageKh,
         };
 
         const result = await dispatch(
-          updatePaymentService({ paymentId: data.id!, paymentData: payload })
+          updateVillageService({ villageId: data.id!, villageData: payload })
         ).unwrap();
 
         showToast.success(
-          `Payment "${result.fullName || result.email}" updated successfully`
+          `Village "${result.provinceEn}" updated successfully`
         );
 
         handleClose();
       }
     } catch (error: any) {
-      console.error("Error saving payment:", error);
-      showToast.error(error || "Failed to save payment");
+      console.error("Error saving village:", error);
+      showToast.error(error || "Failed to save village");
     }
   };
 
   const handleClose = () => {
     reset();
     dispatch(clearError());
-    dispatch(clearSelectedPayment());
+    dispatch(clearSelectedVillage());
     onClose();
   };
 
@@ -198,12 +181,12 @@ export default function PaymentModal({
         {/* Header */}
         <FormHeader
           title={
-            isCreate ? "Create New payment" : "Update payment information below"
+            isCreate ? "Create New village" : "Update village information below"
           }
           description={
             isCreate
-              ? "Fill out the form to create a new payment"
-              : "Update payment information below"
+              ? "Fill out the form to create a new village"
+              : "Update village information below"
           }
           showAvatar={false}
           isCreate={isCreate}
@@ -234,58 +217,44 @@ export default function PaymentModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <TextField
                   control={control}
-                  name="name"
-                  label="Name"
-                  placeholder="Enter name"
-                  disabled={!isSubmitting}
-                  required={isCreate}
-                />
-
-                <TextField
-                  control={control}
-                  name="email"
-                  label="Email"
-                  type="email"
-                  placeholder="Enter email address"
+                  name="villageCode"
+                  label="Village Code"
+                  placeholder="Enter Village Code"
                   disabled={isSubmitting}
-                />
-
-                <TextField
-                  control={control}
-                  name="phone"
-                  label="Phnoe Number"
-                  placeholder="Enter phone number"
-                  disabled={isSubmitting}
-                />
-
-                <TextField
-                  control={control}
-                  name="address"
-                  label="Address"
-                  placeholder="Enter address"
-                  disabled={isSubmitting}
-                />
-
-                <SelectField
-                  control={control}
-                  name="status"
-                  label="Business Status"
-                  placeholder="Select business status"
-                  options={BUSINESS_STATUS_CREATE_UPDATE}
                   required
+                  error={getFieldError(errors.villageCode)}
+                />
+
+                <TextField
+                  control={control}
+                  name="villageEn"
+                  label="Village EN"
+                  placeholder="Enter Village EN"
                   disabled={isSubmitting}
+                  required
+                  error={getFieldError(errors.villageEn)}
+                />
+
+                <TextField
+                  control={control}
+                  name="villageKh"
+                  label="Village KH"
+                  placeholder="Enter Village KH"
+                  disabled={isSubmitting}
+                  required
+                  error={getFieldError(errors.villageKh)}
+                />
+
+                <TextField
+                  control={control}
+                  name="communeCode"
+                  label="Commune KH"
+                  placeholder="Enter Commune KH"
+                  disabled={isSubmitting}
+                  required
+                  error={getFieldError(errors.communeCode)}
                 />
               </div>
-
-              {/* Notes - Separate Row */}
-              <TextareaField
-                control={control}
-                name="description"
-                label="Notes"
-                placeholder="Enter any additional notes (optional)"
-                rows={5}
-                disabled={isSubmitting}
-              />
             </FormBody>
 
             {/* Footer */}
@@ -293,8 +262,8 @@ export default function PaymentModal({
               isSubmitting={isSubmitting}
               isDirty={isDirty}
               isCreate={isCreate}
-              createMessage="Creating business..."
-              updateMessage="Updating business..."
+              createMessage="Creating village..."
+              updateMessage="Updating village..."
             >
               <CancelButton onClick={handleClose} disabled={isSubmitting} />
 
@@ -302,8 +271,8 @@ export default function PaymentModal({
                 isSubmitting={isSubmitting}
                 isDirty={isDirty}
                 isCreate={isCreate}
-                createText="Create Business"
-                updateText="Update Business"
+                createText="Create village"
+                updateText="Update village"
                 submittingCreateText="Creating..."
                 submittingUpdateText="Updating..."
               />

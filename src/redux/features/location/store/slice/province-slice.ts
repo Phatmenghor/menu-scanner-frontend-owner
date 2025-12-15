@@ -1,28 +1,27 @@
 /**
- * Subscription Management - Redux Slice
- * Manages subscription state: data, loading, errors, filters, operations
+ * Province Management - Redux Slice
+ * Manages Province state: data, loading, errors, filters, operations
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ProvinceManagementState } from "../models/type/province-type";
 import {
-  BusinessStatus,
-  SubscriptionStatus,
-} from "@/constants/AppResource/status/status";
-import { SubscriptionManagementState } from "../models/type/village-type";
-import {
-  createSubscriptionService,
-  deleteSubscriptionService,
-  fetchAllSubscriptionService,
-  fetchSubscriptionByIdService,
-  updateSubscriptionService,
-} from "../thunks/district-thunks";
+  createProvinceService,
+  deleteProvinceService,
+  fetchAllProvinceService,
+  fetchProvinceByCodeEnService,
+  fetchProvinceByIdService,
+  fetchProvinceByNameEnService,
+  fetchProvinceByNameKhService,
+  updateProvinceService,
+} from "../thunks/province-thunks";
 
 /**
  * Initial state
  */
-const initialState: SubscriptionManagementState = {
+const initialState: ProvinceManagementState = {
   data: null,
-  selectedSubscription: null,
+  selectedProvince: null,
   isLoading: false,
   error: null,
   filters: {
@@ -38,10 +37,10 @@ const initialState: SubscriptionManagementState = {
 };
 
 /**
- * Subscription slice
+ * province slice
  */
-const subscriptionSlice = createSlice({
-  name: "subscriptions",
+const provinceSlice = createSlice({
+  name: "provinces",
   initialState,
   reducers: {
     // Filter actions
@@ -59,8 +58,8 @@ const subscriptionSlice = createSlice({
       state.error = null;
     },
 
-    clearSelectedSubscription: (state) => {
-      state.selectedSubscription = null;
+    clearSelectedProvince: (state) => {
+      state.selectedProvince = null;
     },
 
     resetFilters: (state) => {
@@ -73,31 +72,31 @@ const subscriptionSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-    // Fetch Subscription handlers - ONLY affects list loading
+    // Fetch province handlers - ONLY affects list loading
     builder
-      .addCase(fetchAllSubscriptionService.pending, (state) => {
+      .addCase(fetchAllProvinceService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAllSubscriptionService.fulfilled, (state, action) => {
+      .addCase(fetchAllProvinceService.fulfilled, (state, action) => {
         state.isLoading = false;
         state.data = action.payload;
       })
-      .addCase(fetchAllSubscriptionService.rejected, (state, action) => {
+      .addCase(fetchAllProvinceService.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
 
-    // Fetch Subscription by ID handlers - USE SEPARATE LOADING STATE
+    // Fetch province by ID handlers - USE SEPARATE LOADING STATE
     builder
-      .addCase(fetchSubscriptionByIdService.pending, (state) => {
+      .addCase(fetchProvinceByIdService.pending, (state) => {
         state.operations.isFetchingDetail = true;
         state.error = null;
-        state.selectedSubscription = null;
+        state.selectedProvince = null;
       })
-      .addCase(fetchSubscriptionByIdService.fulfilled, (state, action) => {
+      .addCase(fetchProvinceByIdService.fulfilled, (state, action) => {
         state.operations.isFetchingDetail = false;
-        state.selectedSubscription = action.payload;
+        state.selectedProvince = action.payload;
 
         // Also update in list if exists (for consistency)
         if (state.data?.content) {
@@ -109,18 +108,93 @@ const subscriptionSlice = createSlice({
           }
         }
       })
-      .addCase(fetchSubscriptionByIdService.rejected, (state, action) => {
+      .addCase(fetchProvinceByIdService.rejected, (state, action) => {
         state.operations.isFetchingDetail = false;
         state.error = action.payload as string;
       });
 
-    // Create Subscription handlers
     builder
-      .addCase(createSubscriptionService.pending, (state) => {
+      .addCase(fetchProvinceByNameKhService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedProvince = null;
+      })
+      .addCase(fetchProvinceByNameKhService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedProvince = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchProvinceByNameKhService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchProvinceByNameEnService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedProvince = null;
+      })
+      .addCase(fetchProvinceByNameEnService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedProvince = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchProvinceByNameEnService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchProvinceByCodeEnService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedProvince = null;
+      })
+      .addCase(fetchProvinceByCodeEnService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedProvince = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchProvinceByCodeEnService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    // Create province handlers
+    builder
+      .addCase(createProvinceService.pending, (state) => {
         state.operations.isCreating = true;
         state.error = null;
       })
-      .addCase(createSubscriptionService.fulfilled, (state, action) => {
+      .addCase(createProvinceService.fulfilled, (state, action) => {
         state.operations.isCreating = false;
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
@@ -130,20 +204,20 @@ const subscriptionSlice = createSlice({
           );
         }
       })
-      .addCase(createSubscriptionService.rejected, (state, action) => {
+      .addCase(createProvinceService.rejected, (state, action) => {
         state.operations.isCreating = false;
         state.error = action.payload as string;
       });
 
-    // Update Subscription handlers
+    // Update province handlers
     builder
-      .addCase(updateSubscriptionService.pending, (state) => {
+      .addCase(updateProvinceService.pending, (state) => {
         state.operations.isUpdating = true;
         state.error = null;
       })
-      .addCase(updateSubscriptionService.fulfilled, (state, action) => {
+      .addCase(updateProvinceService.fulfilled, (state, action) => {
         state.operations.isUpdating = false;
-        state.selectedSubscription = action.payload;
+        state.selectedProvince = action.payload;
 
         // Update in list
         if (state.data) {
@@ -152,18 +226,18 @@ const subscriptionSlice = createSlice({
           );
         }
       })
-      .addCase(updateSubscriptionService.rejected, (state, action) => {
+      .addCase(updateProvinceService.rejected, (state, action) => {
         state.operations.isUpdating = false;
         state.error = action.payload as string;
       });
 
-    // Delete Subscription handlers
+    // Delete province handlers
     builder
-      .addCase(deleteSubscriptionService.pending, (state) => {
+      .addCase(deleteProvinceService.pending, (state) => {
         state.operations.isDeleting = true;
         state.error = null;
       })
-      .addCase(deleteSubscriptionService.fulfilled, (state, action) => {
+      .addCase(deleteProvinceService.fulfilled, (state, action) => {
         state.operations.isDeleting = false;
         if (state.data) {
           state.data.content = state.data.content.filter(
@@ -178,7 +252,7 @@ const subscriptionSlice = createSlice({
           state.data.hasPrevious = state.data.pageNo > 1;
         }
       })
-      .addCase(deleteSubscriptionService.rejected, (state, action) => {
+      .addCase(deleteProvinceService.rejected, (state, action) => {
         state.operations.isDeleting = false;
         state.error = action.payload as string;
       });
@@ -189,8 +263,9 @@ export const {
   setSearchFilter,
   setPageNo,
   clearError,
+  clearSelectedProvince,
   resetFilters,
   resetState,
-} = subscriptionSlice.actions;
+} = provinceSlice.actions;
 
-export default subscriptionSlice.reducer;
+export default provinceSlice.reducer;

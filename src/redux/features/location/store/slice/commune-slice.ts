@@ -1,21 +1,27 @@
 /**
- * Business Management - Redux Slice
- * Manages business state: data, loading, errors, filters, operations
+ * Commune Management - Redux Slice
+ * Manages Commune state: data, loading, errors, filters, operations
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import {
-  BusinessStatus,
-  SubscriptionStatus,
-} from "@/constants/AppResource/status/status";
 import { CommuneManagementState } from "../models/type/commune-type";
+import {
+  createCommuneService,
+  deleteCommuneService,
+  fetchAllCommuneService,
+  fetchCommuneByCodeEnService,
+  fetchCommuneByIdService,
+  fetchCommuneByNameEnService,
+  fetchCommuneByNameKhService,
+  updateCommuneService,
+} from "../thunks/commune-thunks";
 
 /**
  * Initial state
  */
 const initialState: CommuneManagementState = {
   data: null,
-  selectedBusiness: null,
+  selectedCommune: null,
   isLoading: false,
   error: null,
   filters: {
@@ -43,19 +49,6 @@ const communeSlice = createSlice({
       state.filters.pageNo = 1;
     },
 
-    setBusinessStatusFilter: (state, action: PayloadAction<BusinessStatus>) => {
-      state.filters.businessStatus = action.payload;
-      state.filters.pageNo = 1;
-    },
-
-    setHasSubscriptionFilter: (
-      state,
-      action: PayloadAction<SubscriptionStatus>
-    ) => {
-      state.filters.hasActiveSubscription = action.payload;
-      state.filters.pageNo = 1;
-    },
-
     setPageNo: (state, action: PayloadAction<number>) => {
       state.filters.pageNo = action.payload;
     },
@@ -65,8 +58,8 @@ const communeSlice = createSlice({
       state.error = null;
     },
 
-    clearSelectedBusiness: (state) => {
-      state.selectedBusiness = null;
+    clearSelectedCommune: (state) => {
+      state.selectedCommune = null;
     },
 
     resetFilters: (state) => {
@@ -79,31 +72,31 @@ const communeSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-    // Fetch business handlers - ONLY affects list loading
+    // Fetch communes handlers - ONLY affects list loading
     builder
-      .addCase(fetchAllBusinessService.pending, (state) => {
+      .addCase(fetchAllCommuneService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAllBusinessService.fulfilled, (state, action) => {
+      .addCase(fetchAllCommuneService.fulfilled, (state, action) => {
         state.isLoading = false;
         state.data = action.payload;
       })
-      .addCase(fetchAllBusinessService.rejected, (state, action) => {
+      .addCase(fetchAllCommuneService.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
 
-    // Fetch business by ID handlers - USE SEPARATE LOADING STATE
+    // Fetch communes by ID handlers - USE SEPARATE LOADING STATE
     builder
-      .addCase(fetchBusinessByIdService.pending, (state) => {
+      .addCase(fetchCommuneByIdService.pending, (state) => {
         state.operations.isFetchingDetail = true;
         state.error = null;
-        state.selectedBusiness = null;
+        state.selectedCommune = null;
       })
-      .addCase(fetchBusinessByIdService.fulfilled, (state, action) => {
+      .addCase(fetchCommuneByIdService.fulfilled, (state, action) => {
         state.operations.isFetchingDetail = false;
-        state.selectedBusiness = action.payload;
+        state.selectedCommune = action.payload;
 
         // Also update in list if exists (for consistency)
         if (state.data?.content) {
@@ -115,18 +108,93 @@ const communeSlice = createSlice({
           }
         }
       })
-      .addCase(fetchBusinessByIdService.rejected, (state, action) => {
+      .addCase(fetchCommuneByIdService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchCommuneByNameKhService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedCommune = null;
+      })
+      .addCase(fetchCommuneByNameKhService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedCommune = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchCommuneByNameKhService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchCommuneByNameEnService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedCommune = null;
+      })
+      .addCase(fetchCommuneByNameEnService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedCommune = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchCommuneByNameEnService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchCommuneByCodeEnService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedCommune = null;
+      })
+      .addCase(fetchCommuneByCodeEnService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedCommune = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchCommuneByCodeEnService.rejected, (state, action) => {
         state.operations.isFetchingDetail = false;
         state.error = action.payload as string;
       });
 
     // Create business handlers
     builder
-      .addCase(createBusinessService.pending, (state) => {
+      .addCase(createCommuneService.pending, (state) => {
         state.operations.isCreating = true;
         state.error = null;
       })
-      .addCase(createBusinessService.fulfilled, (state, action) => {
+      .addCase(createCommuneService.fulfilled, (state, action) => {
         state.operations.isCreating = false;
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
@@ -136,20 +204,20 @@ const communeSlice = createSlice({
           );
         }
       })
-      .addCase(createBusinessService.rejected, (state, action) => {
+      .addCase(createCommuneService.rejected, (state, action) => {
         state.operations.isCreating = false;
         state.error = action.payload as string;
       });
 
-    // Update business handlers
+    // Update communes handlers
     builder
-      .addCase(updateBusinessService.pending, (state) => {
+      .addCase(updateCommuneService.pending, (state) => {
         state.operations.isUpdating = true;
         state.error = null;
       })
-      .addCase(updateBusinessService.fulfilled, (state, action) => {
+      .addCase(updateCommuneService.fulfilled, (state, action) => {
         state.operations.isUpdating = false;
-        state.selectedBusiness = action.payload;
+        state.selectedCommune = action.payload;
 
         // Update in list
         if (state.data) {
@@ -158,18 +226,18 @@ const communeSlice = createSlice({
           );
         }
       })
-      .addCase(updateBusinessService.rejected, (state, action) => {
+      .addCase(updateCommuneService.rejected, (state, action) => {
         state.operations.isUpdating = false;
         state.error = action.payload as string;
       });
 
-    // Delete business handlers
+    // Delete communes handlers
     builder
-      .addCase(deleteBusinessService.pending, (state) => {
+      .addCase(deleteCommuneService.pending, (state) => {
         state.operations.isDeleting = true;
         state.error = null;
       })
-      .addCase(deleteBusinessService.fulfilled, (state, action) => {
+      .addCase(deleteCommuneService.fulfilled, (state, action) => {
         state.operations.isDeleting = false;
         if (state.data) {
           state.data.content = state.data.content.filter(
@@ -184,7 +252,7 @@ const communeSlice = createSlice({
           state.data.hasPrevious = state.data.pageNo > 1;
         }
       })
-      .addCase(deleteBusinessService.rejected, (state, action) => {
+      .addCase(deleteCommuneService.rejected, (state, action) => {
         state.operations.isDeleting = false;
         state.error = action.payload as string;
       });
@@ -193,13 +261,11 @@ const communeSlice = createSlice({
 
 export const {
   setSearchFilter,
-  setBusinessStatusFilter,
   setPageNo,
   clearError,
-  clearSelectedBusiness,
+  clearSelectedCommune,
   resetFilters,
   resetState,
-  setHasSubscriptionFilter,
-} = businessSlice.actions;
+} = communeSlice.actions;
 
-export default businessSlice.reducer;
+export default communeSlice.reducer;

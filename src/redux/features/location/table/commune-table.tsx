@@ -2,28 +2,28 @@ import { ActionButton } from "@/components/shared/common/action-button";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash } from "lucide-react";
-import {
-  AllDistrictResponseModel,
-  DistrictResponseModel,
-} from "../store/models/response/district-response";
 import { TableColumn } from "@/components/shared/common/data-table";
+import {
+  AllCommuneResponseModel,
+  CommuneResponseModel,
+} from "../store/models/response/commune-response";
 
-interface DistrictTableHandlers {
-  handleEditDistrict: (district: DistrictResponseModel) => void;
-  handleDistrictViewDetail: (district: DistrictResponseModel) => void;
-  handleDeleteDistrict: (district: DistrictResponseModel) => void;
+interface CommuneTableHandlers {
+  handleEditCommune: (commune: CommuneResponseModel) => void;
+  handleCommuneViewDetail: (commune: CommuneResponseModel) => void;
+  handleDeleteCommune: (commune: CommuneResponseModel) => void;
 }
 
-interface DistrictTableOptions {
-  data: AllDistrictResponseModel | null;
-  handlers: DistrictTableHandlers;
+interface CommuneTableOptions {
+  data: AllCommuneResponseModel | null;
+  handlers: CommuneTableHandlers;
 }
 
-export const districtTableColumns = ({
+export const communeTableColumns = ({
   data,
   handlers,
-}: DistrictTableOptions): TableColumn<DistrictResponseModel>[] => {
-  const { handleEditDistrict, handleDistrictViewDetail, handleDeleteDistrict } =
+}: CommuneTableOptions): TableColumn<CommuneResponseModel>[] => {
+  const { handleEditCommune, handleCommuneViewDetail, handleDeleteCommune } =
     handlers;
 
   return [
@@ -39,39 +39,65 @@ export const districtTableColumns = ({
       ),
     },
     {
+      key: "communeCode",
+      label: "Commune Code",
+      minWidth: "10px",
+      maxWidth: "400px",
+      truncate: true,
+      render: (commune) => (
+        <span className="text-xs text-muted-foreground">
+          {commune?.communeCode || "---"}
+        </span>
+      ),
+    },
+    {
+      key: "communeEn",
+      label: "Commune EN",
+      minWidth: "10px",
+      maxWidth: "400px",
+      truncate: true,
+      render: (commune) => (
+        <span className="text-xs text-muted-foreground">
+          {commune?.communeEn || "---"}
+        </span>
+      ),
+    },
+
+    {
+      key: "communeKh",
+      label: "Commune KH",
+      minWidth: "10px",
+      maxWidth: "400px",
+      truncate: true,
+      render: (commune) => (
+        <span className="text-xs text-muted-foreground">
+          {commune?.communeKh || "---"}
+        </span>
+      ),
+    },
+
+    {
       key: "districtCode",
       label: "District Code",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (district) => (
+      render: (commune) => (
         <span className="text-xs text-muted-foreground">
-          {district?.districtCode || "---"}
+          {commune?.district.districtCode || "---"}
         </span>
       ),
     },
+
     {
       key: "districtEn",
       label: "District EN",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (district) => (
+      render: (commune) => (
         <span className="text-xs text-muted-foreground">
-          {district?.districtEn || "---"}
-        </span>
-      ),
-    },
-
-    {
-      key: "districtKh",
-      label: "District KH",
-      minWidth: "10px",
-      maxWidth: "400px",
-      truncate: true,
-      render: (district) => (
-        <span className="text-xs text-muted-foreground">
-          {district?.districtKh || "---"}
+          {commune?.district.districtEn || "---"}
         </span>
       ),
     },
@@ -82,9 +108,9 @@ export const districtTableColumns = ({
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (district) => (
+      render: (commune) => (
         <span className="text-xs text-muted-foreground">
-          {district?.province.provinceCode || "---"}
+          {commune?.district.province.provinceCode || "---"}
         </span>
       ),
     },
@@ -95,9 +121,9 @@ export const districtTableColumns = ({
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (district) => (
+      render: (commune) => (
         <span className="text-xs text-muted-foreground">
-          {district?.province.provinceEn || "---"}
+          {commune?.district.province.provinceEn || "---"}
         </span>
       ),
     },
@@ -107,9 +133,9 @@ export const districtTableColumns = ({
       label: "Created At",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (district) => (
+      render: (commune) => (
         <span className="text-sm text-muted-foreground">
-          {dateTimeFormat(district?.createdAt)}
+          {dateTimeFormat(commune?.createdAt)}
         </span>
       ),
     },
@@ -119,22 +145,22 @@ export const districtTableColumns = ({
       label: "Actions",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (district) => (
+      render: (commune) => (
         <div className="flex items-center gap-2">
           <ActionButton
             icon={<Eye className="w-4 h-4" />}
             tooltip="View Details"
-            onClick={() => handleDistrictViewDetail(district)}
+            onClick={() => handleCommuneViewDetail(commune)}
           />
           <ActionButton
             icon={<Edit className="w-4 h-4" />}
-            tooltip="Edit District"
-            onClick={() => handleEditDistrict(district)}
+            tooltip="Edit Commune"
+            onClick={() => handleEditCommune(commune)}
           />
           <ActionButton
             icon={<Trash className="w-4 h-4" />}
-            tooltip="Delete District"
-            onClick={() => handleDeleteDistrict(district)}
+            tooltip="Delete Commune"
+            onClick={() => handleDeleteCommune(commune)}
             variant="destructive"
           />
         </div>

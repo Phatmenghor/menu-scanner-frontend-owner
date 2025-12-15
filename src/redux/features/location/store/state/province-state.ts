@@ -5,18 +5,18 @@ import {
   selectIsLoading,
   selectOperations,
   selectPagination,
-  selectSubscription,
-  selectSubscriptionContent,
-  selectSubscriptionState,
+  selectProvince,
+  selectProvinceContent,
+  selectProvinceState,
 } from "../selectors/province-selector";
 
-export const useSubscriptionState = () => {
+export const useProvinceState = () => {
   const dispatch = useAppDispatch();
 
   // Redux selectors
-  const subscriptionState = useAppSelector(selectSubscriptionState);
-  const subscriptionData = useAppSelector(selectSubscription);
-  const subscriptionContent = useAppSelector(selectSubscriptionContent);
+  const provinceState = useAppSelector(selectProvinceState);
+  const provinceData = useAppSelector(selectProvince);
+  const provinceContent = useAppSelector(selectProvinceContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
@@ -24,9 +24,9 @@ export const useSubscriptionState = () => {
   const error = useAppSelector(selectError);
 
   return {
-    subscriptionState,
-    subscriptionData,
-    subscriptionContent,
+    provinceState,
+    provinceData,
+    provinceContent,
     isLoading,
     error,
     filters,

@@ -7,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ModalMode } from "@/constants/AppResource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
-import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { FormHeader } from "@/components/shared/form-field/form-header";
@@ -15,43 +14,39 @@ import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { showToast } from "@/components/shared/common/show-toast";
-import {
-  createExchangeRateSchema,
-  ExchangeRateFormData,
-  updateExchangeRateSchema,
-} from "../store/models/schema/district-schema";
-import {
-  createExchangeRateService,
-  fetchExchangeRateByIdService,
-  updateExchangeRateService,
-} from "../store/thunks/village-thunks";
-import {
-  clearError,
-  clearSelectedExchangeRate,
-} from "../store/slice/district-slice";
-import {
-  CreateExchangeRateRequest,
-  UpdateExchangeRateRequest,
-} from "../store/models/request/district-request";
+import { getFieldError } from "@/utils/common/get-field-error";
 import {
   selectError,
   selectIsFetchingDetail,
   selectOperations,
-  selectSelectedExchangeRate,
-} from "../store/selectors/district-selector";
-import { getFieldError } from "@/utils/common/get-field-error";
+} from "../store/selectors/commune-selector";
+import {
+  createCommuneService,
+  fetchCommuneByIdService,
+  updateCommuneService,
+} from "../store/thunks/commune-thunks";
+import {
+  CommuneFormData,
+  createCommuneSchema,
+  updateCommuneSchema,
+} from "../store/models/schema/commune-schema";
+import {
+  CreateCommuneRequest,
+  UpdateCommuneRequest,
+} from "../store/models/request/commune-request";
+import { clearError, clearSelectedCommune } from "../store/slice/commune-slice";
 
 type Props = {
   mode: ModalMode;
-  exchangeId?: string;
+  communeId?: string;
   onClose: () => void;
   isOpen: boolean;
 };
 
-export default function ExchangeRateModal({
+export default function CommuneModal({
   isOpen,
   onClose,
-  exchangeId,
+  communeId,
   mode,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
@@ -71,50 +66,54 @@ export default function ExchangeRateModal({
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<ExchangeRateFormData>({
+  } = useForm<CommuneFormData>({
     resolver: zodResolver(
-      isCreate ? createExchangeRateSchema : updateExchangeRateSchema
+      isCreate ? createCommuneSchema : updateCommuneSchema
     ) as any,
     defaultValues: {
-      usdToKhrRate: 0,
-      notes: "",
+      communeCode: "",
+      communeEn: "",
+      communeKh: "",
+      districtCode: "",
     },
     mode: "onChange",
   });
 
-  // Fetch exchange-rate data for edit mode
+  // Fetch business data for edit mode
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!exchangeId || !isOpen || isCreate) return;
+      if (!communeId || !isOpen || isCreate) return;
 
       try {
-        const resultAction = await dispatch(
-          fetchExchangeRateByIdService(exchangeId)
-        );
+        const resultAction = await dispatch(fetchCommuneByIdService(communeId));
 
-        if (fetchExchangeRateByIdService.fulfilled.match(resultAction)) {
+        if (fetchCommuneByIdService.fulfilled.match(resultAction)) {
           const resposne = resultAction.payload;
 
           reset({
             id: resposne.id,
-            usdToKhrRate: resposne.usdToKhrRate,
-            notes: resposne.notes,
+            communeCode: resposne.communeCode,
+            communeEn: resposne.communeEn,
+            communeKh: resposne.communeKh,
+            districtCode: resposne.districtCode,
           });
         }
       } catch (error) {
-        console.error("Error fetching ex data:", error);
+        console.error("Error fetching commune data:", error);
       }
     };
 
     fetchUserData();
-  }, [exchangeId, isOpen, isCreate, reset, dispatch]);
+  }, [communeId, isOpen, isCreate, reset, dispatch]);
 
   // Reset form for create mode
   useEffect(() => {
     if (isOpen && isCreate) {
       reset({
-        usdToKhrRate: 0,
-        notes: "",
+        communeCode: "",
+        communeEn: "",
+        communeKh: "",
+        districtCode: "",
       });
     }
   }, [isOpen, isCreate, reset]);
@@ -126,54 +125,51 @@ export default function ExchangeRateModal({
     }
   }, [isOpen, dispatch]);
 
-  const onSubmit = async (data: ExchangeRateFormData) => {
+  const onSubmit = async (data: CommuneFormData) => {
     try {
       if (isCreate) {
-        const payload: CreateExchangeRateRequest = {
-          usdToKhrRate: data.usdToKhrRate!,
-          notes: data?.notes,
+        const payload: CreateCommuneRequest = {
+          communeCode: data.communeCode,
+          communeEn: data.communeEn,
+          communeKh: data.communeKh,
+          districtCode: data.districtCode,
         };
 
-        const result = await dispatch(
-          createExchangeRateService(payload)
-        ).unwrap();
+        const result = await dispatch(createCommuneService(payload)).unwrap();
 
         showToast.success(
-          `Exchange Rate "${result.name || result.email}" created successfully`
+          `Commune "${result.provinceEn}" created successfully`
         );
 
         handleClose();
       } else {
-        const payload: UpdateExchangeRateRequest = {
-          usdToKhrRate: data.usdToKhrRate!,
-          notes: data?.notes,
+        const payload: UpdateCommuneRequest = {
+          communeCode: data.communeCode,
+          communeEn: data.communeEn,
+          communeKh: data.communeKh,
+          districtCode: data.districtCode,
         };
 
         const result = await dispatch(
-          updateExchangeRateService({
-            exchangeRateId: data.id!,
-            exchangeRateData: payload,
-          })
+          updateCommuneService({ communeId: data.id!, communeData: payload })
         ).unwrap();
 
         showToast.success(
-          `Exchange Rate "${
-            result.fullName || result.email
-          }" updated successfully`
+          `Commune "${result.provinceEn}" updated successfully`
         );
 
         handleClose();
       }
     } catch (error: any) {
-      console.error("Error saving Exchange Rate:", error);
-      showToast.error(error || "Failed to save Exchange Rate");
+      console.error("Error saving commune:", error);
+      showToast.error(error || "Failed to save commune");
     }
   };
 
   const handleClose = () => {
     reset();
     dispatch(clearError());
-    dispatch(clearSelectedExchangeRate());
+    dispatch(clearSelectedCommune());
     onClose();
   };
 
@@ -184,11 +180,13 @@ export default function ExchangeRateModal({
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
         {/* Header */}
         <FormHeader
-          title={isCreate ? "Create Exchange Rate" : "Edit Exchange Rate"}
+          title={
+            isCreate ? "Create New Commune" : "Update Commune information below"
+          }
           description={
             isCreate
-              ? "Add a new exchange rate to the system"
-              : "Update exchange rate information"
+              ? "Fill out the form to create a new Commune"
+              : "Update Commune information below"
           }
           showAvatar={false}
           isCreate={isCreate}
@@ -219,25 +217,44 @@ export default function ExchangeRateModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <TextField
                   control={control}
-                  name="usdToKhrRate"
-                  label="USD To Khr Rate"
-                  placeholder="Enter USD To Khr Rate"
+                  name="communeCode"
+                  label="Commune Code"
+                  placeholder="Enter Commune Code"
                   disabled={isSubmitting}
                   required
-                  error={getFieldError(errors.usdToKhrRate)}
+                  error={getFieldError(errors.communeCode)}
+                />
+
+                <TextField
+                  control={control}
+                  name="communeEn"
+                  label="Commune EN"
+                  placeholder="Enter Commune EN"
+                  disabled={isSubmitting}
+                  required
+                  error={getFieldError(errors.communeEn)}
+                />
+
+                <TextField
+                  control={control}
+                  name="communeKh"
+                  label="Commune KH"
+                  placeholder="Enter Commune KH"
+                  disabled={isSubmitting}
+                  required
+                  error={getFieldError(errors.communeKh)}
+                />
+
+                <TextField
+                  control={control}
+                  name="districtCode"
+                  label="District Code"
+                  placeholder="Enter District Code"
+                  disabled={isSubmitting}
+                  required
+                  error={getFieldError(errors.districtCode)}
                 />
               </div>
-
-              {/* Notes - Separate Row */}
-              <TextareaField
-                control={control}
-                name="notes"
-                label="Remark"
-                placeholder="Enter any additional notes (optional)"
-                rows={5}
-                disabled={isSubmitting}
-                error={getFieldError(errors.notes)}
-              />
             </FormBody>
 
             {/* Footer */}
@@ -245,8 +262,8 @@ export default function ExchangeRateModal({
               isSubmitting={isSubmitting}
               isDirty={isDirty}
               isCreate={isCreate}
-              createMessage="Creating exchange..."
-              updateMessage="Updating exchange..."
+              createMessage="Creating province..."
+              updateMessage="Updating province..."
             >
               <CancelButton onClick={handleClose} disabled={isSubmitting} />
 
@@ -254,8 +271,8 @@ export default function ExchangeRateModal({
                 isSubmitting={isSubmitting}
                 isDirty={isDirty}
                 isCreate={isCreate}
-                createText="Create Exchange"
-                updateText="Update Exchange"
+                createText="Create province"
+                updateText="Update province"
                 submittingCreateText="Creating..."
                 submittingUpdateText="Updating..."
               />

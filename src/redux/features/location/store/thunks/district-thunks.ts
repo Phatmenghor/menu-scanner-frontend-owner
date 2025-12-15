@@ -6,11 +6,6 @@
 import { axiosClientWithAuth } from "@/utils/axios";
 import { createApiThunk } from "@/utils/axios/apiWrapper";
 import {
-  AllCommuneRequest,
-  CreateCommuneRequest,
-  UpdateCommuneParams,
-} from "../models/request/commune-request";
-import {
   AllDistrictRequest,
   CreateDistrictRequest,
   UpdateDistrictParams,

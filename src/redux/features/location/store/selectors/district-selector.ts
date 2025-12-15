@@ -1,42 +1,37 @@
 import { RootState } from "@/redux/store";
 import { createSelector } from "@reduxjs/toolkit";
 
-export const selectExchangeRateState = (state: RootState) => state.exchangeRate;
+export const selectDistrictState = (state: RootState) => state.district;
 
-export const selectExchangeRate = (state: RootState) => state.exchangeRate.data;
+export const selectDistrict = (state: RootState) => state.district.data;
 
-export const selectSelectedExchangeRate = (state: RootState) =>
-  state.exchangeRate.selectedExchangeRate;
+export const selectSelectedDistrict = (state: RootState) =>
+  state.district.selectedDistrict;
 
-export const selectExchangeRateContent = (state: RootState) =>
-  state.exchangeRate.data?.content || [];
+export const selectDistrictContent = (state: RootState) =>
+  state.district.data?.content || [];
 
-export const selectIsLoading = (state: RootState) =>
-  state.exchangeRate.isLoading;
+export const selectIsLoading = (state: RootState) => state.district.isLoading;
 
 export const selectIsFetchingDetail = (state: RootState) =>
-  state.exchangeRate.operations.isFetchingDetail;
+  state.district.operations.isFetchingDetail;
 
-export const selectError = (state: RootState) => state.exchangeRate.error;
+export const selectError = (state: RootState) => state.district.error;
 
-export const selectFilters = (state: RootState) => state.exchangeRate.filters;
+export const selectFilters = (state: RootState) => state.district.filters;
 
-export const selectOperations = (state: RootState) =>
-  state.exchangeRate.operations;
+export const selectOperations = (state: RootState) => state.district.operations;
 
 /**
  * Select pagination metadata
  */
-export const selectPagination = createSelector(
-  [selectExchangeRate],
-  (data) => ({
-    currentPage: data?.pageNo || 1,
-    totalPages: data?.totalPages || 1,
-    totalElements: data?.totalElements || 0,
-    pageSize: data?.pageSize || 10,
-    last: data?.last || false,
-    first: data?.first || true,
-    hasNext: data?.hasNext || false,
-    hasPrevious: data?.hasPrevious || false,
-  })
-);
+export const selectPagination = createSelector([selectDistrict], (data) => ({
+  currentPage: data?.pageNo || 1,
+  totalPages: data?.totalPages || 1,
+  totalElements: data?.totalElements || 0,
+  pageSize: data?.pageSize || 10,
+  last: data?.last || false,
+  first: data?.first || true,
+  hasNext: data?.hasNext || false,
+  hasPrevious: data?.hasPrevious || false,
+}));

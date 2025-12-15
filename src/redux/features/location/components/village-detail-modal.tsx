@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { getStatusColor, formatEnumToDisplay } from "@/utils/styles/enum-style";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { DetailModal } from "@/components/shared/modal/detail-modal";
 import {
@@ -12,46 +10,46 @@ import {
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   selectIsFetchingDetail,
-  selectSelectedPayment,
+  selectSelectedVillage,
 } from "../store/selectors/vaillage-selector";
-import { fetchPaymentByIdService } from "../store/thunks/commune-thunks";
-import { clearSelectedPayment } from "../store/slice/village-slice";
+import { fetchVillageByIdService } from "../store/thunks/village-thunks";
+import { clearSelectedVillage } from "../store/slice/village-slice";
 
-interface PaymentDetailModalProps {
-  paymentId?: string;
+interface VillageDetailModalProps {
+  villageId?: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function PaymentDetailModal({
-  paymentId,
+export function VillageDetailModal({
+  villageId,
   isOpen,
   onClose,
-}: PaymentDetailModalProps) {
+}: VillageDetailModalProps) {
   const dispatch = useAppDispatch();
 
   // Use SEPARATE loading state - won't affect main page
   const isFetchingDetail = useAppSelector(selectIsFetchingDetail);
 
   // Get selected user from Redux
-  const paymentData = useAppSelector(selectSelectedPayment);
+  const villageData = useAppSelector(selectSelectedVillage);
 
   useEffect(() => {
-    const fetchPaymentData = async () => {
-      if (!paymentId || !isOpen) return;
+    const fetctVillageData = async () => {
+      if (!villageId || !isOpen) return;
 
       try {
-        await dispatch(fetchPaymentByIdService(paymentId)).unwrap();
+        await dispatch(fetchVillageByIdService(villageId)).unwrap();
       } catch (error: any) {
-        console.error("Error fetching payment data:", error);
+        console.error("Error fetching village data:", error);
       }
     };
 
-    fetchPaymentData();
-  }, [paymentId, isOpen, dispatch]);
+    fetctVillageData();
+  }, [villageId, isOpen, dispatch]);
 
   const handleClose = () => {
-    dispatch(clearSelectedPayment());
+    dispatch(clearSelectedVillage());
     onClose();
   };
 
@@ -60,95 +58,108 @@ export function PaymentDetailModal({
       isOpen={isOpen}
       onClose={handleClose}
       isLoading={isFetchingDetail}
-      title={"Payment Details"}
-      description={
-        paymentData?.amount.toString() || "Loading payment information..."
-      }
-      avatarUrl={paymentData?.imageUrl}
-      avatarName={paymentData?.amount.toString()}
-      badges={
-        paymentData && (
-          <>
-            <Badge
-              variant="outline"
-              className={getStatusColor(paymentData?.status ?? null)}
-            >
-              <span className="ml-1.5">
-                {formatEnumToDisplay(paymentData?.status ?? "")}
-              </span>
-            </Badge>
-          </>
-        )
-      }
+      title={"Village Details"}
+      description={villageData?.villageEn || "Loading village information..."}
     >
-      {paymentData ? (
+      {villageData ? (
         <div className="space-y-6">
           {/* Personal Information */}
-          <DetailSection title="Payment Information">
+          <DetailSection title="Village Information">
             <DetailRow
-              label="Amount Dollat"
-              value={paymentData?.formattedAmount || "---"}
+              label="Village Code"
+              value={villageData?.villageCode || "---"}
             />
+
             <DetailRow
-              label="amount"
-              value={paymentData?.formattedAmountKhr || "---"}
+              label="Village EN"
+              value={villageData?.villageEn || "---"}
             />
+
             <DetailRow
-              label="Payment Method"
-              value={paymentData?.paymentMethod || "---"}
+              label="Village KH"
+              value={villageData?.villageKh || "---"}
             />
-            <DetailRow label="Status" value={paymentData?.status || "---"} />
+
             <DetailRow
-              label="Reference Number"
-              value={paymentData?.referenceNumber || "---"}
+              label="Commune Code"
+              value={villageData?.commune.communeCode || "---"}
             />
+
             <DetailRow
-              label="Bisiness Name"
-              value={paymentData?.businessName || "---"}
+              label="Commune EN"
+              value={villageData?.commune.communeEn || "---"}
             />
+
             <DetailRow
-              label="Plan Name"
-              value={paymentData?.planName || "---"}
+              label="Commune KH"
+              value={villageData?.commune.communeKh || "---"}
             />
+
             <DetailRow
-              label="Subscription Display Name"
-              value={paymentData?.subscriptionDisplayName || "---"}
+              label="District Code"
+              value={villageData?.commune.district.districtCode || "---"}
             />
-            <DetailRow label="Remark" value={paymentData?.notes || "---"} />
+
+            <DetailRow
+              label="District EN"
+              value={villageData?.commune.district.districtEn || "---"}
+            />
+
+            <DetailRow
+              label="District KH"
+              value={villageData?.commune.district.districtKh || "---"}
+            />
+
+            <DetailRow
+              label="Province Code"
+              value={
+                villageData?.commune.district.province.provinceCode || "---"
+              }
+            />
+
+            <DetailRow
+              label="Province EN"
+              value={villageData?.commune.district.province.provinceEn || "---"}
+            />
+
+            <DetailRow
+              label="Province KH"
+              value={villageData?.commune.district.province.provinceKh || "---"}
+            />
           </DetailSection>
 
           {/* System Information */}
           <DetailSection title="System Information">
             <DetailRow
-              label="Payment ID"
+              label="Village ID"
               value={
                 <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                  {paymentData?.id}
+                  {villageData?.id}
                 </span>
               }
             />
             <DetailRow
               label="Created At"
-              value={dateTimeFormat(paymentData?.createdAt ?? "")}
+              value={dateTimeFormat(villageData?.createdAt ?? "")}
             />
             <DetailRow
               label="Created By"
-              value={paymentData?.createdBy || "---"}
+              value={villageData?.createdBy || "---"}
             />
             <DetailRow
               label="Last Updated"
-              value={dateTimeFormat(paymentData?.updatedAt ?? "")}
+              value={dateTimeFormat(villageData?.updatedAt ?? "")}
             />
             <DetailRow
               label="Updated By"
-              value={paymentData?.updatedBy || "---"}
+              value={villageData?.updatedBy || "---"}
               isLast
             />
           </DetailSection>
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No payment data available</p>
+          <p className="text-muted-foreground">No village data available</p>
         </div>
       )}
     </DetailModal>

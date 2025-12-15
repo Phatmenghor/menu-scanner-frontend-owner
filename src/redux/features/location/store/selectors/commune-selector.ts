@@ -1,31 +1,31 @@
 import { RootState } from "@/redux/store";
 import { createSelector } from "@reduxjs/toolkit";
 
-export const selectBusinessState = (state: RootState) => state.business;
+export const selectCommuneState = (state: RootState) => state.commune;
 
-export const selectBusiness = (state: RootState) => state.business.data;
+export const selectCommune = (state: RootState) => state.commune.data;
 
-export const selectSelectedBusiness = (state: RootState) =>
-  state.business.selectedBusiness;
+export const selectSelectedCommune = (state: RootState) =>
+  state.commune.selectedCommune;
 
-export const selectBusinessContent = (state: RootState) =>
-  state.business.data?.content || [];
+export const selectCommuneContent = (state: RootState) =>
+  state.commune.data?.content || [];
 
-export const selectIsLoading = (state: RootState) => state.business.isLoading;
+export const selectIsLoading = (state: RootState) => state.commune.isLoading;
 
 export const selectIsFetchingDetail = (state: RootState) =>
-  state.business.operations.isFetchingDetail;
+  state.commune.operations.isFetchingDetail;
 
-export const selectError = (state: RootState) => state.business.error;
+export const selectError = (state: RootState) => state.commune.error;
 
-export const selectFilters = (state: RootState) => state.business.filters;
+export const selectFilters = (state: RootState) => state.commune.filters;
 
-export const selectOperations = (state: RootState) => state.business.operations;
+export const selectOperations = (state: RootState) => state.commune.operations;
 
 /**
  * Select pagination metadata
  */
-export const selectPagination = createSelector([selectBusiness], (data) => ({
+export const selectPagination = createSelector([selectCommune], (data) => ({
   currentPage: data?.pageNo || 1,
   totalPages: data?.totalPages || 1,
   totalElements: data?.totalElements || 0,

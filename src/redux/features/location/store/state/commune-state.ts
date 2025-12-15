@@ -1,22 +1,22 @@
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
+  selectCommune,
+  selectCommuneContent,
+  selectCommuneState,
   selectError,
-  selectExchangeRate,
-  selectExchangeRateContent,
-  selectExchangeRateState,
   selectFilters,
   selectIsLoading,
   selectOperations,
   selectPagination,
-} from "../selectors/district-selector";
+} from "../selectors/commune-selector";
 
-export const useExchangeRateState = () => {
+export const useCommuneState = () => {
   const dispatch = useAppDispatch();
 
   // Redux selectors
-  const exchangeRateState = useAppSelector(selectExchangeRateState);
-  const exchangeRateData = useAppSelector(selectExchangeRate);
-  const exchangeRateContent = useAppSelector(selectExchangeRateContent);
+  const communeState = useAppSelector(selectCommuneState);
+  const communeData = useAppSelector(selectCommune);
+  const communeContent = useAppSelector(selectCommuneContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
@@ -24,9 +24,9 @@ export const useExchangeRateState = () => {
   const error = useAppSelector(selectError);
 
   return {
-    exchangeRateState,
-    exchangeRateData,
-    exchangeRateContent,
+    communeState,
+    communeData,
+    communeContent,
     isLoading,
     error,
     filters,

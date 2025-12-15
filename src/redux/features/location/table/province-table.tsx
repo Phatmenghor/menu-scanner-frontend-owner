@@ -1,29 +1,29 @@
 import { ActionButton } from "@/components/shared/common/action-button";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
-import { Edit, Eye, RotateCw, Trash } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 import { TableColumn } from "@/components/shared/common/data-table";
 import {
-  AllBusinessResponseModel,
-  BusinessResponseModel,
-} from "../store/models/response/commune-response";
+  AllProvinceResponseModel,
+  ProvinceResponseModel,
+} from "../store/models/response/province-response";
 
-interface BusinessTableHandlers {
-  handleEditBusiness: (business: BusinessResponseModel) => void;
-  handleBusinessViewDetail: (business: BusinessResponseModel) => void;
-  handleDeleteBusiness: (business: BusinessResponseModel) => void;
+interface ProvinceTableHandlers {
+  handleEditProvince: (province: ProvinceResponseModel) => void;
+  handleProvinceViewDetail: (province: ProvinceResponseModel) => void;
+  handleDeleteProvince: (province: ProvinceResponseModel) => void;
 }
 
-interface BusinessTableOptions {
-  data: AllBusinessResponseModel | null;
-  handlers: BusinessTableHandlers;
+interface CommuneTableOptions {
+  data: AllProvinceResponseModel | null;
+  handlers: ProvinceTableHandlers;
 }
 
-export const businessTableColumns = ({
+export const provinceTableColumns = ({
   data,
   handlers,
-}: BusinessTableOptions): TableColumn<BusinessResponseModel>[] => {
-  const { handleEditBusiness, handleBusinessViewDetail, handleDeleteBusiness } =
+}: CommuneTableOptions): TableColumn<ProvinceResponseModel>[] => {
+  const { handleEditProvince, handleProvinceViewDetail, handleDeleteProvince } =
     handlers;
 
   return [
@@ -39,86 +39,76 @@ export const businessTableColumns = ({
       ),
     },
     {
-      key: "name",
-      label: "Name",
+      key: "provinceCode",
+      label: "Province Code",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (business) => (
+      render: (province) => (
         <span className="text-xs text-muted-foreground">
-          {business?.name || "---"}
+          {province?.provinceCode || "---"}
         </span>
       ),
     },
     {
-      key: "email",
-      label: "Email",
+      key: "provinceEn",
+      label: "Province EN",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (business) => (
+      render: (province) => (
         <span className="text-xs text-muted-foreground">
-          {business?.email || "---"}
-        </span>
-      ),
-    },
-    {
-      key: "phone",
-      label: "Phone Number",
-      minWidth: "10px",
-      maxWidth: "400px",
-      truncate: true,
-      render: (business) => (
-        <span className="text-xs text-muted-foreground">
-          {business?.phone || "---"}
+          {province?.provinceEn || "---"}
         </span>
       ),
     },
 
     {
-      key: "businessStatus",
-      label: "Business Status",
+      key: "provinceKh",
+      label: "Province KH",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (business) => (
+      render: (province) => (
         <span className="text-xs text-muted-foreground">
-          {business?.status || "---"}
+          {province?.provinceKh || "---"}
         </span>
       ),
     },
+
     {
       key: "createdAt",
       label: "Created At",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (business) => (
+      render: (province) => (
         <span className="text-sm text-muted-foreground">
-          {dateTimeFormat(business?.createdAt)}
+          {dateTimeFormat(province?.createdAt)}
         </span>
       ),
     },
+
     {
       key: "actions",
       label: "Actions",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (business) => (
+      render: (province) => (
         <div className="flex items-center gap-2">
           <ActionButton
             icon={<Eye className="w-4 h-4" />}
             tooltip="View Details"
-            onClick={() => handleBusinessViewDetail(business)}
+            onClick={() => handleProvinceViewDetail(province)}
           />
           <ActionButton
             icon={<Edit className="w-4 h-4" />}
-            tooltip="Edit Business"
-            onClick={() => handleEditBusiness(business)}
+            tooltip="Edit Privince"
+            onClick={() => handleEditProvince(province)}
           />
           <ActionButton
             icon={<Trash className="w-4 h-4" />}
-            tooltip="Delete Business"
-            onClick={() => handleDeleteBusiness(business)}
+            tooltip="Delete Privince"
+            onClick={() => handleDeleteProvince(province)}
             variant="destructive"
           />
         </div>

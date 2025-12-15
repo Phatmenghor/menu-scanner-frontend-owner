@@ -1,33 +1,31 @@
 /**
- * Exchange Rate Management - Redux Slice
- * Manages Exchange Rate state: data, loading, errors, filters, operations
+ * District Management - Redux Slice
+ * Manages District state: data, loading, errors, filters, operations
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { DistrictManagementState } from "../models/type/district-type";
 import {
-  BusinessStatus,
-  ExchangeRateStatus,
-} from "@/constants/AppResource/status/status";
-import { ExchangeRateManagementState } from "../models/type/district-type";
-import {
-  createExchangeRateService,
-  deleteExchangeRateService,
-  fetchAllExchangeRateService,
-  fetchExchangeRateByIdService,
-  updateExchangeRateService,
-} from "../thunks/village-thunks";
+  createDistrictService,
+  deleteDistrictService,
+  fetcDistrictByNameEnService,
+  fetchAllDistrictService,
+  fetchDistrictByCodeEnService,
+  fetchDistrictByIdService,
+  fetchDistrictByNameKhService,
+  updateDistrictService,
+} from "../thunks/district-thunks";
 
 /**
  * Initial state
  */
-const initialState: ExchangeRateManagementState = {
+const initialState: DistrictManagementState = {
   data: null,
-  selectedExchangeRate: null,
+  selectedDistrict: null,
   isLoading: false,
   error: null,
   filters: {
     search: "",
-    isActive: ExchangeRateStatus.ALL,
     pageNo: 1,
   },
   operations: {
@@ -39,23 +37,15 @@ const initialState: ExchangeRateManagementState = {
 };
 
 /**
- * Users slice
+ * district slice
  */
-const exchangeRateSlice = createSlice({
-  name: "exchange-rate",
+const districtSlice = createSlice({
+  name: "districts",
   initialState,
   reducers: {
     // Filter actions
     setSearchFilter: (state, action: PayloadAction<string>) => {
       state.filters.search = action.payload;
-      state.filters.pageNo = 1;
-    },
-
-    setExchangeRateStatusFilter: (
-      state,
-      action: PayloadAction<ExchangeRateStatus>
-    ) => {
-      state.filters.isActive = action.payload;
       state.filters.pageNo = 1;
     },
 
@@ -68,8 +58,8 @@ const exchangeRateSlice = createSlice({
       state.error = null;
     },
 
-    clearSelectedExchangeRate: (state) => {
-      state.selectedExchangeRate = null;
+    clearSelectedDistrict: (state) => {
+      state.selectedDistrict = null;
     },
 
     resetFilters: (state) => {
@@ -82,31 +72,31 @@ const exchangeRateSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-    // Fetch exchange rate handlers - ONLY affects list loading
+    // Fetch district handlers - ONLY affects list loading
     builder
-      .addCase(fetchAllExchangeRateService.pending, (state) => {
+      .addCase(fetchAllDistrictService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAllExchangeRateService.fulfilled, (state, action) => {
+      .addCase(fetchAllDistrictService.fulfilled, (state, action) => {
         state.isLoading = false;
         state.data = action.payload;
       })
-      .addCase(fetchAllExchangeRateService.rejected, (state, action) => {
+      .addCase(fetchAllDistrictService.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
 
-    // Fetch exchange rate by ID handlers - USE SEPARATE LOADING STATE
+    // Fetch district by ID handlers - USE SEPARATE LOADING STATE
     builder
-      .addCase(fetchExchangeRateByIdService.pending, (state) => {
+      .addCase(fetchDistrictByIdService.pending, (state) => {
         state.operations.isFetchingDetail = true;
         state.error = null;
-        state.selectedExchangeRate = null;
+        state.selectedDistrict = null;
       })
-      .addCase(fetchExchangeRateByIdService.fulfilled, (state, action) => {
+      .addCase(fetchDistrictByIdService.fulfilled, (state, action) => {
         state.operations.isFetchingDetail = false;
-        state.selectedExchangeRate = action.payload;
+        state.selectedDistrict = action.payload;
 
         // Also update in list if exists (for consistency)
         if (state.data?.content) {
@@ -118,18 +108,93 @@ const exchangeRateSlice = createSlice({
           }
         }
       })
-      .addCase(fetchExchangeRateByIdService.rejected, (state, action) => {
+      .addCase(fetchDistrictByIdService.rejected, (state, action) => {
         state.operations.isFetchingDetail = false;
         state.error = action.payload as string;
       });
 
-    // Create exchange rate handlers
     builder
-      .addCase(createExchangeRateService.pending, (state) => {
+      .addCase(fetchDistrictByNameKhService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedDistrict = null;
+      })
+      .addCase(fetchDistrictByNameKhService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedDistrict = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchDistrictByNameKhService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetcDistrictByNameEnService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedDistrict = null;
+      })
+      .addCase(fetcDistrictByNameEnService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedDistrict = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetcDistrictByNameEnService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchDistrictByCodeEnService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedDistrict = null;
+      })
+      .addCase(fetchDistrictByCodeEnService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedDistrict = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchDistrictByCodeEnService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    // Create district handlers
+    builder
+      .addCase(createDistrictService.pending, (state) => {
         state.operations.isCreating = true;
         state.error = null;
       })
-      .addCase(createExchangeRateService.fulfilled, (state, action) => {
+      .addCase(createDistrictService.fulfilled, (state, action) => {
         state.operations.isCreating = false;
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
@@ -139,20 +204,20 @@ const exchangeRateSlice = createSlice({
           );
         }
       })
-      .addCase(createExchangeRateService.rejected, (state, action) => {
+      .addCase(createDistrictService.rejected, (state, action) => {
         state.operations.isCreating = false;
         state.error = action.payload as string;
       });
 
-    // Update exchange rate handlers
+    // Update district handlers
     builder
-      .addCase(updateExchangeRateService.pending, (state) => {
+      .addCase(updateDistrictService.pending, (state) => {
         state.operations.isUpdating = true;
         state.error = null;
       })
-      .addCase(updateExchangeRateService.fulfilled, (state, action) => {
+      .addCase(updateDistrictService.fulfilled, (state, action) => {
         state.operations.isUpdating = false;
-        state.selectedExchangeRate = action.payload;
+        state.selectedDistrict = action.payload;
 
         // Update in list
         if (state.data) {
@@ -161,18 +226,18 @@ const exchangeRateSlice = createSlice({
           );
         }
       })
-      .addCase(updateExchangeRateService.rejected, (state, action) => {
+      .addCase(updateDistrictService.rejected, (state, action) => {
         state.operations.isUpdating = false;
         state.error = action.payload as string;
       });
 
-    // Delete exchange rate handlers
+    // Delete district handlers
     builder
-      .addCase(deleteExchangeRateService.pending, (state) => {
+      .addCase(deleteDistrictService.pending, (state) => {
         state.operations.isDeleting = true;
         state.error = null;
       })
-      .addCase(deleteExchangeRateService.fulfilled, (state, action) => {
+      .addCase(deleteDistrictService.fulfilled, (state, action) => {
         state.operations.isDeleting = false;
         if (state.data) {
           state.data.content = state.data.content.filter(
@@ -187,7 +252,7 @@ const exchangeRateSlice = createSlice({
           state.data.hasPrevious = state.data.pageNo > 1;
         }
       })
-      .addCase(deleteExchangeRateService.rejected, (state, action) => {
+      .addCase(deleteDistrictService.rejected, (state, action) => {
         state.operations.isDeleting = false;
         state.error = action.payload as string;
       });
@@ -196,12 +261,11 @@ const exchangeRateSlice = createSlice({
 
 export const {
   setSearchFilter,
-  setExchangeRateStatusFilter,
   setPageNo,
   clearError,
-  clearSelectedExchangeRate,
+  clearSelectedDistrict,
   resetFilters,
   resetState,
-} = exchangeRateSlice.actions;
+} = districtSlice.actions;
 
-export default exchangeRateSlice.reducer;
+export default districtSlice.reducer;

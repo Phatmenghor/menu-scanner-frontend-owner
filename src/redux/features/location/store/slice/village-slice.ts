@@ -1,28 +1,27 @@
 /**
- * Payment Management - Redux Slice
- * Manages Payment state: data, loading, errors, filters, operations
+ * Village Management - Redux Slice
+ * Manages Village state: data, loading, errors, filters, operations
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { VillageManagementState } from "../models/type/village-type";
 import {
-  BusinessStatus,
-  SubscriptionStatus,
-} from "@/constants/AppResource/status/status";
-import { PaymentManagementState } from "../models/type/province-type";
-import {
-  deletePaymentService,
-  fetchAllPaymentService,
-  fetchPaymentByIdService,
-  updatePaymentService,
-} from "../thunks/commune-thunks";
-import { createBusinessService } from "../thunks/province-thunks";
+  createVillageService,
+  deleteVillageService,
+  fetchAllVillageService,
+  fetchVillageByCodeEnService,
+  fetchVillageByIdService,
+  fetchVillageByNameEnService,
+  fetchVillageByNameKhService,
+  updateVillageService,
+} from "../thunks/village-thunks";
 
 /**
  * Initial state
  */
-const initialState: PaymentManagementState = {
+const initialState: VillageManagementState = {
   data: null,
-  selectedPayment: null,
+  selectedVillage: null,
   isLoading: false,
   error: null,
   filters: {
@@ -38,10 +37,10 @@ const initialState: PaymentManagementState = {
 };
 
 /**
- * Payment slice
+ * Village slice
  */
-const paymentSlice = createSlice({
-  name: "businesses",
+const villageSlice = createSlice({
+  name: "villages",
   initialState,
   reducers: {
     // Filter actions
@@ -59,8 +58,8 @@ const paymentSlice = createSlice({
       state.error = null;
     },
 
-    clearSelectedPayment: (state) => {
-      state.selectedPayment = null;
+    clearSelectedVillage: (state) => {
+      state.selectedVillage = null;
     },
 
     resetFilters: (state) => {
@@ -73,31 +72,31 @@ const paymentSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-    // Fetch payment handlers - ONLY affects list loading
+    // Fetch villages handlers - ONLY affects list loading
     builder
-      .addCase(fetchAllPaymentService.pending, (state) => {
+      .addCase(fetchAllVillageService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAllPaymentService.fulfilled, (state, action) => {
+      .addCase(fetchAllVillageService.fulfilled, (state, action) => {
         state.isLoading = false;
         state.data = action.payload;
       })
-      .addCase(fetchAllPaymentService.rejected, (state, action) => {
+      .addCase(fetchAllVillageService.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
 
-    // Fetch payment by ID handlers - USE SEPARATE LOADING STATE
+    // Fetch villages by ID handlers - USE SEPARATE LOADING STATE
     builder
-      .addCase(fetchPaymentByIdService.pending, (state) => {
+      .addCase(fetchVillageByIdService.pending, (state) => {
         state.operations.isFetchingDetail = true;
         state.error = null;
-        state.selectedPayment = null;
+        state.selectedVillage = null;
       })
-      .addCase(fetchPaymentByIdService.fulfilled, (state, action) => {
+      .addCase(fetchVillageByIdService.fulfilled, (state, action) => {
         state.operations.isFetchingDetail = false;
-        state.selectedPayment = action.payload;
+        state.selectedVillage = action.payload;
 
         // Also update in list if exists (for consistency)
         if (state.data?.content) {
@@ -109,18 +108,93 @@ const paymentSlice = createSlice({
           }
         }
       })
-      .addCase(fetchPaymentByIdService.rejected, (state, action) => {
+      .addCase(fetchVillageByIdService.rejected, (state, action) => {
         state.operations.isFetchingDetail = false;
         state.error = action.payload as string;
       });
 
-    // Create payment handlers
     builder
-      .addCase(createBusinessService.pending, (state) => {
+      .addCase(fetchVillageByNameKhService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedVillage = null;
+      })
+      .addCase(fetchVillageByNameKhService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedVillage = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchVillageByNameKhService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchVillageByNameEnService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedVillage = null;
+      })
+      .addCase(fetchVillageByNameEnService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedVillage = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchVillageByNameEnService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchVillageByCodeEnService.pending, (state) => {
+        state.operations.isFetchingDetail = true;
+        state.error = null;
+        state.selectedVillage = null;
+      })
+      .addCase(fetchVillageByCodeEnService.fulfilled, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.selectedVillage = action.payload;
+
+        // Also update in list if exists (for consistency)
+        if (state.data?.content) {
+          const index = state.data.content.findIndex(
+            (user) => user.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.data.content[index] = action.payload;
+          }
+        }
+      })
+      .addCase(fetchVillageByCodeEnService.rejected, (state, action) => {
+        state.operations.isFetchingDetail = false;
+        state.error = action.payload as string;
+      });
+
+    // Create villages handlers
+    builder
+      .addCase(createVillageService.pending, (state) => {
         state.operations.isCreating = true;
         state.error = null;
       })
-      .addCase(createBusinessService.fulfilled, (state, action) => {
+      .addCase(createVillageService.fulfilled, (state, action) => {
         state.operations.isCreating = false;
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
@@ -130,20 +204,20 @@ const paymentSlice = createSlice({
           );
         }
       })
-      .addCase(createBusinessService.rejected, (state, action) => {
+      .addCase(createVillageService.rejected, (state, action) => {
         state.operations.isCreating = false;
         state.error = action.payload as string;
       });
 
-    // Update payment handlers
+    // Update villages handlers
     builder
-      .addCase(updatePaymentService.pending, (state) => {
+      .addCase(updateVillageService.pending, (state) => {
         state.operations.isUpdating = true;
         state.error = null;
       })
-      .addCase(updatePaymentService.fulfilled, (state, action) => {
+      .addCase(updateVillageService.fulfilled, (state, action) => {
         state.operations.isUpdating = false;
-        state.selectedPayment = action.payload;
+        state.selectedVillage = action.payload;
 
         // Update in list
         if (state.data) {
@@ -152,18 +226,18 @@ const paymentSlice = createSlice({
           );
         }
       })
-      .addCase(updatePaymentService.rejected, (state, action) => {
+      .addCase(updateVillageService.rejected, (state, action) => {
         state.operations.isUpdating = false;
         state.error = action.payload as string;
       });
 
-    // Delete payment handlers
+    // Delete villages handlers
     builder
-      .addCase(deletePaymentService.pending, (state) => {
+      .addCase(deleteVillageService.pending, (state) => {
         state.operations.isDeleting = true;
         state.error = null;
       })
-      .addCase(deletePaymentService.fulfilled, (state, action) => {
+      .addCase(deleteVillageService.fulfilled, (state, action) => {
         state.operations.isDeleting = false;
         if (state.data) {
           state.data.content = state.data.content.filter(
@@ -178,7 +252,7 @@ const paymentSlice = createSlice({
           state.data.hasPrevious = state.data.pageNo > 1;
         }
       })
-      .addCase(deletePaymentService.rejected, (state, action) => {
+      .addCase(deleteVillageService.rejected, (state, action) => {
         state.operations.isDeleting = false;
         state.error = action.payload as string;
       });
@@ -189,9 +263,9 @@ export const {
   setSearchFilter,
   setPageNo,
   clearError,
-  clearSelectedPayment,
+  clearSelectedVillage,
   resetFilters,
   resetState,
-} = paymentSlice.actions;
+} = villageSlice.actions;
 
-export default paymentSlice.reducer;
+export default villageSlice.reducer;

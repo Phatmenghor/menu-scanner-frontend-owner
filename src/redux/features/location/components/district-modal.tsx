@@ -4,13 +4,9 @@ import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ModalMode,
-  SubscriptionPlanStatus,
-} from "@/constants/AppResource/status/status";
+import { ModalMode } from "@/constants/AppResource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
-import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { FormHeader } from "@/components/shared/form-field/form-header";
@@ -18,44 +14,42 @@ import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { showToast } from "@/components/shared/common/show-toast";
+import { getFieldError } from "@/utils/common/get-field-error";
 import {
   selectError,
   selectIsFetchingDetail,
   selectOperations,
-} from "../store/selectors/subscription-plan-selector";
+} from "../store/selectors/district-selector";
 import {
-  createSubscriptionPlanSchema,
-  SubscriptionPlanFormData,
-  updateSubscriptionPlanSchema,
-} from "../store/models/schema/subscription-plan-schema";
+  createDistrictService,
+  fetchDistrictByIdService,
+  updateDistrictService,
+} from "../store/thunks/district-thunks";
 import {
-  createSubscriptionPlanService,
-  fetchSubscriptionPlanByIdService,
-  updateSubscriptionPlanService,
-} from "../store/thunks/subscription-plan-thunks";
+  createDistrictSchema,
+  DistrictFormData,
+  updateDistrictSchema,
+} from "../store/models/schema/district-schema";
+import {
+  CreateDistrictRequest,
+  UpdateDistrictRequest,
+} from "../store/models/request/district-request";
 import {
   clearError,
-  clearSelectedSubscriptionPlan,
-} from "../store/slice/subscription-plan-slice";
-import {
-  CreateSubscriptionPlanRequest,
-  UpdateSubscriptionPlanRequest,
-} from "../store/models/request/subscription-plan-request";
-import { SelectField } from "@/components/shared/form-field/select-field";
-import { SUBSCRIPTION_PLAN_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
-import { getFieldError } from "@/utils/common/get-field-error";
+  clearSelectedDistrict,
+} from "../store/slice/district-slice";
 
 type Props = {
   mode: ModalMode;
-  planId?: string;
+  districtId?: string;
   onClose: () => void;
   isOpen: boolean;
 };
 
-export default function SubscriptionPlanRateModal({
+export default function DistrictModal({
   isOpen,
   onClose,
-  planId,
+  districtId,
   mode,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
@@ -75,59 +69,56 @@ export default function SubscriptionPlanRateModal({
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<SubscriptionPlanFormData>({
+  } = useForm<DistrictFormData>({
     resolver: zodResolver(
-      isCreate ? createSubscriptionPlanSchema : updateSubscriptionPlanSchema
+      isCreate ? createDistrictSchema : updateDistrictSchema
     ) as any,
     defaultValues: {
-      name: "",
-      durationDays: 0,
-      price: 0,
-      description: "",
-      status: SubscriptionPlanStatus.ALL,
+      districtCode: "",
+      districtEn: "",
+      districtKh: "",
+      provinceCode: "",
     },
     mode: "onChange",
   });
 
-  // Fetch exchange-rate data for edit mode
+  // Fetch business data for edit mode
   useEffect(() => {
-    const fetctSubscriptionPlanData = async () => {
-      if (!planId || !isOpen || isCreate) return;
+    const fetchUserData = async () => {
+      if (!districtId || !isOpen || isCreate) return;
 
       try {
         const resultAction = await dispatch(
-          fetchSubscriptionPlanByIdService(planId)
+          fetchDistrictByIdService(districtId)
         );
 
-        if (fetchSubscriptionPlanByIdService.fulfilled.match(resultAction)) {
+        if (fetchDistrictByIdService.fulfilled.match(resultAction)) {
           const resposne = resultAction.payload;
 
           reset({
             id: resposne.id,
-            name: resposne.name,
-            durationDays: resposne.durationDays,
-            price: resposne.price,
-            description: resposne.description,
-            status: resposne.status,
+            districtCode: resposne.districtCode,
+            districtEn: resposne.districtEn,
+            districtKh: resposne.districtKh,
+            provinceCode: resposne.provinceCode,
           });
         }
       } catch (error) {
-        console.error("Error fetching ex data:", error);
+        console.error("Error fetching district data:", error);
       }
     };
 
-    fetctSubscriptionPlanData();
-  }, [planId, isOpen, isCreate, reset, dispatch]);
+    fetchUserData();
+  }, [districtId, isOpen, isCreate, reset, dispatch]);
 
   // Reset form for create mode
   useEffect(() => {
     if (isOpen && isCreate) {
       reset({
-        name: "",
-        durationDays: 0,
-        price: 0,
-        description: "",
-        status: SubscriptionPlanStatus.ALL,
+        districtCode: "",
+        districtEn: "",
+        districtKh: "",
+        provinceCode: "",
       });
     }
   }, [isOpen, isCreate, reset]);
@@ -139,62 +130,51 @@ export default function SubscriptionPlanRateModal({
     }
   }, [isOpen, dispatch]);
 
-  const onSubmit = async (data: SubscriptionPlanFormData) => {
+  const onSubmit = async (data: DistrictFormData) => {
     try {
       if (isCreate) {
-        const payload: CreateSubscriptionPlanRequest = {
-          name: data.name!,
-          durationDays: data.durationDays!,
-          price: data.price!,
-          description: data?.description,
-          status: data.status!,
+        const payload: CreateDistrictRequest = {
+          districtCode: data.districtCode,
+          districtEn: data.districtEn,
+          districtKh: data.districtKh,
+          provinceCode: data.provinceCode,
         };
 
-        const result = await dispatch(
-          createSubscriptionPlanService(payload)
-        ).unwrap();
+        const result = await dispatch(createDistrictService(payload)).unwrap();
 
         showToast.success(
-          `Subscription Plan "${
-            result.name || result.email
-          }" created successfully`
+          `District "${result.provinceEn}" created successfully`
         );
 
         handleClose();
       } else {
-        const payload: UpdateSubscriptionPlanRequest = {
-          name: data.name!,
-          durationDays: data.durationDays!,
-          price: data.price!,
-          description: data?.description,
-          status: data.status!,
+        const payload: UpdateDistrictRequest = {
+          districtCode: data.districtCode,
+          districtEn: data.districtEn,
+          districtKh: data.districtKh,
+          provinceCode: data.provinceCode,
         };
 
         const result = await dispatch(
-          updateSubscriptionPlanService({
-            subscriptionPlanId: data.id!,
-            subscriptionPlanData: payload,
-          })
+          updateDistrictService({ districtId: data.id!, districtData: payload })
         ).unwrap();
 
         showToast.success(
-          `Subscription Plan "${
-            result.fullName || result.email
-          }" updated successfully`
+          `District "${result.provinceEn}" updated successfully`
         );
 
         handleClose();
       }
     } catch (error: any) {
-      console.error("Error saving Subscription Plan:", error);
-      showToast.error(error || "Failed to save Subscription Plan");
+      console.error("Error saving district:", error);
+      showToast.error(error || "Failed to save district");
     }
   };
 
   const handleClose = () => {
     reset();
     dispatch(clearError());
-    dispatch(clearSelectedSubscriptionPlan());
+    dispatch(clearSelectedDistrict());
     onClose();
   };
 
@@ -206,12 +186,14 @@ export default function SubscriptionPlanRateModal({
         {/* Header */}
         <FormHeader
           title={
-            isCreate ? "Create Subscription Plan" : "Edit Subscription Plan"
+            isCreate
+              ? "Create New District"
+              : "Update District information below"
           }
           description={
             isCreate
-              ? "Add a new Subscription Plan to the system"
-              : "Update Subscription Plan  information"
+              ? "Fill out the form to create a new District"
+              : "Update District information below"
           }
           showAvatar={false}
           isCreate={isCreate}
@@ -242,56 +224,44 @@ export default function SubscriptionPlanRateModal({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <TextField
                   control={control}
-                  name="name"
-                  label="Plan Name"
-                  placeholder="Enter Plan Name"
+                  name="districtCode"
+                  label="District Code"
+                  placeholder="Enter District Code"
                   disabled={isSubmitting}
                   required
-                  error={getFieldError(errors.name)}
+                  error={getFieldError(errors.districtCode)}
                 />
 
                 <TextField
                   control={control}
-                  name="durationDays"
-                  label="Duration Days"
-                  placeholder="Enter Duration Days"
+                  name="districtEn"
+                  label="District EN"
+                  placeholder="Enter District EN"
                   disabled={isSubmitting}
                   required
-                  error={getFieldError(errors.durationDays)}
+                  error={getFieldError(errors.districtEn)}
                 />
 
                 <TextField
                   control={control}
-                  name="price"
-                  label="Price"
-                  placeholder="Enter Price"
+                  name="districtKh"
+                  label="District KH"
+                  placeholder="Enter District KH"
                   disabled={isSubmitting}
                   required
-                  error={getFieldError(errors.price)}
+                  error={getFieldError(errors.districtKh)}
                 />
 
-                <SelectField
+                <TextField
                   control={control}
-                  name="status"
-                  label="Subscription Plan Status"
-                  placeholder="Select Plan status"
-                  options={SUBSCRIPTION_PLAN_CREATE_UPDATE}
-                  required
+                  name="provinceCode"
+                  label="Province Code"
+                  placeholder="Enter Province Code"
                   disabled={isSubmitting}
-                  error={getFieldError(errors.status)}
+                  required
+                  error={getFieldError(errors.provinceCode)}
                 />
               </div>
-
-              {/* Description - Separate Row */}
-              <TextareaField
-                control={control}
-                name="description"
-                label="Description"
-                placeholder="Enter any additional description (optional)"
-                rows={5}
-                disabled={isSubmitting}
-                error={getFieldError(errors.description)}
-              />
             </FormBody>
 
             {/* Footer */}
@@ -299,8 +269,8 @@ export default function SubscriptionPlanRateModal({
               isSubmitting={isSubmitting}
               isDirty={isDirty}
               isCreate={isCreate}
-              createMessage="Creating plan..."
-              updateMessage="Updating plan..."
+              createMessage="Creating district..."
+              updateMessage="Updating district..."
             >
               <CancelButton onClick={handleClose} disabled={isSubmitting} />
 
@@ -308,8 +278,8 @@ export default function SubscriptionPlanRateModal({
                 isSubmitting={isSubmitting}
                 isDirty={isDirty}
                 isCreate={isCreate}
-                createText="Create plan"
-                updateText="Update plan"
+                createText="Create district"
+                updateText="Update district"
                 submittingCreateText="Creating..."
                 submittingUpdateText="Updating..."
               />

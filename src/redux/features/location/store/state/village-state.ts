@@ -1,22 +1,22 @@
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
-  selectBusiness,
-  selectBusinessContent,
-  selectBusinessState,
   selectError,
   selectFilters,
   selectIsLoading,
   selectOperations,
   selectPagination,
-} from "../selectors/commune-selector";
+  selectVillage,
+  selectVillageContent,
+  selectVillageState,
+} from "../selectors/vaillage-selector";
 
-export const useBusinessState = () => {
+export const useVillageState = () => {
   const dispatch = useAppDispatch();
 
   // Redux selectors
-  const businessState = useAppSelector(selectBusinessState);
-  const businessData = useAppSelector(selectBusiness);
-  const businessContent = useAppSelector(selectBusinessContent);
+  const villageState = useAppSelector(selectVillageState);
+  const villageData = useAppSelector(selectVillage);
+  const villageContent = useAppSelector(selectVillageContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
@@ -24,9 +24,9 @@ export const useBusinessState = () => {
   const error = useAppSelector(selectError);
 
   return {
-    businessState,
-    businessData,
-    businessContent,
+    villageState,
+    villageData,
+    villageContent,
     isLoading,
     error,
     filters,
