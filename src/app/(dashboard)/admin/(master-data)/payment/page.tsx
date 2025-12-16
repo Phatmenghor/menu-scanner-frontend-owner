@@ -162,14 +162,6 @@ export default function PaymentPage() {
     dispatch(setSearchFilter(e.target.value));
   };
 
-  const handleStatusChange = (status: BusinessStatus) => {
-    dispatch(setBusinessStatusFilter(status));
-  };
-
-  const handleSubscriptionChange = (subscription: SubscriptionStatus) => {
-    dispatch(setHasSubscriptionFilter(subscription));
-  };
-
   const handlePageChangeWrapper = (page: number) => {
     dispatch(setPageNo(page));
     handlePageChange(page);
@@ -235,28 +227,7 @@ export default function PaymentPage() {
           buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreatePayment}
-        >
-          <div className="flex items-center gap-3">
-            {/* <CustomSelect
-              options={ACCOUNT_STATUS_FILTER}
-              value={filters.businessStatus}
-              placeholder="All Status"
-              onValueChange={(value) =>
-                handleStatusChange(value as BusinessStatus)
-              }
-              label="Account Status"
-            />
-            <CustomSelect
-              options={HAS_SUBSCRIPTION_FILTER}
-              value={filters.hasActiveSubscription}
-              placeholder="All Subscription"
-              onValueChange={(value) =>
-                handleSubscriptionChange(value as SubscriptionStatus)
-              }
-              label="Subscription Status"
-            /> */}
-          </div>
-        </CardHeaderSection>
+        ></CardHeaderSection>
 
         {/* Data Table with Pagination */}
         <DataTableWithPagination
@@ -292,7 +263,7 @@ export default function PaymentPage() {
         onClose={closeDeleteModal}
         onDelete={handleDelete}
         title="Delete Payment"
-        description={`Are you sure you want to delete this business ${deleteState.payment?.amount}?`}
+        description={`Are you sure you want to delete this payment ${deleteState.payment?.amount}?`}
         itemName={deleteState.payment?.amount?.toString() || ""}
         isSubmitting={operations.isDeleting}
       />

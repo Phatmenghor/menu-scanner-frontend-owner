@@ -75,21 +75,7 @@ export const paymentTableColumns = ({
         </span>
       ),
     },
-    {
-      key: "avatar",
-      label: "Avatar",
-      minWidth: "10px",
-      maxWidth: "400px",
-      render: (payment) => {
-        return (
-          <CustomAvatar
-            imageUrl={payment.imageUrl}
-            name={payment?.amount.toString()}
-            size="lg"
-          />
-        );
-      },
-    },
+
     {
       key: "status",
       label: "Status",
