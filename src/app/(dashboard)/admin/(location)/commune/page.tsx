@@ -15,8 +15,6 @@ import {
   setPageNo,
   setSearchFilter,
 } from "@/redux/features/location/store/slice/province-slice";
-import DistrictModal from "@/redux/features/location/components/district-modal";
-import { DistrictDetailModal } from "@/redux/features/location/components/district-detail-modal";
 import { useCommuneState } from "@/redux/features/location/store/state/commune-state";
 import { CommuneResponseModel } from "@/redux/features/location/store/models/response/commune-response";
 import {
@@ -26,9 +24,18 @@ import {
 import { communeTableColumns } from "@/redux/features/location/table/commune-table";
 import CommuneModal from "@/redux/features/location/components/commune-modal";
 import { CommuneDetailModal } from "@/redux/features/location/components/commune-detail-modal";
+import { ComboboxSelectProvince } from "@/components/shared/combo-box/combobox-province";
+import { DistrictResponseModel } from "@/redux/features/location/store/models/response/district-response";
+import { ProvinceResponseModel } from "@/redux/features/location/store/models/response/province-response";
+import { ComboboxSelectDistrict } from "@/components/shared/combo-box/combobox-district";
 
 export default function CommunePage() {
   const searchParams = useSearchParams();
+
+  const [selectedProvince, setSelectedProvince] =
+    useState<ProvinceResponseModel | null>(null);
+  const [selectedDistrict, setSelectedDistrict] =
+    useState<DistrictResponseModel | null>(null);
 
   // Redux state
   const {
@@ -188,6 +195,14 @@ export default function CommunePage() {
     });
   };
 
+  const handleProvinceChange = (province: ProvinceResponseModel | null) => {
+    setSelectedProvince(province);
+  };
+
+  const handleDistrictChange = (district: DistrictResponseModel | null) => {
+    setSelectedDistrict(district);
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-4 px-2">
       <div className="space-y-4">
@@ -204,7 +219,24 @@ export default function CommunePage() {
           buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreateCommune}
-        ></CardHeaderSection>
+        >
+          <div className="flex items-center gap-3">
+            <ComboboxSelectDistrict
+              dataSelect={selectedDistrict}
+              onChangeSelected={handleDistrictChange}
+              placeholder="All District"
+              showAllOption={true}
+              size="md"
+            />
+            <ComboboxSelectProvince
+              dataSelect={selectedProvince}
+              onChangeSelected={handleProvinceChange}
+              placeholder="All Province"
+              showAllOption={true}
+              size="md"
+            />
+          </div>
+        </CardHeaderSection>
 
         {/* Data Table with Your Custom Pagination */}
         <DataTableWithPagination

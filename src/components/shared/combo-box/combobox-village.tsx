@@ -20,13 +20,13 @@ import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 import { useDebounce } from "@/utils/debounce/debounce";
-import { ProvinceResponseModel } from "@/redux/features/location/store/models/response/province-response";
-import { fetchAllProvinceService } from "@/redux/features/location/store/thunks/province-thunks";
 import { useAppDispatch } from "@/redux/store";
+import { VillageResponseModel } from "@/redux/features/location/store/models/response/village-response";
+import { fetchAllVillageService } from "@/redux/features/location/store/thunks/village-thunks";
 
 interface ComboboxSelectedProps {
-  dataSelect: ProvinceResponseModel | null;
-  onChangeSelected: (item: ProvinceResponseModel | null) => void;
+  dataSelect: VillageResponseModel | null;
+  onChangeSelected: (item: VillageResponseModel | null) => void;
   disabled?: boolean;
   label?: string;
   required?: boolean;
@@ -35,28 +35,28 @@ interface ComboboxSelectedProps {
   showAllOption?: boolean;
 }
 
-const ALL_OPTION: ProvinceResponseModel = {
+const ALL_OPTION: VillageResponseModel = {
   id: "all",
-  provinceEn: "All",
-  provinceKh: "ទាំងអស់",
-  provinceCode: "",
-} as ProvinceResponseModel;
+  villageEn: "All",
+  villageKh: "ទាំងអស់",
+  villageCode: "",
+} as VillageResponseModel;
 
-export function ComboboxSelectProvince({
+export function ComboboxSelectVillage({
   dataSelect,
   onChangeSelected,
   disabled = false,
-  label = "Province",
+  label = "Village",
   required = false,
   size = "md",
-  placeholder = "Select a province...",
+  placeholder = "Select a village...",
   showAllOption = true,
 }: ComboboxSelectedProps) {
   const dispatch = useAppDispatch();
 
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [data, setData] = useState<ProvinceResponseModel[]>([]);
+  const [data, setData] = useState<VillageResponseModel[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -89,7 +89,7 @@ export function ComboboxSelectProvince({
 
     try {
       const result = await dispatch(
-        fetchAllProvinceService({ search, pageNo: newPage, pageSize: 10 })
+        fetchAllVillageService({ search, pageNo: newPage, pageSize: 10 })
       ).unwrap();
 
       if (!result) return;
@@ -140,7 +140,7 @@ export function ComboboxSelectProvince({
     setSearchTerm(value);
   };
 
-  const handleSelect = (item: ProvinceResponseModel) => {
+  const handleSelect = (item: VillageResponseModel) => {
     if (item.id === "all") {
       onChangeSelected(null);
     } else {
@@ -172,9 +172,9 @@ export function ComboboxSelectProvince({
             disabled={disabled}
           >
             {dataSelect
-              ? dataSelect.provinceEn ||
-                dataSelect.provinceKh ||
-                dataSelect.provinceCode
+              ? dataSelect.villageEn ||
+                dataSelect.villageKh ||
+                dataSelect.villageCode
               : placeholder}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -196,7 +196,7 @@ export function ComboboxSelectProvince({
                 {data.map((item, index) => (
                   <CommandItem
                     key={item.id}
-                    value={item.provinceEn}
+                    value={item.villageEn}
                     onSelect={() => handleSelect(item)}
                     ref={index === data.length - 1 ? ref : null}
                     className={sizeClasses[size]}
@@ -211,9 +211,9 @@ export function ComboboxSelectProvince({
                       )}
                     />
                     {item.id === "all" ? (
-                      item.provinceEn
+                      item.villageEn
                     ) : (
-                      <>{item.provinceEn || item.provinceKh}</>
+                      <>{item.villageEn || item.villageKh}</>
                     )}
                   </CommandItem>
                 ))}
@@ -227,7 +227,7 @@ export function ComboboxSelectProvince({
 
               {!loading && lastPage && data.length > 0 && (
                 <div className="text-center py-2 text-sm text-gray-400">
-                  No more provinces
+                  No more village
                 </div>
               )}
             </CommandList>

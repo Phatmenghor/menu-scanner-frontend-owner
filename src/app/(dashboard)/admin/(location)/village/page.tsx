@@ -24,9 +24,22 @@ import {
 import { villageTableColumns } from "@/redux/features/location/table/village-table";
 import VillageModal from "@/redux/features/location/components/village-modal";
 import { VillageDetailModal } from "@/redux/features/location/components/village-detail-modal";
+import { ComboboxSelectDistrict } from "@/components/shared/combo-box/combobox-district";
+import { ComboboxSelectProvince } from "@/components/shared/combo-box/combobox-province";
+import { ComboboxSelectCommune } from "@/components/shared/combo-box/combobox-commune";
+import { CommuneResponseModel } from "@/redux/features/location/store/models/response/commune-response";
+import { ProvinceResponseModel } from "@/redux/features/location/store/models/response/province-response";
+import { DistrictResponseModel } from "@/redux/features/location/store/models/response/district-response";
 
 export default function VillagePage() {
   const searchParams = useSearchParams();
+
+  const [selectedProvince, setSelectedProvince] =
+    useState<ProvinceResponseModel | null>(null);
+  const [selectedDistrict, setSelectedDistrict] =
+    useState<DistrictResponseModel | null>(null);
+  const [selectedCommune, setSelectedCommune] =
+    useState<CommuneResponseModel | null>(null);
 
   // Redux state
   const {
@@ -186,6 +199,18 @@ export default function VillagePage() {
     });
   };
 
+  const handleProvinceChange = (province: ProvinceResponseModel | null) => {
+    setSelectedProvince(province);
+  };
+
+  const handleDistrictChange = (district: DistrictResponseModel | null) => {
+    setSelectedDistrict(district);
+  };
+
+  const handleCommuneChange = (commune: CommuneResponseModel | null) => {
+    setSelectedCommune(commune);
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-4 px-2">
       <div className="space-y-4">
@@ -202,7 +227,31 @@ export default function VillagePage() {
           buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreateVillage}
-        ></CardHeaderSection>
+        >
+          <div className="flex items-center gap-3">
+            <ComboboxSelectCommune
+              dataSelect={selectedCommune}
+              onChangeSelected={handleCommuneChange}
+              label="Commune"
+              placeholder="All Commune"
+              showAllOption={true}
+            />
+            <ComboboxSelectDistrict
+              dataSelect={selectedDistrict}
+              onChangeSelected={handleDistrictChange}
+              label="District"
+              placeholder="All District"
+              showAllOption={true}
+            />
+            <ComboboxSelectProvince
+              dataSelect={selectedProvince}
+              onChangeSelected={handleProvinceChange}
+              label="Province"
+              placeholder="All Province"
+              showAllOption={true}
+            />
+          </div>
+        </CardHeaderSection>
 
         {/* Data Table with Your Custom Pagination */}
         <DataTableWithPagination

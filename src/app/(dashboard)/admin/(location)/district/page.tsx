@@ -15,8 +15,6 @@ import {
   setPageNo,
   setSearchFilter,
 } from "@/redux/features/location/store/slice/province-slice";
-import ProvinceModal from "@/redux/features/location/components/province-modal";
-import { ProvinceDetailModal } from "@/redux/features/location/components/province-detail-modal";
 import { useDistrictState } from "@/redux/features/location/store/state/district-state";
 import { DistrictResponseModel } from "@/redux/features/location/store/models/response/district-response";
 import {
@@ -26,6 +24,8 @@ import {
 import { districtTableColumns } from "@/redux/features/location/table/district-table";
 import DistrictModal from "@/redux/features/location/components/district-modal";
 import { DistrictDetailModal } from "@/redux/features/location/components/district-detail-modal";
+import { ComboboxSelectProvince } from "@/components/shared/combo-box/combobox-province";
+import { ProvinceResponseModel } from "@/redux/features/location/store/models/response/province-response";
 
 export default function DistrictPage() {
   const searchParams = useSearchParams();
@@ -41,6 +41,9 @@ export default function DistrictPage() {
     pagination,
     dispatch,
   } = useDistrictState();
+
+  const [selectedProvince, setSelectedProvince] =
+    useState<ProvinceResponseModel | null>(null);
 
   // Local UI state for modals only
   const [modalState, setModalState] = useState({
@@ -82,9 +85,10 @@ export default function DistrictPage() {
       fetchAllDistrictService({
         search: debouncedSearch,
         pageNo: filters.pageNo,
+        provinceCode: selectedProvince?.provinceCode,
       })
     );
-  }, [dispatch, debouncedSearch, filters.pageNo]);
+  }, [dispatch, debouncedSearch, filters.pageNo, selectedProvince]);
 
   // Event handlers
   const handleCreateDistrict = () => {
@@ -190,6 +194,10 @@ export default function DistrictPage() {
     });
   };
 
+  const handleProvinceChange = (province: ProvinceResponseModel | null) => {
+    setSelectedProvince(province);
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-4 px-2">
       <div className="space-y-4">
@@ -206,7 +214,18 @@ export default function DistrictPage() {
           buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreateDistrict}
-        ></CardHeaderSection>
+        >
+          <div className="flex items-center gap-3">
+            <ComboboxSelectProvince
+              dataSelect={selectedProvince}
+              onChangeSelected={handleProvinceChange}
+              label="Province"
+              placeholder="All Province"
+              showAllOption={true}
+              size="md"
+            />
+          </div>
+        </CardHeaderSection>
 
         {/* Data Table with Your Custom Pagination */}
         <DataTableWithPagination

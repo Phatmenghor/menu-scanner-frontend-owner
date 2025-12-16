@@ -23,10 +23,12 @@ import { useDebounce } from "@/utils/debounce/debounce";
 import { ProvinceResponseModel } from "@/redux/features/location/store/models/response/province-response";
 import { fetchAllProvinceService } from "@/redux/features/location/store/thunks/province-thunks";
 import { useAppDispatch } from "@/redux/store";
+import { CommuneResponseModel } from "@/redux/features/location/store/models/response/commune-response";
+import { fetchAllCommuneService } from "@/redux/features/location/store/thunks/commune-thunks";
 
 interface ComboboxSelectedProps {
-  dataSelect: ProvinceResponseModel | null;
-  onChangeSelected: (item: ProvinceResponseModel | null) => void;
+  dataSelect: CommuneResponseModel | null;
+  onChangeSelected: (item: CommuneResponseModel | null) => void;
   disabled?: boolean;
   label?: string;
   required?: boolean;
@@ -35,28 +37,28 @@ interface ComboboxSelectedProps {
   showAllOption?: boolean;
 }
 
-const ALL_OPTION: ProvinceResponseModel = {
+const ALL_OPTION: CommuneResponseModel = {
   id: "all",
-  provinceEn: "All",
-  provinceKh: "ទាំងអស់",
-  provinceCode: "",
-} as ProvinceResponseModel;
+  communeEn: "All",
+  communeKh: "ទាំងអស់",
+  communeCode: "",
+} as CommuneResponseModel;
 
-export function ComboboxSelectProvince({
+export function ComboboxSelectCommune({
   dataSelect,
   onChangeSelected,
   disabled = false,
-  label = "Province",
+  label = "Commune",
   required = false,
   size = "md",
-  placeholder = "Select a province...",
+  placeholder = "Select a commune...",
   showAllOption = true,
 }: ComboboxSelectedProps) {
   const dispatch = useAppDispatch();
 
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [data, setData] = useState<ProvinceResponseModel[]>([]);
+  const [data, setData] = useState<CommuneResponseModel[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -89,7 +91,7 @@ export function ComboboxSelectProvince({
 
     try {
       const result = await dispatch(
-        fetchAllProvinceService({ search, pageNo: newPage, pageSize: 10 })
+        fetchAllCommuneService({ search, pageNo: newPage, pageSize: 10 })
       ).unwrap();
 
       if (!result) return;
@@ -140,7 +142,7 @@ export function ComboboxSelectProvince({
     setSearchTerm(value);
   };
 
-  const handleSelect = (item: ProvinceResponseModel) => {
+  const handleSelect = (item: CommuneResponseModel) => {
     if (item.id === "all") {
       onChangeSelected(null);
     } else {
@@ -172,9 +174,9 @@ export function ComboboxSelectProvince({
             disabled={disabled}
           >
             {dataSelect
-              ? dataSelect.provinceEn ||
-                dataSelect.provinceKh ||
-                dataSelect.provinceCode
+              ? dataSelect.communeEn ||
+                dataSelect.communeKh ||
+                dataSelect.communeCode
               : placeholder}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -196,7 +198,7 @@ export function ComboboxSelectProvince({
                 {data.map((item, index) => (
                   <CommandItem
                     key={item.id}
-                    value={item.provinceEn}
+                    value={item.communeEn}
                     onSelect={() => handleSelect(item)}
                     ref={index === data.length - 1 ? ref : null}
                     className={sizeClasses[size]}
@@ -211,9 +213,9 @@ export function ComboboxSelectProvince({
                       )}
                     />
                     {item.id === "all" ? (
-                      item.provinceEn
+                      item.communeEn
                     ) : (
-                      <>{item.provinceEn || item.provinceKh}</>
+                      <>{item.communeEn || item.communeKh}</>
                     )}
                   </CommandItem>
                 ))}
@@ -227,7 +229,7 @@ export function ComboboxSelectProvince({
 
               {!loading && lastPage && data.length > 0 && (
                 <div className="text-center py-2 text-sm text-gray-400">
-                  No more provinces
+                  No more commune
                 </div>
               )}
             </CommandList>
