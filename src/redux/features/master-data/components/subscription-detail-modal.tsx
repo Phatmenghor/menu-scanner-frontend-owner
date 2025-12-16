@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { getStatusColor, formatEnumToDisplay } from "@/utils/styles/enum-style";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { DetailModal } from "@/components/shared/modal/detail-modal";
 import {

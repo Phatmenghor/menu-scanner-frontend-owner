@@ -17,7 +17,6 @@ export const updateSubscriptionSchema = z.object({
   planId: z.string().min(1, "Plan is required"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().optional(),
-  isActive: z.boolean(),
   autoRenew: z.boolean(),
 });
 
@@ -25,10 +24,10 @@ export const updateSubscriptionSchema = z.object({
  * Combined form data type - includes all possible fields
  */
 export type SubscriptionFormData = {
-  businessId?: string;
+  id: string;
+  businessId: string;
   planId: string;
   startDate: string;
-  endDate?: string;
-  isActive?: boolean;
+  endDate: string;
   autoRenew: boolean;
 };

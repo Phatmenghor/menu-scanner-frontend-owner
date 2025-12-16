@@ -21,11 +21,10 @@ export interface UpdateSubscriptionRequest {
   planId: string;
   startDate: string;
   endDate: string;
-  isActive: boolean;
   autoRenew: boolean;
 }
 
 export interface UpdateSubscriptionParams {
-  SubscriptionId: string;
-  SubscriptionsData: UpdateSubscriptionRequest;
+  subscriptionId: string;
+  subscriptionsData: UpdateSubscriptionRequest;
 }

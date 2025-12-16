@@ -58,13 +58,19 @@ export const createSubscriptionService = createApiThunk<
 export const updateSubscriptionService = createApiThunk<
   any,
   UpdateSubscriptionParams
->("subscriptions/update", async ({ SubscriptionId, SubscriptionsData }) => {
-  const response = await axiosClientWithAuth.put(
-    `/api/v1/subscriptions/${SubscriptionId}`,
-    SubscriptionsData
-  );
-  return response.data.data;
-});
+>(
+  "subscriptions/update",
+  async ({
+    subscriptionId: SubscriptionId,
+    subscriptionsData: SubscriptionsData,
+  }) => {
+    const response = await axiosClientWithAuth.put(
+      `/api/v1/subscriptions/${SubscriptionId}`,
+      SubscriptionsData
+    );
+    return response.data.data;
+  }
+);
 
 /**
  * Delete subscriptions

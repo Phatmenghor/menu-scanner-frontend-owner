@@ -219,7 +219,6 @@ export default function DistrictPage() {
             <ComboboxSelectProvince
               dataSelect={selectedProvince}
               onChangeSelected={handleProvinceChange}
-              label="Province"
               placeholder="All Province"
               showAllOption={true}
               size="md"

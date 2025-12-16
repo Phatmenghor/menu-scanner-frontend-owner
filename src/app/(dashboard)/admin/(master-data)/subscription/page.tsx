@@ -31,6 +31,8 @@ import {
   fetchAllSubscriptionService,
 } from "@/redux/features/master-data/store/thunks/subscription-thunks";
 import { subscriptionTableColumns } from "@/redux/features/master-data/table/subscription-table";
+import { SubscriptionDetailModal } from "@/redux/features/master-data/components/subscription-detail-modal";
+import SubscriptionModal from "@/redux/features/master-data/components/subscription-modal";
 
 export default function SubscriptionPage() {
   const searchParams = useSearchParams();
@@ -208,13 +210,13 @@ export default function SubscriptionPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Business", href: "" },
+            { label: "Subscription", href: "" },
           ]}
-          title="Business"
+          title="Subscription"
           searchValue={filters.search}
-          searchPlaceholder="Search business..."
+          searchPlaceholder="Search subscription..."
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New Business"
+          buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreateSubscription}
         ></CardHeaderSection>
@@ -233,16 +235,16 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Modals Add/Edit */}
-      <BusinessModal
+      <SubscriptionModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        businessId={modalState.subscriptionId}
+        subscriptionId={modalState.subscriptionId}
         mode={modalState.mode}
       />
 
-      {/* Modals business platform Detail */}
-      <BusinessDetailModal
-        businessId={detailModalState.subscriptionId}
+      {/* Modals subscription platform Detail */}
+      <SubscriptionDetailModal
+        subscriptionId={detailModalState.subscriptionId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
