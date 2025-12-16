@@ -6,7 +6,6 @@ import { Plus } from "lucide-react";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { ROUTES } from "@/constants/AppRoutes/routes";
 import {
-  AccountStatus,
   ModalMode,
   BusinessStatus,
   SubscriptionStatus,
@@ -21,54 +20,48 @@ import {
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { showToast } from "@/components/shared/common/show-toast";
 import { usePagination } from "@/redux/store/use-pagination";
+import { useSubscriptionState } from "@/redux/features/master-data/store/state/subscription-state";
+import { SubscriptionResponseModel } from "@/redux/features/master-data/store/models/response/subscription-response";
 import {
   setPageNo,
   setSearchFilter,
-} from "@/redux/features/auth/store/slice/users-slice";
-import { useBusinessState } from "@/redux/features/master-data/store/state/business-state";
-import { BusinessResponseModel } from "@/redux/features/master-data/store/models/response/business-response";
+} from "@/redux/features/master-data/store/slice/subscription-slice";
 import {
-  deleteBusinessService,
-  fetchAllBusinessService,
-} from "@/redux/features/master-data/store/thunks/business-thunks";
-import { businessTableColumns } from "@/redux/features/master-data/table/business-table";
-import {
-  setBusinessStatusFilter,
-  setHasSubscriptionFilter,
-} from "@/redux/features/master-data/store/slice/business-slice";
-import { BusinessDetailModal } from "@/redux/features/master-data/components/business-detail-modal";
-import BusinessModal from "@/redux/features/master-data/components/business-modal";
+  deleteSubscriptionService,
+  fetchAllSubscriptionService,
+} from "@/redux/features/master-data/store/thunks/subscription-thunks";
+import { subscriptionTableColumns } from "@/redux/features/master-data/table/subscription-table";
 
 export default function SubscriptionPage() {
   const searchParams = useSearchParams();
 
   // Redux state
   const {
-    businessState,
-    businessData,
-    businessContent,
+    subscriptionState,
+    subscriptionData,
+    subscriptionContent,
     isLoading,
     filters,
     operations,
     pagination,
     dispatch,
-  } = useBusinessState();
+  } = useSubscriptionState();
 
   // Local UI state for modals only
   const [modalState, setModalState] = useState({
     isOpen: false,
     mode: ModalMode.CREATE_MODE,
-    businessId: "",
+    subscriptionId: "",
   });
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    businessId: "",
+    subscriptionId: "",
   });
 
   const [deleteState, setDeleteState] = useState({
     isOpen: false,
-    business: null as BusinessResponseModel | null,
+    subscription: null as SubscriptionResponseModel | null,
   });
 
   const debouncedSearch = useDebounce(filters.search, 400);
@@ -91,88 +84,68 @@ export default function SubscriptionPage() {
   // Fetch business when filters change
   useEffect(() => {
     dispatch(
-      fetchAllBusinessService({
+      fetchAllSubscriptionService({
         search: debouncedSearch,
         pageNo: filters.pageNo,
-        hasActiveSubscription:
-          filters.hasActiveSubscription === SubscriptionStatus.ALL
-            ? undefined
-            : filters.hasActiveSubscription == SubscriptionStatus.SUBSCRIBED
-            ? true
-            : false,
-        status:
-          filters.businessStatus === AccountStatus.ALL
-            ? []
-            : [filters.businessStatus],
       })
     );
-  }, [
-    dispatch,
-    debouncedSearch,
-    filters.businessStatus,
-    filters.hasActiveSubscription,
-    filters.pageNo,
-  ]);
+  }, [dispatch, debouncedSearch, filters.pageNo]);
 
   // Event handlers
-  const handleCreateUser = () => {
+  const handleCreateSubscription = () => {
     setModalState({
       isOpen: true,
       mode: ModalMode.CREATE_MODE,
-      businessId: "",
+      subscriptionId: "",
     });
   };
 
-  const handleEditBusiness = (business: BusinessResponseModel) => {
+  const handleEditSubscription = (subscription: SubscriptionResponseModel) => {
     setModalState({
       isOpen: true,
       mode: ModalMode.UPDATE_MODE,
-      businessId: business?.id || "",
+      subscriptionId: subscription?.id || "",
     });
   };
 
-  const handleBusinessViewDetail = (business: BusinessResponseModel) => {
+  const handleSubscriptionViewDetail = (
+    subscription: SubscriptionResponseModel
+  ) => {
     setDetailModalState({
       isOpen: true,
-      businessId: business.id || "",
+      subscriptionId: subscription.id || "",
     });
   };
 
-  const handleDeleteBusiness = (business: BusinessResponseModel) => {
+  const handleDeleteSubscription = (
+    subscription: SubscriptionResponseModel
+  ) => {
     setDeleteState({
       isOpen: true,
-      business: business,
+      subscription: subscription,
     });
   };
 
   const tableHandlers = useMemo(
     () => ({
-      handleEditBusiness,
-      handleBusinessViewDetail,
-      handleDeleteBusiness,
+      handleEditSubscription,
+      handleSubscriptionViewDetail,
+      handleDeleteSubscription,
     }),
     []
   );
 
   const columns = useMemo(
     () =>
-      businessTableColumns({
-        data: businessData,
+      subscriptionTableColumns({
+        data: subscriptionData,
         handlers: tableHandlers,
       }),
-    [businessState, tableHandlers]
+    [subscriptionState, tableHandlers]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchFilter(e.target.value));
-  };
-
-  const handleStatusChange = (status: BusinessStatus) => {
-    dispatch(setBusinessStatusFilter(status));
-  };
-
-  const handleSubscriptionChange = (subscription: SubscriptionStatus) => {
-    dispatch(setHasSubscriptionFilter(subscription));
   };
 
   const handlePageChangeWrapper = (page: number) => {
@@ -181,25 +154,29 @@ export default function SubscriptionPage() {
   };
 
   const handleDelete = async () => {
-    if (!deleteState.business?.id) return;
+    if (!deleteState.subscription?.id) return;
 
     try {
-      await dispatch(deleteBusinessService(deleteState.business.id)).unwrap();
+      await dispatch(
+        deleteSubscriptionService(deleteState.subscription.id)
+      ).unwrap();
 
       showToast.success(
-        `Business "${deleteState.business.name ?? ""}" deleted successfully`
+        `Subscription "${
+          deleteState.subscription.businessName ?? ""
+        }" deleted successfully`
       );
 
       closeDeleteModal();
 
       // Navigate to previous page if this was the last item
-      if (businessContent.length === 1 && pagination.currentPage > 1) {
+      if (subscriptionContent.length === 1 && pagination.currentPage > 1) {
         const newPage = pagination.currentPage - 1;
         dispatch(setPageNo(newPage));
         updateUrlWithPage(newPage);
       }
     } catch (error: any) {
-      showToast.error(error || "Failed to delete business");
+      showToast.error(error || "Failed to delete subscription");
     }
   };
 
@@ -207,21 +184,21 @@ export default function SubscriptionPage() {
     setModalState({
       isOpen: false,
       mode: ModalMode.CREATE_MODE,
-      businessId: "",
+      subscriptionId: "",
     });
   };
 
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      businessId: "",
+      subscriptionId: "",
     });
   };
 
   const closeDeleteModal = () => {
     setDeleteState({
       isOpen: false,
-      business: null,
+      subscription: null,
     });
   };
 
@@ -239,37 +216,16 @@ export default function SubscriptionPage() {
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New Business"
           onSearchChange={handleSearchChange}
-          openModal={handleCreateUser}
-        >
-          <div className="flex items-center gap-3">
-            <CustomSelect
-              options={ACCOUNT_STATUS_FILTER}
-              value={filters.businessStatus}
-              placeholder="All Status"
-              onValueChange={(value) =>
-                handleStatusChange(value as BusinessStatus)
-              }
-              label="Account Status"
-            />
-            <CustomSelect
-              options={HAS_SUBSCRIPTION_FILTER}
-              value={filters.hasActiveSubscription}
-              placeholder="All Subscription"
-              onValueChange={(value) =>
-                handleSubscriptionChange(value as SubscriptionStatus)
-              }
-              label="Subscription Status"
-            />
-          </div>
-        </CardHeaderSection>
+          openModal={handleCreateSubscription}
+        ></CardHeaderSection>
 
         {/* Data Table with Pagination */}
         <DataTableWithPagination
-          data={businessContent}
+          data={subscriptionContent}
           columns={columns}
           loading={isLoading}
-          emptyMessage="No business found"
-          getRowKey={(user) => user.id?.toString() || user.email}
+          emptyMessage="No subscription found"
+          getRowKey={(subscription) => subscription.id}
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           onPageChange={handlePageChangeWrapper}
@@ -280,13 +236,13 @@ export default function SubscriptionPage() {
       <BusinessModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        businessId={modalState.businessId}
+        businessId={modalState.subscriptionId}
         mode={modalState.mode}
       />
 
       {/* Modals business platform Detail */}
       <BusinessDetailModal
-        businessId={detailModalState.businessId}
+        businessId={detailModalState.subscriptionId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
@@ -296,11 +252,15 @@ export default function SubscriptionPage() {
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}
-        title="Delete Business"
-        description={`Are you sure you want to delete this business ${
-          deleteState.business?.name || deleteState.business?.email
+        title="Delete subscription"
+        description={`Are you sure you want to delete this subscription ${
+          deleteState.subscription?.businessName ||
+          deleteState.subscription?.planName
         }?`}
-        itemName={deleteState.business?.name || deleteState.business?.email}
+        itemName={
+          deleteState.subscription?.businessName ||
+          deleteState.subscription?.planName
+        }
         isSubmitting={operations.isDeleting}
       />
     </div>

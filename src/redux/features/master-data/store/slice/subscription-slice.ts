@@ -191,6 +191,7 @@ export const {
   clearError,
   resetFilters,
   resetState,
+  clearSelectedSubscription,
 } = subscriptionSlice.actions;
 
 export default subscriptionSlice.reducer;
