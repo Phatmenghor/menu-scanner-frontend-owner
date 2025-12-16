@@ -4,7 +4,18 @@ import React from "react";
 import { Controller } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TextFieldProps } from ".";
+
+interface TextFieldProps {
+  name: string;
+  label: string;
+  control: any;
+  error?: any;
+  disabled?: boolean;
+  required?: boolean;
+  type?: "text" | "email" | "tel" | "password" | "number";
+  placeholder?: string;
+  className?: string;
+}
 
 export function TextField({
   name,
@@ -19,8 +30,8 @@ export function TextField({
 }: TextFieldProps) {
   return (
     <div className={`space-y-2 ${className}`}>
-      <Label htmlFor={name} className="text-sm font-medium">
-        {label} {required && <span className="text-red-500">*</span>}
+      <Label htmlFor={name} className="text-[12px] font-normal text-gray-300">
+        {label} {required && <span className="text-red-500 ml-1">*</span>}
       </Label>
       <Controller
         control={control}
@@ -40,7 +51,7 @@ export function TextField({
           />
         )}
       />
-      {error && <p className="text-sm text-red-600">{error.message}</p>}
+      {error && <p className="text-xs text-red-500">{error.message}</p>}
     </div>
   );
 }

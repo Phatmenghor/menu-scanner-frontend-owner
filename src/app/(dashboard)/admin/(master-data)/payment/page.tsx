@@ -49,6 +49,7 @@ import {
 } from "@/redux/features/master-data/store/thunks/payment-thunks";
 import { paymentTableColumns } from "@/redux/features/master-data/table/payment-table";
 import { PaymentDetailModal } from "@/redux/features/master-data/components/payment-detail-modal";
+import PaymentModal from "@/redux/features/master-data/components/payment-modal";
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
@@ -243,10 +244,10 @@ export default function PaymentPage() {
       </div>
 
       {/* Modals Add/Edit */}
-      <BusinessModal
+      <PaymentModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        businessId={modalState.paymentId}
+        paymentId={modalState.paymentId}
         mode={modalState.mode}
       />
 

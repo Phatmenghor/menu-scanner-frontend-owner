@@ -106,7 +106,7 @@ export function ComboboxSelectSubscription({
       setPage(result.pageNo);
       setLastPage(result.last);
     } catch (error) {
-      console.error("Error fetching businesses:", error);
+      console.error("Error fetching subscription:", error);
     } finally {
       setLoading(false);
     }

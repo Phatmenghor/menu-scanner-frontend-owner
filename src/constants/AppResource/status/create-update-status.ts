@@ -3,7 +3,7 @@ import {
   BusinessStatus,
   PaymentMethod,
   PaymentStatus,
-  Status,
+  PaymentType,
   SubscriptionPlanStatus,
   UserRole,
 } from "./status";
@@ -39,13 +39,6 @@ export const BUSINESS_STATUS_CREATE_UPDATE = [
   { value: BusinessStatus.SUSPENDED, label: "Subspended" },
 ];
 
-export const PAYMENT_STATUS_CREATE_UPDATE = [
-  { value: PaymentStatus.PENDING, label: "Pending" },
-  { value: PaymentStatus.COMPLETED, label: "Completed" },
-  { value: PaymentStatus.FAILED, label: "Failed" },
-  { value: PaymentStatus.CANCELLED, label: "Cancelled" },
-];
-
 export const SUBSCRIPTION_PLAN_CREATE_UPDATE = [
   { value: SubscriptionPlanStatus.PUBLIC, label: "Public" },
   { value: SubscriptionPlanStatus.PRIVATE, label: "Private" },
@@ -56,22 +49,24 @@ export const SUBSCRIPTION_CREATE_UPDATE = [
   { value: "false", label: "Inactive" },
 ];
 
-export const PAYMENT_METHODS_CREATE_UPDATE = [
-  { value: PaymentMethod.BANK_TRANSFER, label: "Bank Transfer" },
-  { value: PaymentMethod.CASH, label: "Cash" },
-  {
-    value: PaymentMethod.MOBILE_PAYMENT,
-    label: "Mobile Payment",
-  },
-  { value: PaymentMethod.ONLINE, label: "Online Payment" },
+export const PAYMENT_STATUS_CREATE_UPDATE = [
+  { value: PaymentStatus.PENDING, label: "Pending" },
+  { value: PaymentStatus.COMPLETED, label: "Completed" },
+  { value: PaymentStatus.FAILED, label: "Failed" },
+  { value: PaymentStatus.CANCELLED, label: "Cancelled" },
 ];
 
-export const CANCELLATION_REASONS_CREATE_UPDATE = [
-  { value: "too-expensive", label: "Too expensive" },
-  { value: "not-using", label: "Not using enough" },
-  { value: "missing-features", label: "Missing features" },
-  { value: "found-alternative", label: "Found alternative" },
-  { value: "technical-issues", label: "Technical issues" },
-  { value: "business-closed", label: "Business closed" },
-  { value: "other", label: "Other" },
+export const PAYMENT_METHOD_CREATE_UPDATE = [
+  { value: PaymentMethod.CASH, label: "Cash" },
+  { value: PaymentMethod.BANK_TRANSFER, label: "Bank Transfer" },
+  { value: PaymentMethod.ONLINE, label: "Online" },
+  { value: PaymentMethod.OTHER, label: "Other" },
+];
+
+export const PAYMENT_TYPE_CREATE_UPDATE = [
+  { value: PaymentType.SUBSCRIPTION, label: "Subscription" },
+  { value: PaymentType.USER_PLAN, label: "User Plan" },
+  { value: PaymentType.BUSINESS_RECORD, label: "Business Record" },
+  { value: PaymentType.REFUND, label: "Refund" },
+  { value: PaymentType.OTHER, label: "Other" },
 ];

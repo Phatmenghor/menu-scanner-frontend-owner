@@ -1,5 +1,3 @@
-import { SelectOption } from "@/components/shared/common/custom-select";
-
 export enum Status {
   ALL = "ALL",
   ACTIVE = "ACTIVE",
@@ -13,16 +11,6 @@ export enum AccountStatus {
   LOCKED = "LOCKED",
   SUSPENDED = "SUSPENDED",
 }
-
-export const STATUS_USER_OPTIONS = [
-  { value: Status.ACTIVE, label: "Active" },
-  { value: Status.INACTIVE, label: "Inactive" },
-];
-
-export const DATA_ROLE_OPTIONS = [
-  { value: "ADMIN", label: "Admin" },
-  { value: "USER", label: "User" },
-];
 
 // Types
 export enum ModalMode {
@@ -66,27 +54,6 @@ export enum SubscriptionPlanStatus {
   PRIVATE = "PRIVATE",
 }
 
-export const USER_ROLE_OPTIONS = [
-  // Platform Roles
-  { value: UserRole.PLATFORM_OWNER, label: "Platform Owner" },
-  { value: UserRole.PLATFORM_ADMIN, label: "Platform Admin" },
-  { value: UserRole.PLATFORM_MANAGER, label: "Platform Manager" },
-  { value: UserRole.PLATFORM_SUPPORT, label: "Platform Support" },
-
-  // Business Roles
-  { value: UserRole.BUSINESS_OWNER, label: "Business Owner" },
-  { value: UserRole.BUSINESS_MANAGER, label: "Business Manager" },
-  { value: UserRole.BUSINESS_STAFF, label: "Business Staff" },
-
-  // Customer Role
-  { value: UserRole.CUSTOMER, label: "Customer" },
-];
-
-export const BUSINESS_USER_ROLE_OPTIONS = [
-  { value: BusinessUserRole.BUSINESS_MANAGER, label: "Manager" },
-  { value: BusinessUserRole.BUSINESS_STAFF, label: "Staff" },
-];
-
 export enum UserGropeType {
   ALL = "ALL",
   PLATFORM_USER = "PLATFORM_USER",
@@ -99,17 +66,6 @@ export enum BusinessUserType {
   CUSTOMER = "CUSTOMER",
 }
 
-export const BUSINESS_USER_TYPE_OPTIONS = [
-  { value: BusinessUserType.BUSINESS_USER, label: "Business User" },
-  { value: BusinessUserType.CUSTOMER, label: "Customer" },
-];
-
-export const USER_TYPE_OPTIONS = [
-  { value: UserGropeType.PLATFORM_USER, label: "Platform User" },
-  { value: UserGropeType.BUSINESS_USER, label: "Business User" },
-  { value: UserGropeType.CUSTOMER, label: "Customer" },
-];
-
 export enum BusinessStatus {
   ALL = "ALL",
   PENDING = "PENDING",
@@ -117,21 +73,6 @@ export enum BusinessStatus {
   INACTIVE = "INACTIVE",
   SUSPENDED = "SUSPENDED",
 }
-
-export const BUSINESS_STATUS_FILTER = [
-  { value: BusinessStatus.ALL, label: "All" },
-  { value: BusinessStatus.ACTIVE, label: "Active" },
-  { value: BusinessStatus.INACTIVE, label: "Inactive" },
-  { value: BusinessStatus.SUSPENDED, label: "Suspended" },
-  { value: BusinessStatus.PENDING, label: "Pending Approval" },
-];
-
-export const BUSINESS_STATUS = [
-  { value: BusinessStatus.ACTIVE, label: "Active" },
-  { value: BusinessStatus.INACTIVE, label: "Inactive" },
-  { value: BusinessStatus.SUSPENDED, label: "Suspended" },
-  { value: BusinessStatus.PENDING, label: "Pending Approval" },
-];
 
 export enum SubscriptionStatus {
   ALL = "ALL",
@@ -156,26 +97,14 @@ export enum PaymentStatus {
 export enum PaymentMethod {
   CASH = "CASH",
   BANK_TRANSFER = "BANK_TRANSFER",
-  MOBILE_PAYMENT = "MOBILE_PAYMENT",
   ONLINE = "ONLINE",
+  OTHER = "OTHER",
 }
 
-export const PAYMENT_STATUS_OPTIONS = [
-  { value: "PENDING", label: "Pending" },
-  { value: "COMPLETED", label: "Completed" },
-  { value: "FAILED", label: "Failed" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
-
-export const ACCOUNT_STATUS_OPTIONS = [
-  { value: "PENDING", label: "Pending" },
-  { value: "COMPLETED", label: "Completed" },
-  { value: "FAILED", label: "Failed" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
-
-export const SUBDOMAIN_STATUS_OPTIONS = {
-  ACTIVE: "Active - Domain is live and accessible",
-  SUSPENDED: "Suspended - Domain is temporarily disabled",
-  EXPIRED: "Expired - Subscription has expired",
-} as const;
+export enum PaymentType {
+  SUBSCRIPTION = "SUBSCRIPTION",
+  USER_PLAN = "USER_PLAN",
+  BUSINESS_RECORD = "BUSINESS_RECORD",
+  REFUND = "REFUND",
+  OTHER = "OTHER",
+}

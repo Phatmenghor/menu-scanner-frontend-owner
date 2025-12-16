@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ModalMode } from "@/constants/AppResource/status/status";
 import Loading from "@/components/shared/common/loading";
@@ -14,18 +14,9 @@ import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
+import { ImageUploadField } from "@/components/shared/form-field/image-upload-field";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { showToast } from "@/components/shared/common/show-toast";
-import {
-  createPaymentService,
-  fetchPaymentByIdService,
-  updatePaymentService,
-} from "../store/thunks/payment-thunks";
-import {
-  selectError,
-  selectIsFetchingDetail,
-  selectOperations,
-} from "../store/selectors/payment-selector";
 import {
   createPaymentSchema,
   PaymentFormData,
@@ -36,6 +27,26 @@ import {
   CreatePaymentRequest,
   UpdatePaymentRequest,
 } from "../store/models/request/payment-request";
+import { BusinessResponseModel } from "@/redux/features/master-data/store/models/response/business-response";
+import {
+  selectError,
+  selectIsFetchingDetail,
+  selectOperations,
+} from "../store/selectors/payment-selector";
+import { SubscriptionResponseModel } from "../store/models/response/subscription-response";
+import {
+  createPaymentService,
+  fetchPaymentByIdService,
+  updatePaymentService,
+} from "../store/thunks/payment-thunks";
+import { ComboboxSelectBusiness } from "@/components/shared/combo-box/combobox-business";
+import { ComboboxSelectSubscription } from "@/components/shared/combo-box/combobox-subscription";
+import {
+  PAYMENT_METHOD_CREATE_UPDATE,
+  PAYMENT_STATUS_CREATE_UPDATE,
+  PAYMENT_TYPE_CREATE_UPDATE,
+} from "@/constants/AppResource/status/create-update-status";
+import { uploadImageService } from "@/services/image-service";
 
 type Props = {
   mode: ModalMode;
@@ -60,6 +71,11 @@ export default function PaymentModal({
   const reduxError = useAppSelector(selectError);
   const { isCreating, isUpdating } = operations;
 
+  const [selectedBusiness, setSelectedBusiness] =
+    useState<BusinessResponseModel | null>(null);
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<SubscriptionResponseModel | null>(null);
+
   const {
     control,
     handleSubmit,
@@ -77,6 +93,7 @@ export default function PaymentModal({
       businessId: "",
       amount: 0,
       paymentType: "",
+      paymentMethod: "",
       status: "",
       referenceNumber: "",
       notes: "",
@@ -84,30 +101,52 @@ export default function PaymentModal({
     mode: "onChange",
   });
 
-  // Fetch business data for edit mode
+  // Fetch Payment data for edit mode
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchPaymentData = async () => {
       if (!paymentId || !isOpen || isCreate) return;
 
       try {
-        const resultAction = await dispatch(
-          fetchPaymentByIdService(businessId)
-        );
+        const resultAction = await dispatch(fetchPaymentByIdService(paymentId));
 
         if (fetchPaymentByIdService.fulfilled.match(resultAction)) {
-          const resposne = resultAction.payload;
+          const response = resultAction.payload;
 
           reset({
-            id: resposne.id,
+            id: response.id,
+            imageUrl: response.imageUrl,
+            subscriptionId: response.subscriptionId,
+            businessId: response.businessId,
+            amount: response.amount,
+            paymentType: response.paymentType,
+            paymentMethod: response.paymentMethod,
+            status: response.status,
+            referenceNumber: response.referenceNumber,
+            notes: response.notes,
           });
+
+          if (response.businessId && response.businessName) {
+            setSelectedBusiness({
+              id: response.businessId,
+              name: response?.businessName || "",
+            } as BusinessResponseModel);
+          }
+
+          if (response.subscriptionId) {
+            setSelectedSubscription({
+              id: response.subscriptionId,
+              businessName: response.businessName || "",
+              planName: response.planName || "",
+            } as SubscriptionResponseModel);
+          }
         }
       } catch (error) {
         console.error("Error fetching payment data:", error);
       }
     };
 
-    fetchUserData();
-  }, [businessId, isOpen, isCreate, reset, dispatch]);
+    fetchPaymentData();
+  }, [paymentId, isOpen, isCreate, reset, dispatch]);
 
   // Reset form for create mode
   useEffect(() => {
@@ -118,10 +157,13 @@ export default function PaymentModal({
         businessId: "",
         amount: 0,
         paymentType: "",
+        paymentMethod: "",
         status: "",
         referenceNumber: "",
         notes: "",
       });
+      setSelectedBusiness(null);
+      setSelectedSubscription(null);
     }
   }, [isOpen, isCreate, reset]);
 
@@ -134,15 +176,38 @@ export default function PaymentModal({
 
   const onSubmit = async (data: PaymentFormData) => {
     try {
+      let imageUrl = data.imageUrl;
+
+      if (imageUrl && imageUrl.startsWith("data:image")) {
+        try {
+          const imageType = imageUrl.split(";")[0].split("/")[1];
+
+          const uploadResult = await uploadImageService({
+            base64: imageUrl,
+            type: imageType,
+          });
+
+          if (uploadResult && uploadResult.imageUrl) {
+            imageUrl = uploadResult.imageUrl;
+          } else {
+            throw new Error("Failed to upload image");
+          }
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          showToast.error("Failed to upload image. Please try again.");
+          return; // Stop submission if image upload fails
+        }
+      }
+
       if (isCreate) {
         const payload: CreatePaymentRequest = {
-          imageUrl: data.imageUrl,
+          imageUrl: imageUrl,
           subscriptionId: data.subscriptionId,
           businessId: data.businessId,
-          amount: data.amount!,
-          paymentMethod: data.paymentType!,
-          paymentType: data.paymentType!,
-          status: data.status!,
+          amount: data.amount,
+          paymentMethod: data.paymentMethod,
+          paymentType: data.paymentType,
+          status: data.status,
           referenceNumber: data.referenceNumber,
           notes: data.notes,
         };
@@ -150,19 +215,19 @@ export default function PaymentModal({
         const result = await dispatch(createPaymentService(payload)).unwrap();
 
         showToast.success(
-          `Payment "${result.name || result.email}" created successfully`
+          `Payment "${result.referenceNumber || "record"}" created successfully`
         );
 
         handleClose();
       } else {
         const payload: UpdatePaymentRequest = {
-          imageUrl: data.imageUrl,
+          imageUrl: imageUrl,
           subscriptionId: data.subscriptionId,
           businessId: data.businessId,
-          amount: data.amount!,
-          status: data.status!,
-          paymentMethod: data.paymentType!,
-          paymentType: data.paymentType!,
+          amount: data.amount,
+          paymentMethod: data.paymentMethod,
+          paymentType: data.paymentType,
+          status: data.status,
           referenceNumber: data.referenceNumber,
           notes: data.notes,
         };
@@ -172,7 +237,7 @@ export default function PaymentModal({
         ).unwrap();
 
         showToast.success(
-          `Payment "${result.fullName || result.email}" updated successfully`
+          `Payment "${result.referenceNumber || "record"}" updated successfully`
         );
 
         handleClose();
@@ -185,6 +250,8 @@ export default function PaymentModal({
 
   const handleClose = () => {
     reset();
+    setSelectedBusiness(null);
+    setSelectedSubscription(null);
     dispatch(clearError());
     dispatch(clearSelectedPayment());
     onClose();
@@ -197,9 +264,7 @@ export default function PaymentModal({
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
         {/* Header */}
         <FormHeader
-          title={
-            isCreate ? "Create New payment" : "Update payment information below"
-          }
+          title={isCreate ? "Create New Payment" : "Update Payment Information"}
           description={
             isCreate
               ? "Fill out the form to create a new payment"
@@ -232,59 +297,131 @@ export default function PaymentModal({
 
               {/* Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <TextField
+                {/* Business Selection - Combobox (needs Controller) */}
+                <Controller
                   control={control}
-                  name="name"
-                  label="Name"
-                  placeholder="Enter name"
-                  disabled={!isSubmitting}
-                  required={isCreate}
+                  name="businessId"
+                  render={({ field }) => (
+                    <ComboboxSelectBusiness
+                      dataSelect={selectedBusiness}
+                      onChangeSelected={(business) => {
+                        setSelectedBusiness(business);
+                        field.onChange(business?.id || "");
+                      }}
+                      label="Business"
+                      placeholder="Select a business..."
+                      disabled={isSubmitting}
+                      showAllOption={false}
+                      error={errors.businessId?.message}
+                    />
+                  )}
                 />
 
+                {/* Subscription Selection - Combobox (needs Controller) */}
+                <Controller
+                  control={control}
+                  name="subscriptionId"
+                  render={({ field }) => (
+                    <ComboboxSelectSubscription
+                      dataSelect={selectedSubscription}
+                      onChangeSelected={(subscription) => {
+                        setSelectedSubscription(subscription);
+                        field.onChange(subscription?.id || "");
+                      }}
+                      label="Subscription"
+                      placeholder="Select a subscription..."
+                      disabled={isSubmitting}
+                      showAllOption={false}
+                      error={errors.subscriptionId?.message}
+                    />
+                  )}
+                />
+
+                {/* Amount */}
                 <TextField
                   control={control}
-                  name="email"
-                  label="Email"
-                  type="email"
-                  placeholder="Enter email address"
+                  name="amount"
+                  label="Amount"
+                  type="number"
+                  placeholder="Enter amount"
+                  required
                   disabled={isSubmitting}
+                  error={errors.amount}
                 />
 
-                <TextField
+                {/* Payment Type */}
+                <SelectField
                   control={control}
-                  name="phone"
-                  label="Phnoe Number"
-                  placeholder="Enter phone number"
+                  name="paymentType"
+                  label="Payment Type"
+                  placeholder="Select payment type"
+                  options={PAYMENT_TYPE_CREATE_UPDATE}
+                  required
                   disabled={isSubmitting}
+                  error={errors.paymentType}
                 />
 
-                <TextField
+                {/* Payment Method */}
+                <SelectField
                   control={control}
-                  name="address"
-                  label="Address"
-                  placeholder="Enter address"
+                  name="paymentMethod"
+                  label="Payment Method"
+                  placeholder="Select payment method"
+                  options={PAYMENT_METHOD_CREATE_UPDATE}
+                  required
                   disabled={isSubmitting}
+                  error={errors.paymentMethod}
                 />
 
+                {/* Status */}
                 <SelectField
                   control={control}
                   name="status"
-                  label="Business Status"
-                  placeholder="Select business status"
-                  options={BUSINESS_STATUS_CREATE_UPDATE}
+                  label="Payment Status"
+                  placeholder="Select payment status"
+                  options={PAYMENT_STATUS_CREATE_UPDATE}
                   required
                   disabled={isSubmitting}
+                  error={errors.status}
+                />
+
+                {/* Reference Number */}
+                <TextField
+                  control={control}
+                  name="referenceNumber"
+                  label="Reference Number"
+                  placeholder="Enter reference number"
+                  disabled={isSubmitting}
+                  error={errors.referenceNumber}
                 />
               </div>
 
-              {/* Notes - Separate Row */}
+              {/* Image Upload - Full Width */}
+              <Controller
+                control={control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <ImageUploadField
+                    label="Payment Receipt/Proof"
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                    error={errors.imageUrl?.message}
+                    accept="image/*"
+                    maxSize={5}
+                  />
+                )}
+              />
+
+              {/* Notes - Full Width */}
               <TextareaField
                 control={control}
-                name="description"
+                name="notes"
                 label="Notes"
                 placeholder="Enter any additional notes (optional)"
                 rows={5}
                 disabled={isSubmitting}
+                error={errors.notes}
               />
             </FormBody>
 
@@ -293,8 +430,8 @@ export default function PaymentModal({
               isSubmitting={isSubmitting}
               isDirty={isDirty}
               isCreate={isCreate}
-              createMessage="Creating business..."
-              updateMessage="Updating business..."
+              createMessage="Creating payment..."
+              updateMessage="Updating payment..."
             >
               <CancelButton onClick={handleClose} disabled={isSubmitting} />
 
@@ -302,8 +439,8 @@ export default function PaymentModal({
                 isSubmitting={isSubmitting}
                 isDirty={isDirty}
                 isCreate={isCreate}
-                createText="Create Business"
-                updateText="Update Business"
+                createText="Create Payment"
+                updateText="Update Payment"
                 submittingCreateText="Creating..."
                 submittingUpdateText="Updating..."
               />
