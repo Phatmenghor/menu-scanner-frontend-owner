@@ -89,9 +89,17 @@ export default function CommunePage() {
       fetchAllCommuneService({
         search: debouncedSearch,
         pageNo: filters.pageNo,
+        provinceCode: selectedProvince?.provinceCode,
+        districtCode: selectedDistrict?.districtCode,
       })
     );
-  }, [dispatch, debouncedSearch, filters.pageNo]);
+  }, [
+    dispatch,
+    debouncedSearch,
+    filters.pageNo,
+    selectedProvince,
+    selectedDistrict,
+  ]);
 
   // Event handlers
   const handleCreateCommune = () => {

@@ -87,15 +87,25 @@ export default function VillagePage() {
     }
   }, [searchParams, filters.pageNo, dispatch]);
 
-  // Fetch commune when filters change
+  // Fetch village when filters change
   useEffect(() => {
     dispatch(
       fetchAllVillageService({
         search: debouncedSearch,
         pageNo: filters.pageNo,
+        provinceCode: selectedProvince?.provinceCode,
+        districtCode: selectedDistrict?.districtCode,
+        communeCode: selectedCommune?.communeCode,
       })
     );
-  }, [dispatch, debouncedSearch, filters.pageNo]);
+  }, [
+    dispatch,
+    debouncedSearch,
+    filters.pageNo,
+    selectedProvince,
+    selectedDistrict,
+    selectedCommune,
+  ]);
 
   // Event handlers
   const handleCreateVillage = () => {
@@ -232,21 +242,18 @@ export default function VillagePage() {
             <ComboboxSelectCommune
               dataSelect={selectedCommune}
               onChangeSelected={handleCommuneChange}
-              label="Commune"
               placeholder="All Commune"
               showAllOption={true}
             />
             <ComboboxSelectDistrict
               dataSelect={selectedDistrict}
               onChangeSelected={handleDistrictChange}
-              label="District"
               placeholder="All District"
               showAllOption={true}
             />
             <ComboboxSelectProvince
               dataSelect={selectedProvince}
               onChangeSelected={handleProvinceChange}
-              label="Province"
               placeholder="All Province"
               showAllOption={true}
             />
