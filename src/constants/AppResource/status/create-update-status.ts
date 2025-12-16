@@ -51,6 +51,11 @@ export const SUBSCRIPTION_PLAN_CREATE_UPDATE = [
   { value: SubscriptionPlanStatus.PRIVATE, label: "Private" },
 ];
 
+export const SUBSCRIPTION_CREATE_UPDATE = [
+  { value: "true", label: "Active" },
+  { value: "false", label: "Inactive" },
+];
+
 export const PAYMENT_METHODS_CREATE_UPDATE = [
   { value: PaymentMethod.BANK_TRANSFER, label: "Bank Transfer" },
   { value: PaymentMethod.CASH, label: "Cash" },

@@ -5,9 +5,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ModalMode } from "@/constants/AppResource/status/status";
+import { SUBSCRIPTION_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
 import Loading from "@/components/shared/common/loading";
-import { TextField } from "@/components/shared/form-field/text-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
+import { DatePickerField } from "@/components/shared/form-field/date-picker-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
 import { FormHeader } from "@/components/shared/form-field/form-header";
@@ -15,16 +16,10 @@ import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
-  selectError,
-  selectIsFetchingDetail,
-  selectOperations,
-} from "../store/selectors/business-selector";
-import {
   clearError,
   clearSelectedBusiness,
 } from "../store/slice/business-slice";
 import { showToast } from "@/components/shared/common/show-toast";
-import { getFieldError } from "@/utils/common/get-field-error";
 import {
   createSubscriptionSchema,
   SubscriptionFormData,
@@ -39,22 +34,15 @@ import {
   CreateSubscriptionRequest,
   UpdateSubscriptionRequest,
 } from "../store/models/request/subscription-request";
-import { BusinessResponseModel } from "@/redux/features/master-data/store/models/response/business-response";
-
-// Auto-renew status options
-const AUTO_RENEW_OPTIONS = [
-  { label: "Active", value: "true" },
-  { label: "Inactive", value: "false" },
-];
-
-// Plan response model type (adjust according to your actual model)
-interface PlanResponseModel {
-  id: string;
-  name: string;
-  description?: string;
-  price?: number;
-  duration?: string;
-}
+import { SubscriptionPlanResponseModel } from "@/redux/features/master-data/store/models/response/subscription-plan-response";
+import { ComboboxSelectBusiness } from "@/components/shared/combo-box/combobox-business";
+import { ComboboxSelectSubscriptionPlan } from "@/components/shared/combo-box/combobox-plan";
+import {
+  selectError,
+  selectIsFetchingDetail,
+  selectOperations,
+} from "../store/selectors/subscription-selector";
+import { BusinessResponseModel } from "../store/models/response/business-response";
 
 type Props = {
   mode: ModalMode;
@@ -82,9 +70,8 @@ export default function SubscriptionModal({
   // Local state for selected items
   const [selectedBusiness, setSelectedBusiness] =
     useState<BusinessResponseModel | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<PlanResponseModel | null>(
-    null
-  );
+  const [selectedPlan, setSelectedPlan] =
+    useState<SubscriptionPlanResponseModel | null>(null);
 
   const {
     control,
@@ -102,7 +89,7 @@ export default function SubscriptionModal({
       planId: "",
       startDate: "",
       endDate: "",
-      autoRenew: true,
+      autoRenew: "true",
     },
     mode: "onChange",
   });
@@ -124,16 +111,23 @@ export default function SubscriptionModal({
             id: response.id,
             businessId: response.businessId,
             planId: response.planId,
-            autoRenew: response.autoRenew,
+            autoRenew: response.autoRenew.toString(),
             startDate: response.startDate,
             endDate: response.endDate,
           });
 
-          if (response.business) {
-            setSelectedBusiness(response.business);
+          if (response.businessId && response.businessName) {
+            setSelectedBusiness({
+              id: response.businessId,
+              name: response?.businessName || "",
+            } as BusinessResponseModel);
           }
-          if (response.plan) {
-            setSelectedPlan(response.plan);
+
+          if (response.planId) {
+            setSelectedPlan({
+              id: response.planId,
+              name: response?.planName || "",
+            } as SubscriptionPlanResponseModel);
           }
         }
       } catch (error) {
@@ -152,7 +146,7 @@ export default function SubscriptionModal({
         planId: "",
         startDate: "",
         endDate: "",
-        autoRenew: true,
+        autoRenew: "true",
       });
       setSelectedBusiness(null);
       setSelectedPlan(null);
@@ -172,7 +166,7 @@ export default function SubscriptionModal({
         const payload: CreateSubscriptionRequest = {
           businessId: data.businessId,
           planId: data.planId,
-          autoRenew: data.autoRenew,
+          autoRenew: data.autoRenew === "true",
           startDate: data.startDate,
         };
 
@@ -190,7 +184,7 @@ export default function SubscriptionModal({
       } else {
         const payload: UpdateSubscriptionRequest = {
           planId: data.planId,
-          autoRenew: data.autoRenew,
+          autoRenew: data.autoRenew === "true",
           startDate: data.startDate,
           endDate: data.endDate,
         };
@@ -284,7 +278,8 @@ export default function SubscriptionModal({
                       placeholder="Select a business..."
                       required
                       disabled={isSubmitting || !isCreate}
-                      error={getFieldError(errors.businessId)}
+                      showAllOption={false}
+                      error={errors.businessId?.message}
                     />
                   )}
                 />
@@ -294,93 +289,55 @@ export default function SubscriptionModal({
                   control={control}
                   name="planId"
                   render={({ field }) => (
-                    <ComboboxSelectPlan
+                    <ComboboxSelectSubscriptionPlan
                       dataSelect={selectedPlan}
                       onChangeSelected={(plan) => {
                         setSelectedPlan(plan);
                         field.onChange(plan?.id || "");
                       }}
-                      label="Plan"
+                      label="Subscription Plan"
                       placeholder="Select a plan..."
                       required
                       disabled={isSubmitting}
-                      error={getFieldError(errors.planId)}
+                      showAllOption={false}
+                      error={errors.planId?.message}
                     />
                   )}
                 />
 
-                {/* Start Date */}
-                <Controller
+                {/* Start Date - DatePickerField */}
+                <DatePickerField
                   control={control}
                   name="startDate"
-                  render={({ field }) => (
-                    <div className="space-y-2">
-                      <label className="text-[12px] font-normal text-gray-300">
-                        Start Date
-                        <span className="text-red-500 ml-1">*</span>
-                      </label>
-                      <CustomDatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        disabled={isSubmitting}
-                        placeholder="Select start date"
-                        error={!!errors.startDate}
-                      />
-                      {errors.startDate && (
-                        <p className="text-xs text-red-500">
-                          {getFieldError(errors.startDate)}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  label="Start Date"
+                  placeholder="Select start date"
+                  required
+                  disabled={isSubmitting}
+                  error={errors.startDate}
                 />
 
-                {/* End Date */}
-                <Controller
-                  control={control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <div className="space-y-2">
-                      <label className="text-[12px] font-normal text-gray-300">
-                        End Date
-                      </label>
-                      <CustomDatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        disabled={isSubmitting}
-                        placeholder="Select end date"
-                        error={!!errors.endDate}
-                      />
-                      {errors.endDate && (
-                        <p className="text-xs text-red-500">
-                          {getFieldError(errors.endDate)}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                />
+                {/* End Date - DatePickerField */}
+                {!isCreate && (
+                  <DatePickerField
+                    control={control}
+                    name="endDate"
+                    label="End Date"
+                    placeholder="Select end date"
+                    disabled={isSubmitting}
+                    error={errors.endDate}
+                  />
+                )}
 
-                {/* Auto Renew Status - Select Field */}
-                <Controller
+                {/* Auto Renew Status - SelectField */}
+                <SelectField
                   control={control}
                   name="autoRenew"
-                  render={({ field }) => (
-                    <SelectField
-                      control={control}
-                      name="autoRenew"
-                      label="Auto Renew"
-                      placeholder="Select auto renew status"
-                      options={AUTO_RENEW_OPTIONS}
-                      required
-                      disabled={isSubmitting}
-                      error={getFieldError(errors.autoRenew)}
-                      onChange={(value) => {
-                        // Convert string "true"/"false" to boolean
-                        field.onChange(value === "true");
-                      }}
-                      value={field.value?.toString() || "true"}
-                    />
-                  )}
+                  label="Auto Renew"
+                  placeholder="Select auto renew status"
+                  options={SUBSCRIPTION_CREATE_UPDATE}
+                  required
+                  disabled={isSubmitting}
+                  error={errors.autoRenew}
                 />
               </div>
             </FormBody>

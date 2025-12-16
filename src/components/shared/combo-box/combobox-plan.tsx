@@ -33,6 +33,7 @@ interface ComboboxSelectedProps {
   size?: "sm" | "md" | "lg";
   placeholder?: string;
   showAllOption?: boolean;
+  error?: string;
 }
 
 const ALL_OPTION: SubscriptionPlanResponseModel =
@@ -47,6 +48,7 @@ export function ComboboxSelectSubscriptionPlan({
   size = "md",
   placeholder = "Select a plan...",
   showAllOption = true,
+  error,
 }: ComboboxSelectedProps) {
   const dispatch = useAppDispatch();
 
@@ -109,7 +111,7 @@ export function ComboboxSelectSubscriptionPlan({
       setPage(result.pageNo);
       setLastPage(result.last);
     } catch (error) {
-      console.error("Error fetching provinces:", error);
+      console.error("Error fetching subscription plans:", error);
     } finally {
       setLoading(false);
     }
@@ -167,7 +169,8 @@ export function ComboboxSelectSubscriptionPlan({
               "w-full justify-between min-w-[150px]",
               sizeClasses[size],
               !dataSelect && "text-muted-foreground",
-              disabled && "opacity-50 cursor-not-allowed"
+              disabled && "opacity-50 cursor-not-allowed",
+              error && "border-red-500"
             )}
             disabled={disabled}
           >
@@ -182,12 +185,12 @@ export function ComboboxSelectSubscriptionPlan({
         >
           <Command>
             <CommandInput
-              placeholder="Search province..."
+              placeholder="Search plan..."
               value={searchTerm}
               onValueChange={handleSearchChange}
             />
             <CommandList className="max-h-60 overflow-y-auto">
-              <CommandEmpty>No province found.</CommandEmpty>
+              <CommandEmpty>No plan found.</CommandEmpty>
               <CommandGroup>
                 {data.map((item, index) => (
                   <CommandItem
@@ -226,6 +229,7 @@ export function ComboboxSelectSubscriptionPlan({
           </Command>
         </PopoverContent>
       </Popover>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 }

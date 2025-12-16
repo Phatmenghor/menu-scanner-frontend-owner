@@ -84,7 +84,7 @@ export default function SubscriptionPlanRateModal({
       durationDays: 0,
       price: 0,
       description: "",
-      status: SubscriptionPlanStatus.ALL,
+      status: SubscriptionPlanStatus.PUBLIC,
     },
     mode: "onChange",
   });
@@ -127,7 +127,7 @@ export default function SubscriptionPlanRateModal({
         durationDays: 0,
         price: 0,
         description: "",
-        status: SubscriptionPlanStatus.ALL,
+        status: SubscriptionPlanStatus.PUBLIC,
       });
     }
   }, [isOpen, isCreate, reset]);

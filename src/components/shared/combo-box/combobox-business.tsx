@@ -33,6 +33,7 @@ interface ComboboxSelectedProps {
   size?: "sm" | "md" | "lg";
   placeholder?: string;
   showAllOption?: boolean;
+  error?: string;
 }
 
 const ALL_OPTION: BusinessResponseModel = {} as BusinessResponseModel;
@@ -46,6 +47,7 @@ export function ComboboxSelectBusiness({
   size = "md",
   placeholder = "Select a business...",
   showAllOption = true,
+  error,
 }: ComboboxSelectedProps) {
   const dispatch = useAppDispatch();
 
@@ -104,7 +106,7 @@ export function ComboboxSelectBusiness({
       setPage(result.pageNo);
       setLastPage(result.last);
     } catch (error) {
-      console.error("Error fetching provinces:", error);
+      console.error("Error fetching businesses:", error);
     } finally {
       setLoading(false);
     }
@@ -162,13 +164,12 @@ export function ComboboxSelectBusiness({
               "w-full justify-between min-w-[150px]",
               sizeClasses[size],
               !dataSelect && "text-muted-foreground",
-              disabled && "opacity-50 cursor-not-allowed"
+              disabled && "opacity-50 cursor-not-allowed",
+              error && "border-red-500"
             )}
             disabled={disabled}
           >
-            {dataSelect
-              ? dataSelect.name || dataSelect.email || ""
-              : placeholder}
+            {dataSelect ? dataSelect.name || "" : placeholder}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -179,12 +180,12 @@ export function ComboboxSelectBusiness({
         >
           <Command>
             <CommandInput
-              placeholder="Search province..."
+              placeholder="Search business..."
               value={searchTerm}
               onValueChange={handleSearchChange}
             />
             <CommandList className="max-h-60 overflow-y-auto">
-              <CommandEmpty>No province found.</CommandEmpty>
+              <CommandEmpty>No business found.</CommandEmpty>
               <CommandGroup>
                 {data.map((item, index) => (
                   <CommandItem
@@ -227,6 +228,7 @@ export function ComboboxSelectBusiness({
           </Command>
         </PopoverContent>
       </Popover>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 }
