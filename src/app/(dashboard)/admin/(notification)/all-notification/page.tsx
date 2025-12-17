@@ -192,12 +192,12 @@ export default function AllNotificationPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
-            { label: "Province", href: "" },
+            { label: "All Notification", href: "" },
           ]}
-          title="Province"
+          title="All Notification"
           searchValue={filters.search}
-          searchPlaceholder="Search province..."
-          buttonTooltip="Create a new province"
+          searchPlaceholder="Search all Notification..."
+          buttonTooltip="Create a new Notification"
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New"
           onSearchChange={handleSearchChange}

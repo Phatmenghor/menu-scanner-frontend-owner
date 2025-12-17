@@ -19,7 +19,7 @@ export function dateTimeFormat(timestamp: string | null | undefined): string {
 
     return formattedDateTime;
   }
-  return "";
+  return "- - -";
 }
 
 export function formatDate(dateStr: string): string {
