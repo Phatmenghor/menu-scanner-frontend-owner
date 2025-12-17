@@ -85,7 +85,7 @@ export const allNotificationTableColumns = ({
       truncate: true,
       render: (notification) => (
         <span className="text-xs text-muted-foreground">
-          {notification?.recipientType || "---"}
+          {convertEnumOrString(notification?.recipientType) || "---"}
         </span>
       ),
     },

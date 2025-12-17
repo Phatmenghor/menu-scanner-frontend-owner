@@ -7,6 +7,7 @@ import {
   AllNotificationResponseModel,
   NotificationResponseModel,
 } from "../store/models/response/notification-response";
+import { convertEnumOrString } from "@/utils/common/enum-convert";
 
 interface NotificationTableHandlers {
   handleNotificationViewDetail: (commune: NotificationResponseModel) => void;
@@ -69,7 +70,7 @@ export const myNotificationTableColumns = ({
       truncate: true,
       render: (notification) => (
         <span className="text-xs text-muted-foreground">
-          {notification?.status || "---"}
+          {convertEnumOrString(notification?.status) || "---"}
         </span>
       ),
     },
@@ -82,7 +83,7 @@ export const myNotificationTableColumns = ({
       truncate: true,
       render: (notification) => (
         <span className="text-xs text-muted-foreground">
-          {notification?.recipientType || "---"}
+          {convertEnumOrString(notification?.recipientType) || "---"}
         </span>
       ),
     },
