@@ -7,7 +7,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   BusinessStatus,
   SubscriptionStatus,
-} from "@/constants/AppResource/status/status";
+} from "@/constants/app-resource/status/status";
 import { BusinessManagementState } from "../models/type/business-type";
 import {
   createBusinessService,

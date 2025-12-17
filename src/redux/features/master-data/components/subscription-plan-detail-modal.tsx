@@ -14,7 +14,7 @@ import { clearSelectedBusiness } from "../store/slice/business-slice";
 import {
   Status,
   SubscriptionPlanStatus,
-} from "@/constants/AppResource/status/status";
+} from "@/constants/app-resource/status/status";
 import {
   selectIsFetchingDetail,
   selectSelectedSubscriptionPlan,

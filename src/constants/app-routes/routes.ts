@@ -6,7 +6,6 @@ import {
   Users,
   LucideIcon,
   Database,
-  DollarSign,
   Pin,
 } from "lucide-react";
 

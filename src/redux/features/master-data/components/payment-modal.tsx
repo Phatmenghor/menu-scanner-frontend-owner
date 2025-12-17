@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ModalMode } from "@/constants/AppResource/status/status";
+import { ModalMode } from "@/constants/app-resource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
@@ -45,7 +45,7 @@ import {
   PAYMENT_METHOD_CREATE_UPDATE,
   PAYMENT_STATUS_CREATE_UPDATE,
   PAYMENT_TYPE_CREATE_UPDATE,
-} from "@/constants/AppResource/status/create-update-status";
+} from "@/constants/app-resource/status/create-update-status";
 import { uploadImageService } from "@/services/image-service";
 
 type Props = {

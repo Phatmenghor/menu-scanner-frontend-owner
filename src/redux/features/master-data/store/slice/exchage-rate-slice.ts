@@ -7,7 +7,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   BusinessStatus,
   ExchangeRateStatus,
-} from "@/constants/AppResource/status/status";
+} from "@/constants/app-resource/status/status";
 import { ExchangeRateManagementState } from "../models/type/exchange-rate-type";
 import {
   createExchangeRateService,

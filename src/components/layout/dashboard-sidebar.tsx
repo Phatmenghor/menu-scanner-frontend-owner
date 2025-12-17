@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ROUTES, sidebarItems } from "@/constants/AppRoutes/routes";
+import { ROUTES, sidebarItems } from "@/constants/app-routes/routes";
 import Image from "next/image";
 import { UserAvatarCard } from "../shared/avator/user-avatar-card";
 import { useIsMobile } from "@/redux/store/use-mobile";

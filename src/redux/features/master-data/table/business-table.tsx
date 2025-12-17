@@ -1,4 +1,4 @@
-import { ActionButton } from "@/components/shared/common/action-button";
+import { ActionButton } from "@/components/button/action-button";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, RotateCw, Trash } from "lucide-react";

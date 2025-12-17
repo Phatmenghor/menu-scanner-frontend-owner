@@ -11,7 +11,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CustomAvatar } from "@/components/shared/common/custom-avator";
+import { CustomAvatar } from "@/components/shared/avator/custom-avator";
 import Loading from "@/components/shared/common/loading";
 
 interface DetailModalProps {

@@ -3,7 +3,7 @@
  * Redux thunks for user CRUD operations
  */
 
-import { Status } from "@/constants/AppResource/status/status";
+import { Status } from "@/constants/app-resource/status/status";
 import {
   AdminChangePasswordRequest,
   AllUserRequest,

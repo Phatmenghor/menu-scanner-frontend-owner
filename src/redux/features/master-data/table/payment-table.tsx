@@ -1,4 +1,4 @@
-import { ActionButton } from "@/components/shared/common/action-button";
+import { ActionButton } from "@/components/button/action-button";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, Trash } from "lucide-react";
@@ -7,7 +7,7 @@ import {
   AllPaymentResponseModel,
   PaymentResponseModel,
 } from "../store/models/response/payment-response";
-import { CustomAvatar } from "@/components/shared/common/custom-avator";
+import { CustomAvatar } from "@/components/shared/avator/custom-avator";
 
 interface PaymentTableHandlers {
   handleEditPayment: (business: PaymentResponseModel) => void;

@@ -4,7 +4,7 @@
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { SubscriptionPlanStatus } from "@/constants/AppResource/status/status";
+import { SubscriptionPlanStatus } from "@/constants/app-resource/status/status";
 import { SubscriptionPlanManagementState } from "../models/type/subscription-plan-type";
 import {
   createSubscriptionPlanService,

@@ -4,15 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useDebounce } from "@/utils/debounce/debounce";
-import { ROUTES } from "@/constants/AppRoutes/routes";
+import { ROUTES } from "@/constants/app-routes/routes";
 import {
   ModalMode,
   SubscriptionPlanStatus,
-} from "@/constants/AppResource/status/status";
+} from "@/constants/app-resource/status/status";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { SUBSCRIPTION_PLAN_FILTER } from "@/constants/AppResource/status/filter-status";
+import { SUBSCRIPTION_PLAN_FILTER } from "@/constants/app-resource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { showToast } from "@/components/shared/common/show-toast";
 import { usePagination } from "@/redux/store/use-pagination";

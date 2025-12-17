@@ -4,18 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useDebounce } from "@/utils/debounce/debounce";
-import { ROUTES } from "@/constants/AppRoutes/routes";
+import { ROUTES } from "@/constants/app-routes/routes";
 import {
   AccountStatus,
   ModalMode,
   UserRole,
   UserGropeType,
-} from "@/constants/AppResource/status/status";
+} from "@/constants/app-resource/status/status";
 import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { ACCOUNT_STATUS_FILTER } from "@/constants/AppResource/status/filter-status";
+import { ACCOUNT_STATUS_FILTER } from "@/constants/app-resource/status/filter-status";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { showToast } from "@/components/shared/common/show-toast";
 import { useUsersState } from "@/redux/features/auth/store/state/users-state";

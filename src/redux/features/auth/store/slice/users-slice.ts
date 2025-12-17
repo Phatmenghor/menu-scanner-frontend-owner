@@ -4,7 +4,10 @@
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AccountStatus, UserRole } from "@/constants/AppResource/status/status";
+import {
+  AccountStatus,
+  UserRole,
+} from "@/constants/app-resource/status/status";
 import {
   createUserService,
   deleteUserService,

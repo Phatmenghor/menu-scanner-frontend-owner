@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { CustomAvatar } from "@/components/shared/common/custom-avator";
+import { CustomAvatar } from "@/components/shared/avator/custom-avator";
 import { Plus, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 

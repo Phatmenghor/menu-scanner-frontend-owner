@@ -23,7 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AppDefault } from "@/constants/AppResource/default/default";
+import { AppDefault } from "@/constants/app-resource/default/default";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { adminChangePasswordService } from "@/redux/features/auth/store/thunks/users-thunks";

@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ModalMode,
   SubscriptionPlanStatus,
-} from "@/constants/AppResource/status/status";
+} from "@/constants/app-resource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
@@ -42,7 +42,7 @@ import {
   UpdateSubscriptionPlanRequest,
 } from "../store/models/request/subscription-plan-request";
 import { SelectField } from "@/components/shared/form-field/select-field";
-import { SUBSCRIPTION_PLAN_CREATE_UPDATE } from "@/constants/AppResource/status/create-update-status";
+import { SUBSCRIPTION_PLAN_CREATE_UPDATE } from "@/constants/app-resource/status/create-update-status";
 import { getFieldError } from "@/utils/common/get-field-error";
 
 type Props = {

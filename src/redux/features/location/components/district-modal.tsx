@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ModalMode } from "@/constants/AppResource/status/status";
+import { ModalMode } from "@/constants/app-resource/status/status";
 import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";

@@ -16,7 +16,7 @@ import {
   selectIsFetchingDetail,
   selectSelectedExchangeRate,
 } from "../store/selectors/exchange-rate-selector";
-import { Status } from "@/constants/AppResource/status/status";
+import { Status } from "@/constants/app-resource/status/status";
 
 interface ExchangeRateDetailModalProps {
   exchangeId?: string;

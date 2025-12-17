@@ -1,10 +1,13 @@
-import { ActionButton } from "@/components/shared/common/action-button";
+import { ActionButton } from "@/components/button/action-button";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { Edit, Eye, RotateCw, Trash } from "lucide-react";
-import { CustomAvatar } from "@/components/shared/common/custom-avator";
+import { CustomAvatar } from "@/components/shared/avator/custom-avator";
 import { TableColumn } from "@/components/shared/common/data-table";
-import { AllUserResponseModel, UserResponseModel } from "../store/models/response/users-response";
+import {
+  AllUserResponseModel,
+  UserResponseModel,
+} from "../store/models/response/users-response";
 
 interface UserTableHandlers {
   handleEditUser: (user: UserResponseModel) => void;

@@ -22,7 +22,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/redux/store/use-mobile";
-import { ActionButton } from "../shared/common/action-button";
+import { ActionButton } from "../button/action-button";
 
 interface BreadcrumbItemType {
   label: string;
