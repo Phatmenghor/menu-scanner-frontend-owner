@@ -17,6 +17,8 @@ import provinceReducer from "../features/location/store/slice/province-slice";
 import districtReducer from "../features/location/store/slice/district-slice";
 import villageReducer from "../features/location/store/slice/village-slice";
 
+import notificationReducer from "../features/notification/store/slice/notification-slice";
+
 /**
  * Root reducer configuration
  * Add new feature reducers here
@@ -33,4 +35,5 @@ export const reducers = {
   province: provinceReducer,
   district: districtReducer,
   village: villageReducer,
+  notification: notificationReducer,
 };

@@ -16,11 +16,8 @@ export const ROUTES = {
   DASHBOARD: {
     INDEX: "/admin",
     USERS: "/admin/platform-users",
-    MESSAGES: "/admin/messages",
     CALENDAR: "/admin/calendar",
-    SETTINGS: "/admin/settings",
     SECURITY: "/admin/security",
-    NOTIFICATIONS: "/admin/notifications",
     USER_MANAGEMENT: "/admin/users/manage",
     USER_ROLES: "/admin/users/roles",
     PROFILE: "/admin/profile",
@@ -41,6 +38,9 @@ export const ROUTES = {
     DISTRICT: "/admin/district",
     VILLAGE: "/admin/village",
     COMMUNE: "/admin/commune",
+
+    ALL_NOTIFICATION: "/admin/all-notification",
+    MY_NOTIFICATION: "/admin/my-notification",
   },
 } as const;
 
@@ -149,18 +149,18 @@ export const sidebarItems: SidebarItem[] = [
     ],
   },
   {
-    title: "Messages",
-    href: ROUTES.DASHBOARD.MESSAGES,
-    icon: Inbox,
-  },
-  {
-    title: "Settings",
-    href: ROUTES.DASHBOARD.SETTINGS,
-    icon: Settings,
-  },
-  {
-    title: "Notifications",
-    href: ROUTES.DASHBOARD.NOTIFICATIONS,
+    title: "Notification",
+    section: "Notification",
     icon: Bell,
+    subroutes: [
+      {
+        title: "My Notification",
+        href: ROUTES.DASHBOARD.MY_NOTIFICATION,
+      },
+      {
+        title: "All Notification",
+        href: ROUTES.DASHBOARD.ALL_NOTIFICATION,
+      },
+    ],
   },
 ];
