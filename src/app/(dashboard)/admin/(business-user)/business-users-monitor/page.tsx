@@ -35,11 +35,11 @@ import {
   setRoleFilter,
   setSearchFilter,
 } from "@/redux/features/auth/store/slice/users-slice";
-import UserPlatformModal from "@/redux/features/auth/components/user-platform-modal";
-import { UserPlatformDetailModal } from "@/redux/features/auth/components/user-platform-detail-modal";
 import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
+import UserBusinessModal from "@/redux/features/auth/components/user-business-modal";
+import { UserBusinessDetailModal } from "@/redux/features/auth/components/user-business-detail-modal";
 
-export default function UserPage() {
+export default function BusinessUserMonitorPage() {
   const searchParams = useSearchParams();
 
   // Redux state
@@ -63,12 +63,12 @@ export default function UserPage() {
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    userId: "",
+    userBusinessId: "",
   });
 
   const [resetPasswordState, setResetPasswordState] = useState({
     isOpen: false,
-    userId: "",
+    userBusinessId: "",
     userName: "",
   });
 
@@ -80,8 +80,8 @@ export default function UserPage() {
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
-    baseRoute: ROUTES.DASHBOARD.USERS,
-    defaultPageSize: 15,
+    baseRoute: ROUTES.DASHBOARD.BUSINESS_USER,
+    defaultPageSize: 10,
   });
 
   // Initialize URL and Redux state on mount
@@ -101,7 +101,7 @@ export default function UserPage() {
         search: debouncedSearch,
         pageNo: filters.pageNo,
         roles: filters.role === UserRole.ALL ? [] : [filters.role],
-        userTypes: [UserGropeType.PLATFORM_USER],
+        userTypes: [UserGropeType.BUSINESS_USER],
         accountStatus:
           filters.accountStatus === AccountStatus.ALL
             ? []
@@ -136,14 +136,14 @@ export default function UserPage() {
   const handleViewDetail = (user: UserResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      userId: user.id || "",
+      userBusinessId: user.id || "",
     });
   };
 
   const handleResetPassword = (user: UserResponseModel) => {
     setResetPasswordState({
       isOpen: true,
-      userId: user.id || "",
+      userBusinessId: user.id || "",
       userName: user.userIdentifier || "",
     });
   };
@@ -160,9 +160,9 @@ export default function UserPage() {
 
     try {
       await dispatch(toggleUserStatusService(user)).unwrap();
-      showToast.success("User status updated successfully");
+      showToast.success("User business status updated successfully");
     } catch (error: any) {
-      showToast.error(error || "Failed to update user status");
+      showToast.error(error || "Failed to update user business status");
     }
   };
 
@@ -199,6 +199,7 @@ export default function UserPage() {
   };
 
   const handlePageChangeWrapper = (page: number) => {
+    dispatch(setPageNo(page));
     handlePageChange(page);
   };
 
@@ -209,7 +210,9 @@ export default function UserPage() {
       await dispatch(deleteUserService(deleteState.user.id)).unwrap();
 
       showToast.success(
-        `User "${deleteState.user.fullName ?? ""}" deleted successfully`
+        `User business "${
+          deleteState.user.fullName ?? ""
+        }" deleted successfully`
       );
 
       closeDeleteModal();
@@ -221,7 +224,7 @@ export default function UserPage() {
         updateUrlWithPage(newPage);
       }
     } catch (error: any) {
-      showToast.error(error || "Failed to delete user");
+      showToast.error(error || "Failed to delete user business");
     }
   };
 
@@ -236,14 +239,14 @@ export default function UserPage() {
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      userId: "",
+      userBusinessId: "",
     });
   };
 
   const closeResetPasswordModal = () => {
     setResetPasswordState({
       isOpen: false,
-      userId: "",
+      userBusinessId: "",
       userName: "",
     });
   };
@@ -263,9 +266,9 @@ export default function UserPage() {
             { label: "Dashboard", href: ROUTES.DASHBOARD.INDEX },
             { label: "Platform Users", href: "" },
           ]}
-          title="Platform Users"
+          title="Business Users"
           searchValue={filters.search}
-          searchPlaceholder="Search users platform..."
+          searchPlaceholder="Search users business..."
           buttonTooltip="Create a new users"
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New"
@@ -306,16 +309,16 @@ export default function UserPage() {
       </div>
 
       {/* Modals Add/Edit */}
-      <UserPlatformModal
+      <UserBusinessModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
         userId={modalState.userId}
         mode={modalState.mode}
       />
 
-      {/* Modals User platform Detail */}
-      <UserPlatformDetailModal
-        userId={detailModalState.userId}
+      {/* Modals User Detail */}
+      <UserBusinessDetailModal
+        userId={detailModalState.userBusinessId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
@@ -325,16 +328,16 @@ export default function UserPage() {
         isOpen={resetPasswordState.isOpen}
         userName={resetPasswordState.userName}
         onClose={closeResetPasswordModal}
-        userId={resetPasswordState.userId}
+        userId={resetPasswordState.userBusinessId}
       />
 
-      {/* Modals Delete User platform */}
+      {/* Modals Delete User */}
       <DeleteConfirmationModal
         isOpen={deleteState.isOpen}
         onClose={closeDeleteModal}
         onDelete={handleDelete}
         title="Delete User"
-        description={`Are you sure you want to delete this platform user ${
+        description={`Are you sure you want to delete this user ${
           deleteState.user?.userIdentifier || deleteState.user?.email
         }?`}
         itemName={deleteState.user?.fullName || deleteState.user?.email}

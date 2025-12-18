@@ -15,7 +15,7 @@ import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { userPlatformTableColumns } from "@/redux/features/auth/table/user-platform-table";
+import { userPlatformTableColumns } from "@/redux/features/auth/table/users-platform-table";
 import {
   ACCOUNT_STATUS_FILTER,
   USER_PLATFORM_ROLE_FILTER,
