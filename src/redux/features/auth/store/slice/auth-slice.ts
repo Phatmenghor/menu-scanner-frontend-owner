@@ -5,11 +5,16 @@
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserAuthResponseModel } from "../models/response/auth-resposne";
-import { loginService, getProfileService } from "../thunks/auth-thunks";
+import {
+  loginService,
+  getProfileService,
+  updateProfileService,
+  changePasswordService,
+  deleteAccountService,
+} from "../thunks/auth-thunks";
 import { AuthState } from "../models/type/auth-types";
 import { storeToken } from "@/utils/local-storage/token";
 import { storeUserInfo } from "@/utils/local-storage/userInfo";
-import { storeRoles } from "@/utils/local-storage/roles";
 
 /**
  * Initial auth state
@@ -79,19 +84,7 @@ const authSlice = createSlice({
         }
 
         if (action.payload) {
-          storeUserInfo({
-            userId: action.payload.userId || "",
-            userIdentifier: action.payload.userIdentifier || "",
-            profileImageUrl: action.payload.profileImageUrl || "",
-            email: action.payload.email || "",
-            fullName: action.payload.fullName || "",
-            businessId: action.payload.businessId || "",
-            userType: action.payload.userType || "",
-          });
-        }
-
-        if (action.payload.roles) {
-          storeRoles(action.payload.roles);
+          storeUserInfo(action.payload);
         }
       })
       .addCase(loginService.rejected, (state, action) => {
@@ -112,6 +105,58 @@ const authSlice = createSlice({
       })
       .addCase(getProfileService.rejected, (state, action) => {
         state.isProfileLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // Update profile thunk handlers
+    builder
+      .addCase(updateProfileService.pending, (state) => {
+        state.isProfileLoading = true;
+        state.error = null;
+      })
+      .addCase(updateProfileService.fulfilled, (state, action) => {
+        state.isProfileLoading = false;
+        state.profile = action.payload;
+        // Update user info in state if needed
+        if (state.user) {
+          state.user.fullName = action.payload.fullName || state.user.fullName;
+          state.user.profileImageUrl =
+            action.payload.profileImageUrl || state.user.profileImageUrl;
+        }
+      })
+      .addCase(updateProfileService.rejected, (state, action) => {
+        state.isProfileLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // Change password thunk handlers
+    builder
+      .addCase(changePasswordService.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(changePasswordService.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(changePasswordService.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // Delete account thunk handlers
+    builder
+      .addCase(deleteAccountService.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteAccountService.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.profile = null;
+      })
+      .addCase(deleteAccountService.rejected, (state, action) => {
+        state.isLoading = false;
         state.error = action.payload as string;
       });
   },

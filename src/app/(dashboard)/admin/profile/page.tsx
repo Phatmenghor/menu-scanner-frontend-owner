@@ -1,392 +1,191 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
-import {
-  Camera,
-  Edit,
-  MessageCircle,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  ExternalLink,
-  Copy,
-  Check,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Edit, Loader2, Trash2, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserModel } from "@/models/dashboard/user/plateform-user/user.response";
+import { TextField } from "@/components/shared/form-field/text-field";
+import { TextareaField } from "@/components/shared/form-field/text-area-field";
+import { ImageUploadField } from "@/components/shared/form-field/image-upload-field";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
-  getUserProfileService,
-  updateUserProfileService,
-} from "@/services/dashboard/user/plateform-user/plateform-user.service";
+  getProfileService,
+  updateProfileService,
+  deleteAccountService,
+} from "@/redux/features/auth/store/thunks/auth-thunks";
+import {
+  selectProfile,
+  selectIsProfileLoading,
+  selectError,
+} from "@/redux/features/auth/store/selectors/auth-selectors";
+import { showToast } from "@/components/shared/common/show-toast";
+import { clearError } from "@/redux/features/auth/store/slice/auth-slice";
 import ChangePasswordModal from "@/components/shared/modal/change-password-modal";
-import { UpdateUserRequest } from "@/models/dashboard/user/plateform-user/user.request";
+import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { useRouter } from "next/navigation";
-import { AppToast } from "@/components/shared/common/show-toast";
-import { Textarea } from "@/components/ui/textarea";
-import axios from "axios";
+import { ROUTES } from "@/constants/app-routes/routes";
+import { clearToken } from "@/utils/local-storage/token";
+import { clearUserInfo } from "@/utils/local-storage/userInfo";
+import { uploadImageService } from "@/services/image-service";
+import { CustomAvatar } from "@/components/shared/avator/custom-avator";
 
-// Form data interface
-interface FormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  status: string;
-  phoneNumber: string;
-  address: string;
-  profileImageUrl?: string;
-  position: string;
-  notes: string;
-}
+// Profile update schema
+const profileSchema = z.object({
+  profileImageUrl: z.string().optional(),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  position: z.string().optional(),
+  address: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function UserProfilePage() {
-  // Component states
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
-    useState(false);
-  const [isProfileLoading, setIsProfileLoading] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserModel | null>(null);
-  const [activeSection, setActiveSection] = useState("profile");
-
-  // Telegram states
-  const [telegramLoading, setTelegramLoading] = useState(false);
-  const [telegramError, setTelegramError] = useState("");
-  const [telegramSuccess, setTelegramSuccess] = useState("");
-  const [showWidgetBackup, setShowWidgetBackup] = useState(false);
-  const [pendingConnectionCode, setPendingConnectionCode] =
-    useState<string>("");
-
-  // Form data state
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    status: "",
-    phoneNumber: "",
-    address: "",
-    position: "",
-    profileImageUrl: "",
-    notes: "",
-  });
-
-  // Notification preferences
-  const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
-    securityAlerts: true,
-    systemUpdates: false,
-    telegramNotifications: true,
-  });
-
+  const dispatch = useAppDispatch();
   const router = useRouter();
 
-  // Configuration
-  const API_BASE =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://152.42.219.13:8080";
-  const TELEGRAM_BOT_NAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "";
+  const userProfile = useAppSelector(selectProfile);
+  const isProfileLoading = useAppSelector(selectIsProfileLoading);
+  const reduxError = useAppSelector(selectError);
 
-  // Get auth token
-  const getAuthToken = () => {
-    return localStorage.getItem("accessToken");
-  };
+  const [isEditing, setIsEditing] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
+    useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("profile");
 
-  // Load user profile
-  const loadProfile = useCallback(async () => {
-    setIsProfileLoading(true);
-    try {
-      const response: UserModel = await getUserProfileService();
-      setUserProfile(response);
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+  } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      profileImageUrl: "",
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
+      position: "",
+      address: "",
+      notes: "",
+    },
+    mode: "onChange",
+  });
 
-      if (response) {
-        setFormData({
-          firstName: response.firstName,
-          lastName: response.lastName,
-          position: response.position,
-          email: response.email || "",
-          status: response.accountStatus,
-          phoneNumber: response.phoneNumber || "",
-          address: response.address || "",
-          profileImageUrl: response.profileImageUrl || "",
-          notes: response.notes || "",
-        });
+  // Load profile on mount
+  useEffect(() => {
+    dispatch(getProfileService());
+  }, [dispatch]);
 
-        setNotifications((prev) => ({
-          ...prev,
-          telegramNotifications: response.telegramNotificationsEnabled || false,
-        }));
-      }
-    } catch (error: any) {
-      console.error(
-        "Profile loading error:",
-        error?.message || "Error fetching profile"
-      );
-      AppToast({
-        type: "error",
-        message: "Failed to load profile",
-        duration: 3000,
-        position: "top-right",
+  // Update form when profile loads
+  useEffect(() => {
+    if (userProfile) {
+      reset({
+        profileImageUrl: userProfile.profileImageUrl || "",
+        firstName: userProfile.firstName || "",
+        lastName: userProfile.lastName || "",
+        phoneNumber: userProfile.phoneNumber || "",
+        position: userProfile.position || "",
+        address: userProfile.address || "",
+        notes: userProfile.notes || "",
       });
-    } finally {
-      setIsProfileLoading(false);
     }
-  }, []);
+  }, [userProfile, reset]);
 
+  // Clear errors when they appear
   useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
+    if (reduxError) {
+      showToast.error(reduxError);
+      dispatch(clearError());
+    }
+  }, [reduxError, dispatch]);
 
-  // Poll for connection status when using deep-link method
-  useEffect(() => {
-    if (pendingConnectionCode && telegramLoading) {
-      const pollInterval = setInterval(async () => {
+  const onSubmit = async (data: ProfileFormData) => {
+    try {
+      let profileImageUrl = data.profileImageUrl || "";
+
+      // Upload image if it's a base64 string
+      if (profileImageUrl && profileImageUrl.startsWith("data:image")) {
         try {
-          // Reload profile to check if linking was successful
-          const response: UserModel = await getUserProfileService();
-          if (response.hasTelegramLinked) {
-            setTelegramLoading(false);
-            setTelegramSuccess(
-              "🎉 Telegram account linked successfully! You'll now receive notifications via Telegram."
-            );
-            setPendingConnectionCode("");
-            setUserProfile(response);
-            clearInterval(pollInterval);
+          const imageType = profileImageUrl.split(";")[0].split("/")[1];
+
+          const uploadResult = await uploadImageService({
+            base64: profileImageUrl,
+            type: imageType,
+          });
+
+          if (uploadResult && uploadResult.imageUrl) {
+            profileImageUrl = uploadResult.imageUrl;
+          } else {
+            throw new Error("Failed to upload image");
           }
-        } catch (error) {
-          console.error("Polling error:", error);
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          showToast.error("Failed to upload profile image. Please try again.");
+          return;
         }
-      }, 2000);
-
-      // Stop polling after 5 minutes
-      const timeoutId = setTimeout(() => {
-        clearInterval(pollInterval);
-        if (telegramLoading && pendingConnectionCode) {
-          setTelegramLoading(false);
-          setTelegramError(
-            "Connection timeout. Please try again or contact support if the issue persists."
-          );
-          setPendingConnectionCode("");
-        }
-      }, 300000); // 5 minutes
-
-      return () => {
-        clearInterval(pollInterval);
-        clearTimeout(timeoutId);
-      };
-    }
-  }, [pendingConnectionCode, telegramLoading]);
-
-  // Handle Telegram widget authentication (backup method)
-  const handleTelegramAuth = async (telegramUser: any) => {
-    const token = getAuthToken();
-    if (!token) {
-      setTelegramError("Authentication required. Please login first.");
-      return;
-    }
-
-    setTelegramLoading(true);
-    setTelegramError("");
-    setTelegramSuccess("");
-
-    try {
-      const linkData = {
-        telegramUserId: parseInt(telegramUser.id),
-        telegramUsername: telegramUser.username || null,
-        telegramFirstName: telegramUser.first_name || null,
-        telegramLastName: telegramUser.last_name || null,
-        telegramPhotoUrl: telegramUser.photo_url || null,
-        authDate: telegramUser.auth_date
-          ? telegramUser.auth_date.toString()
-          : null,
-        hash: telegramUser.hash,
-        chatId: null,
-        languageCode: telegramUser.language_code || "en",
-        isPremium: telegramUser.is_premium || false,
-      };
-
-      console.log("####Telegram linking successfullinkData:", linkData);
-
-      const response = await axios.post(
-        `${API_BASE}/api/v1/auth/telegram/link`,
-        linkData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      setTelegramSuccess(
-        response.data?.message || "🎉 Telegram account linked successfully!"
-      );
-
-      console.log("####Telegram linking successful:", response.data);
-
-      await loadProfile();
-    } catch (error: any) {
-      console.error("Telegram linking error:", error);
-      let errorMessage = "Failed to link Telegram account. Please try again.";
-
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.status === 400) {
-        errorMessage = "Invalid Telegram authentication data.";
-      } else if (error.response?.status === 409) {
-        errorMessage =
-          "This Telegram account is already linked to another user.";
       }
 
-      setTelegramError(errorMessage);
-    } finally {
-      setTelegramLoading(false);
-    }
-  };
-
-  // Handle deep-link connection method (primary method)
-  const handleDeepLinkConnection = (connectionCode: string) => {
-    setTelegramLoading(true);
-    setTelegramError("");
-    setTelegramSuccess("");
-    setPendingConnectionCode(connectionCode);
-
-    console.log("Starting deep-link connection with code:", connectionCode);
-
-    AppToast({
-      type: "info",
-      message:
-        "Complete the connection in Telegram. We'll automatically detect when it's done!",
-      duration: 5000,
-      position: "top-right",
-    });
-  };
-
-  // Handle widget domain error (show backup options)
-  const handleWidgetDomainError = () => {
-    console.log("Widget domain error detected, showing backup options");
-    setShowWidgetBackup(false); // Hide widget, rely on deep-link
-  };
-
-  // Handle unlinking
-  const handleUnlinkTelegram = async () => {
-    const token = getAuthToken();
-    if (!token) {
-      setTelegramError("Authentication required. Please login first.");
-      return;
-    }
-
-    setTelegramLoading(true);
-    setTelegramError("");
-    setTelegramSuccess("");
-
-    try {
-      const response = await axios.post(
-        `${API_BASE}/api/v1/auth/telegram/unlink`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      setTelegramSuccess("Telegram account unlinked successfully.");
-      await loadProfile();
-    } catch (error: any) {
-      console.error("Telegram unlinking error:", error);
-      setTelegramError(
-        error.response?.data?.message ||
-          "Failed to unlink Telegram account. Please try again."
-      );
-    } finally {
-      setTelegramLoading(false);
-    }
-  };
-
-  // Profile update handlers
-  const handleSave = async () => {
-    setIsSubmitting(true);
-    try {
-      const updateData: UpdateUserRequest = {
-        notes: formData.notes,
-        accountStatus: formData.status,
-        position: formData.position,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phoneNumber: formData.phoneNumber,
-        address: formData.address,
-        profileImageUrl: formData.profileImageUrl,
+      const payload = {
+        profileImageUrl,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
+        position: data.position,
+        address: data.address,
+        notes: data.notes,
       };
 
-      const response = await updateUserProfileService(updateData);
-      setUserProfile(response);
+      await dispatch(updateProfileService(payload)).unwrap();
+      showToast.success("Profile updated successfully");
       setIsEditing(false);
-
-      AppToast({
-        type: "success",
-        message: "Profile updated successfully",
-        duration: 3000,
-        position: "top-right",
-      });
-    } catch (error) {
-      console.error("Error updating user profile:", error);
-      AppToast({
-        type: "error",
-        message: "Failed to update profile",
-        duration: 3000,
-        position: "top-right",
-      });
-    } finally {
-      setIsSubmitting(false);
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      showToast.error(error || "Failed to update profile");
     }
   };
 
   const handleCancel = () => {
     if (userProfile) {
-      setFormData({
-        firstName: userProfile.firstName,
-        lastName: userProfile.lastName,
-        status: userProfile.accountStatus,
-        position: userProfile.position,
-        email: userProfile.email || "",
-        phoneNumber: userProfile.phoneNumber || "",
-        address: userProfile.address || "",
+      reset({
         profileImageUrl: userProfile.profileImageUrl || "",
+        firstName: userProfile.firstName || "",
+        lastName: userProfile.lastName || "",
+        phoneNumber: userProfile.phoneNumber || "",
+        position: userProfile.position || "",
+        address: userProfile.address || "",
         notes: userProfile.notes || "",
       });
     }
     setIsEditing(false);
   };
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleDeleteAccount = async () => {
+    try {
+      await dispatch(deleteAccountService()).unwrap();
+      showToast.success("Account deleted successfully");
+
+      // Clear all auth data
+      clearToken();
+      clearUserInfo();
+
+      // Redirect to login
+      setTimeout(() => {
+        router.replace(ROUTES.AUTH.LOGIN);
+      }, 100);
+    } catch (error: any) {
+      showToast.error(error || "Failed to delete account");
+    }
   };
 
-  // Clear messages after delay
-  useEffect(() => {
-    if (telegramSuccess) {
-      const timer = setTimeout(() => setTelegramSuccess(""), 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [telegramSuccess]);
-
-  useEffect(() => {
-    if (telegramError) {
-      const timer = setTimeout(() => setTelegramError(""), 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [telegramError]);
-
-  if (isProfileLoading) {
+  if (isProfileLoading && !userProfile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -401,65 +200,33 @@ export default function UserProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Telegram Widget Styles */}
-      <style jsx global>{`
-        .telegram-login-widget {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 40px;
-        }
-        .telegram-login-widget iframe {
-          border-radius: 6px !important;
-          transition: all 0.2s ease-in-out;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .telegram-login-widget iframe:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-      `}</style>
-
       {/* Header */}
       <div className="bg-card border-b">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+        <div className="container mx-auto px-4 py-3">
           <h1 className="text-lg font-semibold text-foreground">
             Profile Settings
           </h1>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6">
         {/* Profile Header */}
         <Card className="mb-4">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage
-                    src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${userProfile?.profileImageUrl}`}
-                  />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xl font-bold">
-                    {userProfile?.fullName?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                {isEditing && (
-                  <Button
-                    size="sm"
-                    className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full p-0"
-                  >
-                    <Camera className="h-3 w-3" />
-                  </Button>
-                )}
+                <CustomAvatar
+                  imageUrl={userProfile?.profileImageUrl}
+                  name={userProfile?.fullName}
+                  size="xl"
+                />
               </div>
 
               <div className="flex-1">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-foreground">
-                      {isEditing
-                        ? `${formData.firstName} ${formData.lastName}`.trim()
-                        : userProfile?.fullName}
+                      {userProfile?.fullName}
                     </h2>
                     <p className="text-muted-foreground text-sm">
                       {userProfile?.email}
@@ -468,15 +235,6 @@ export default function UserProfilePage() {
                       <Badge variant="secondary" className="text-xs">
                         {userProfile?.userType}
                       </Badge>
-                      {userProfile?.hasTelegramLinked && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs border-success text-success"
-                        >
-                          <MessageCircle className="h-3 w-3 mr-1" />
-                          Telegram
-                        </Badge>
-                      )}
                     </div>
                   </div>
 
@@ -487,16 +245,16 @@ export default function UserProfilePage() {
                           variant="outline"
                           size="sm"
                           onClick={handleCancel}
-                          disabled={isSubmitting}
+                          disabled={isProfileLoading}
                         >
                           Cancel
                         </Button>
                         <Button
                           size="sm"
-                          onClick={handleSave}
-                          disabled={isSubmitting}
+                          onClick={handleSubmit(onSubmit)}
+                          disabled={isProfileLoading || !isDirty}
                         >
-                          {isSubmitting ? (
+                          {isProfileLoading ? (
                             <>
                               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                               Saving...
@@ -525,160 +283,126 @@ export default function UserProfilePage() {
 
         {/* Navigation Tabs */}
         <div className="flex gap-1 mb-4 bg-card rounded-lg p-1 border">
-          {[
-            { id: "profile", label: "Profile" },
-            { id: "security", label: "Security" },
-            { id: "notifications", label: "Notifications" },
-          ].map((section) => (
-            <button
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeSection === section.id
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
-            >
-              {section.label}
-            </button>
-          ))}
+          <Button
+            variant={activeSection === "profile" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setActiveSection("profile")}
+            className="flex-1"
+          >
+            <User className="h-4 w-4 mr-2" />
+            Profile
+          </Button>
+          <Button
+            variant={activeSection === "security" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setActiveSection("security")}
+            className="flex-1"
+          >
+            <Lock className="h-4 w-4 mr-2" />
+            Security
+          </Button>
         </div>
 
         {/* Profile Section */}
         {activeSection === "profile" && (
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-foreground">
-                Personal Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-foreground">
-                    First Name
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        handleInputChange("firstName", e.target.value)
-                      }
-                      className="mt-1"
-                    />
-                  ) : (
-                    <p className="mt-1 text-sm text-foreground">
-                      {userProfile?.firstName || "—"}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-foreground">
-                    Last Name
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.lastName}
-                      onChange={(e) =>
-                        handleInputChange("lastName", e.target.value)
-                      }
-                      className="mt-1"
-                    />
-                  ) : (
-                    <p className="mt-1 text-sm text-foreground">
-                      {userProfile?.lastName || "—"}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-foreground">
-                    Phone Number
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.phoneNumber}
-                      onChange={(e) =>
-                        handleInputChange("phoneNumber", e.target.value)
-                      }
-                      className="mt-1"
-                    />
-                  ) : (
-                    <p className="mt-1 text-sm text-foreground">
-                      {userProfile?.phoneNumber || "—"}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-foreground">
-                    Position
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.position}
-                      onChange={(e) =>
-                        handleInputChange("position", e.target.value)
-                      }
-                      className="mt-1"
-                    />
-                  ) : (
-                    <p className="mt-1 text-sm text-foreground">
-                      {userProfile?.position || "—"}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium text-foreground">
-                  Address
-                </Label>
-                {isEditing ? (
-                  <Input
-                    value={formData.address}
-                    onChange={(e) =>
-                      handleInputChange("address", e.target.value)
-                    }
-                    className="mt-1"
-                  />
-                ) : (
-                  <p className="mt-1 text-sm text-foreground">
-                    {userProfile?.address || "—"}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium text-foreground">
-                  Notes
-                </Label>
-                {isEditing ? (
-                  <Textarea
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange("notes", e.target.value)}
-                    className="mt-1"
-                    rows={3}
-                    placeholder="Add any additional notes..."
-                  />
-                ) : (
-                  <p className="mt-1 text-sm text-foreground">
-                    {userProfile?.notes || "—"}
-                  </p>
-                )}
-              </div>
-
-              {!isEditing && (
-                <div>
-                  <Label className="text-sm font-medium text-foreground">
-                    User ID
-                  </Label>
-                  <p className="mt-1 text-sm font-mono bg-muted text-foreground px-2 py-1 rounded">
-                    {userProfile?.userIdentifier || "—"}
+            <CardContent className="p-6">
+              {/* Error Display */}
+              {reduxError && (
+                <div className="p-4 bg-destructive/10 border border-destructive rounded-lg mb-4">
+                  <p className="text-sm text-destructive font-medium">
+                    {reduxError}
                   </p>
                 </div>
               )}
+
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <div className="space-y-4">
+                  {/* Profile Image Upload - Full Width */}
+                  <Controller
+                    control={control}
+                    name="profileImageUrl"
+                    render={({ field }) => (
+                      <ImageUploadField
+                        label="Profile Image"
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={!isEditing}
+                        error={errors.profileImageUrl?.message}
+                        accept="image/*"
+                        maxSize={5}
+                      />
+                    )}
+                  />
+
+                  {/* First Name & Last Name */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <TextField
+                      control={control}
+                      name="firstName"
+                      label="First Name"
+                      placeholder="Enter first name"
+                      disabled={!isEditing}
+                      required
+                      error={errors.firstName}
+                    />
+
+                    <TextField
+                      control={control}
+                      name="lastName"
+                      label="Last Name"
+                      placeholder="Enter last name"
+                      disabled={!isEditing}
+                      required
+                      error={errors.lastName}
+                    />
+                  </div>
+
+                  {/* Phone Number & Position */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <TextField
+                      control={control}
+                      name="phoneNumber"
+                      label="Phone Number"
+                      type="tel"
+                      placeholder="Enter phone number"
+                      disabled={!isEditing}
+                      required
+                      error={errors.phoneNumber}
+                    />
+
+                    <TextField
+                      control={control}
+                      name="position"
+                      label="Position"
+                      placeholder="e.g., Software Engineer"
+                      disabled={!isEditing}
+                      error={errors.position}
+                    />
+                  </div>
+
+                  {/* Address - Full Width */}
+                  <TextField
+                    control={control}
+                    name="address"
+                    label="Address"
+                    placeholder="Enter your address"
+                    disabled={!isEditing}
+                    error={errors.address}
+                  />
+
+                  {/* Notes - Full Width */}
+                  <TextareaField
+                    control={control}
+                    name="notes"
+                    label="Notes"
+                    placeholder="Additional notes or information"
+                    rows={4}
+                    disabled={!isEditing}
+                    error={errors.notes}
+                  />
+                </div>
+              </form>
             </CardContent>
           </Card>
         )}
@@ -686,40 +410,46 @@ export default function UserProfilePage() {
         {/* Security Section */}
         {activeSection === "security" && (
           <div className="space-y-4">
-            {/* Password Management Card */}
+            {/* Change Password */}
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-foreground">Password</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Change your account password
+                    <h3 className="font-semibold text-foreground">
+                      Change Password
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Update your password to keep your account secure
                     </p>
                   </div>
                   <Button
                     variant="outline"
-                    size="sm"
                     onClick={() => setIsChangePasswordModalOpen(true)}
                   >
+                    <Lock className="h-4 w-4 mr-2" />
                     Change Password
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Account Deletion Card */}
+            {/* Delete Account */}
             <Card className="border-destructive/50">
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-destructive">
+                    <h3 className="font-semibold text-destructive">
                       Delete Account
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Permanently delete your account and all data
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Permanently delete your account and all associated data
                     </p>
                   </div>
-                  <Button variant="destructive" size="sm">
+                  <Button
+                    variant="destructive"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Delete Account
                   </Button>
                 </div>
@@ -727,99 +457,27 @@ export default function UserProfilePage() {
             </Card>
           </div>
         )}
-
-        {/* Notifications Section */}
-        {activeSection === "notifications" && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-foreground">
-                Notification Preferences
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Choose how you want to receive notifications
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                {
-                  key: "emailNotifications",
-                  title: "Email Notifications",
-                  description: "Receive notifications via email",
-                  icon: "📧",
-                },
-                {
-                  key: "telegramNotifications",
-                  title: "Telegram Notifications",
-                  description: "Receive instant notifications via Telegram",
-                  icon: "💬",
-                  disabled: !userProfile?.hasTelegramLinked,
-                  helper: !userProfile?.hasTelegramLinked
-                    ? "Link your Telegram account to enable"
-                    : undefined,
-                },
-                {
-                  key: "pushNotifications",
-                  title: "Browser Push Notifications",
-                  description: "Browser push notifications",
-                  icon: "🔔",
-                },
-                {
-                  key: "securityAlerts",
-                  title: "Security Alerts",
-                  description: "Important security-related notifications",
-                  icon: "🔒",
-                },
-                {
-                  key: "systemUpdates",
-                  title: "System Updates",
-                  description: "System maintenance and feature updates",
-                  icon: "⚙️",
-                },
-              ].map((item) => (
-                <div
-                  key={item.key}
-                  className="flex items-start justify-between py-3 border-b border-border/50 last:border-b-0"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg">{item.icon}</span>
-                    <div>
-                      <h4 className="font-medium text-sm text-foreground">
-                        {item.title}
-                      </h4>
-                      <p className="text-xs text-muted-foreground">
-                        {item.description}
-                      </p>
-                      {item.helper && (
-                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                          {item.helper}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <Switch
-                    checked={
-                      notifications[item.key as keyof typeof notifications]
-                    }
-                    onCheckedChange={(checked) =>
-                      setNotifications({
-                        ...notifications,
-                        [item.key]: checked,
-                      })
-                    }
-                    disabled={item.disabled}
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Change Password Modal */}
-        <ChangePasswordModal
-          isOpen={isChangePasswordModalOpen}
-          onClose={() => setIsChangePasswordModalOpen(false)}
-        />
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setIsChangePasswordModalOpen(false)}
+      />
+
+      {/* Delete Account Confirmation */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onDelete={handleDeleteAccount}
+        title="Delete Account"
+        description="Are you absolutely sure you want to delete your account? This will permanently delete your account and remove all your data from our servers."
+        itemName={userProfile?.email}
+        isSubmitting={isProfileLoading}
+        variant="critical"
+        requireConfirmation={true}
+        confirmationText="DELETE"
+      />
     </div>
   );
 }

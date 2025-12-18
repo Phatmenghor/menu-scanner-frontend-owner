@@ -15,7 +15,6 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { clearToken } from "@/utils/local-storage/token";
-import { clearRoles } from "@/utils/local-storage/roles";
 import { clearUserInfo } from "@/utils/local-storage/userInfo";
 import { ROUTES } from "@/constants/app-routes/routes";
 import { useIsMobile } from "@/redux/store/use-mobile";
@@ -31,7 +30,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   const handleLogout = () => {
     clearToken();
-    clearRoles();
     clearUserInfo();
 
     setShowLogoutAlert(false);

@@ -1,18 +1,9 @@
+import { UserAuthResponseModel } from "@/redux/features/auth/store/models/response/auth-resposne";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
-
-interface StoredUserInfo {
-  userIdentifier: string;
-  userId: string;
-  email: string;
-  fullName: string;
-  profileImageUrl?: string;
-  businessId: string;
-  userType: string;
-}
 
 const USER_INFO_COOKIE_KEY = "auth-user-info";
 
-export function storeUserInfo(user: StoredUserInfo | undefined): void {
+export function storeUserInfo(user: UserAuthResponseModel | undefined): void {
   if (typeof window === "undefined" || !user) return;
 
   setCookie(USER_INFO_COOKIE_KEY, JSON.stringify(user), {
@@ -20,7 +11,7 @@ export function storeUserInfo(user: StoredUserInfo | undefined): void {
   });
 }
 
-export function getUserInfo(): StoredUserInfo | null {
+export function getUserInfo(): UserAuthResponseModel | null {
   const cookieValue = getCookie(USER_INFO_COOKIE_KEY);
   try {
     return cookieValue ? JSON.parse(cookieValue as string) : null;
