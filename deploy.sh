@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # ========================================================================
-# 🚀 COMPLETE DEPLOY FOR EMenu Owner Cambodia
+# 🚀 COMPLETE DEPLOY — EMenu Owner Cambodia
 # ========================================================================
+
+set -e
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -11,52 +13,105 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}Run with: sudo bash deploy.sh${NC}"
-    exit 1
+  echo -e "${RED}Run with: sudo bash deploy.sh${NC}"
+  exit 1
 fi
-
-set -e
 
 clear
 echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║          🚀 EMenu Owner Cambodia 🚀                        ║${NC}"
+echo -e "${BLUE}║          🚀 EMenu Owner Cambodia 🚀                       ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-npm install
+# ========================================================================
+# [0/9] LOAD ENV
+# ========================================================================
+echo -e "${YELLOW}[0/9] Loading environment variables...${NC}"
+export $(grep -v '^#' .env.production | xargs)
+echo -e "${GREEN}✅ Environment loaded${NC}"
+echo ""
 
+# ========================================================================
+# [1/9] SWAP CHECK (3GB)
+# ========================================================================
+echo -e "${YELLOW}[1/9] Checking swap...${NC}"
+if ! swapon --show | grep -q swapfile; then
+  fallocate -l 3G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo "/swapfile none swap sw 0 0" >> /etc/fstab
+  echo -e "${GREEN}✅ Swap created${NC}"
+else
+  echo -e "${GREEN}✅ Swap already exists${NC}"
+fi
+free -h
+echo ""
+
+# ========================================================================
+# [2/9] STOP PM2
+# ========================================================================
+echo -e "${YELLOW}[2/9] Stopping PM2...${NC}"
+pm2 stop all || true
+echo -e "${GREEN}✅ PM2 stopped${NC}"
+echo ""
+
+# ========================================================================
+# [3/9] PULL CODE
+# ========================================================================
+echo -e "${YELLOW}[3/9] Pulling latest code (development)...${NC}"
+git fetch origin
+git reset --hard origin/development
+echo -e "${GREEN}✅ Code updated${NC}"
+echo ""
+
+# ========================================================================
+# [4/9] CLEAN CACHE
+# ========================================================================
+echo -e "${YELLOW}[4/9] Cleaning cache...${NC}"
+rm -rf node_modules .next
+npm cache clean --force
+echo -e "${GREEN}✅ Cache cleaned${NC}"
+free -h
+echo ""
+
+# ========================================================================
+# [5/9] INSTALL DEPENDENCIES
+# ========================================================================
+echo -e "${YELLOW}[5/9] Installing dependencies...${NC}"
+export NODE_OPTIONS="--max-old-space-size=1400"
+npm install --legacy-peer-deps
+echo -e "${GREEN}✅ Dependencies installed${NC}"
+echo ""
+
+# ========================================================================
+# [6/9] BUILD
+# ========================================================================
+echo -e "${YELLOW}[6/9] Building application (5–10 min)...${NC}"
 npm run build
+echo -e "${GREEN}✅ Build completed${NC}"
+echo ""
 
 # ========================================================================
-# PM2 CONFIG
+# [7/9] PM2 CONFIG
 # ========================================================================
-echo -e "${YELLOW}[8/9] Creating PM2 config...${NC}"
+echo -e "${YELLOW}[7/9] Creating PM2 config...${NC}"
 cat > pm2.config.js << EOF
 module.exports = {
   apps: [{
-    name: '${APP_NAME}',
-    script: 'npm',
-    args: 'start',
+    name: "${APP_NAME}",
+    script: "npm",
+    args: "start",
+    exec_mode: "fork",
     instances: 1,
-    exec_mode: 'fork',
-    watch: false,
-    env: {
-      NODE_ENV: '${NODE_ENV}',
-      PORT: '${PORT}'
-    },
     env_file: ".env.production",
-    log_file: "./logs/app.log",
-    out_file: "./logs/out.log",
-    error_file: "./logs/error.log",
-    log_date_format: "YYYY-MM-DD HH:mm:ss Z",
-    merge_logs: true,
-    restart_delay: 4000,
-    max_restarts: 10,
-    min_uptime: "10s",
-    max_memory_restart: "800M",
+    env: {
+      NODE_ENV: "production",
+      PORT: "${PORT}"
+    },
+    max_memory_restart: "900M",
     autorestart: true,
-    kill_timeout: 5000,
-    listen_timeout: 10000
+    restart_delay: 4000
   }]
 };
 EOF
@@ -64,30 +119,22 @@ echo -e "${GREEN}✅ PM2 config created${NC}"
 echo ""
 
 # ========================================================================
-# START PM2
+# [8/9] START PM2
 # ========================================================================
-echo -e "${YELLOW}[9/9] Starting application...${NC}"
+echo -e "${YELLOW}[8/9] Starting application...${NC}"
 pm2 start pm2.config.js
-sleep 5
 pm2 save
-pm2 startup systemd -u root --hp /root 2>/dev/null || true
+pm2 startup systemd -u root --hp /root || true
 echo -e "${GREEN}✅ Application started${NC}"
 echo ""
 
 # ========================================================================
-# SUMMARY
+# [9/9] SUMMARY
 # ========================================================================
-echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║                 🎉 DEPLOYMENT SUCCESS! 🎉                ║${NC}"
+echo -e "${GREEN}║              🎉 DEPLOY SUCCESSFUL 🎉                     ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-echo -e "${BLUE}🌐 Frontend:${NC}  http://${DEPLOY_IP}:${EXTERNAL_PORT}"
-echo -e "${BLUE}🔗 API:${NC}       ${NEXT_PUBLIC_API_BASE_URL}/*"
-echo -e "${BLUE}🔗 Backend:${NC}   ${BACKEND_API_URL}"
-echo -e "${BLUE}🩺 Health:${NC}    http://${DEPLOY_IP}:${EXTERNAL_PORT}/health"
-echo ""
 pm2 status
-echo ""
 free -h
