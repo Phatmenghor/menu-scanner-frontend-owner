@@ -31,9 +31,9 @@ import {
   setSearchFilter,
 } from "@/redux/features/auth/store/slice/users-slice";
 import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
-import { userCustomerTableColumns } from "@/redux/features/auth/table/user-customer-table";
 import { UserCustomerDetailModal } from "@/redux/features/auth/components/user-customer-detail-modal";
 import UserCustomerModal from "@/redux/features/auth/components/user-customer-modal";
+import { userCustomerTableColumns } from "@/redux/features/auth/table/users-customer-table";
 
 export default function UserPage() {
   const searchParams = useSearchParams();
