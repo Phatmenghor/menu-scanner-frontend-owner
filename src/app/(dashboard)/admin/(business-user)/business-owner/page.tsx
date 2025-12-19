@@ -35,6 +35,7 @@ import CreateSubscriptionModal from "@/redux/features/auth/components/create-bus
 import RenewSubscriptionModal from "@/redux/features/auth/components/renew-subscription-modal";
 import CancelSubscriptionModal from "@/redux/features/auth/components/cancel-subscription-modal";
 import ChangePlanModal from "@/redux/features/auth/components/change-plan-modal";
+import { BusinessOwnerDetailModal } from "@/redux/features/auth/components/business-owner-detail-modal";
 
 export default function BusinessUserMonitorPage() {
   const searchParams = useSearchParams();
@@ -122,27 +123,10 @@ export default function BusinessUserMonitorPage() {
     );
   }, [dispatch, debouncedSearch, filters.subscriptionStatus, filters.pageNo]);
 
-  // Event handlers
-  const handleCreateUser = () => {
-    setModalState({
-      isOpen: true,
-      mode: ModalMode.CREATE_MODE,
-      ownerId: "",
-    });
-  };
-
-  const handleEditUser = (user: BusinessOwnerResponseModel) => {
-    setModalState({
-      isOpen: true,
-      mode: ModalMode.UPDATE_MODE,
-      ownerId: user?.id || "",
-    });
-  };
-
   const handleViewUserDetail = (user: BusinessOwnerResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      ownerId: user.id || "",
+      ownerId: user.ownerId || "",
     });
   };
 
@@ -160,33 +144,36 @@ export default function BusinessUserMonitorPage() {
     });
   };
 
-  const handleRenewSubscription = (user: BusinessOwnerResponseModel) => {
+  const handleRenewSubscription = (
+    businessOwner: BusinessOwnerResponseModel
+  ) => {
     setRenewSubscriptionState({
       isOpen: true,
-      ownerId: user.ownerId || "",
-      ownerName: user.ownerFullName || "",
+      ownerId: businessOwner.ownerId || "",
+      ownerName: businessOwner.ownerFullName || "",
     });
   };
 
-  const handleCancelSubscription = (user: BusinessOwnerResponseModel) => {
+  const handleCancelSubscription = (
+    businessOwner: BusinessOwnerResponseModel
+  ) => {
     setCancelSubscriptionState({
       isOpen: true,
-      ownerId: user.ownerId || "",
-      ownerName: user.ownerFullName || "",
+      ownerId: businessOwner.ownerId || "",
+      ownerName: businessOwner.ownerFullName || "",
     });
   };
 
-  const handleChangePlan = (user: BusinessOwnerResponseModel) => {
+  const handleChangePlan = (businessOwner: BusinessOwnerResponseModel) => {
     setChangePlanState({
       isOpen: true,
-      ownerId: user.ownerId || "",
-      ownerName: user.ownerFullName || "",
+      ownerId: businessOwner.ownerId || "",
+      ownerName: businessOwner.ownerFullName || "",
     });
   };
 
   const tableHandlers = useMemo(
     () => ({
-      handleEditUser,
       handleViewUserDetail,
       handleDeleteUser,
       handleRenewSubscription,
@@ -340,15 +327,13 @@ export default function BusinessUserMonitorPage() {
       </div>
 
       {/* User Modals */}
-      <UserBusinessModal
+      <CreateSubscriptionModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
-        userId={modalState.ownerId}
-        mode={modalState.mode}
       />
 
-      <UserBusinessDetailModal
-        userId={detailModalState.ownerId}
+      <BusinessOwnerDetailModal
+        businessOwnerId={detailModalState.ownerId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />

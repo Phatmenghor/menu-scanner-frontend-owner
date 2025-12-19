@@ -10,7 +10,7 @@ import {
   BusinessOwnerResponseModel,
 } from "../store/models/response/business-owner-response";
 
-interface UserBusinessMonitorTableHandlers {
+interface BusinessOwnerTableHandlers {
   handleViewUserDetail: (user: BusinessOwnerResponseModel) => void;
   handleDeleteUser: (user: BusinessOwnerResponseModel) => void;
   handleRenewSubscription: (user: BusinessOwnerResponseModel) => void;
@@ -20,7 +20,7 @@ interface UserBusinessMonitorTableHandlers {
 
 interface BusinessOwnerTableOptions {
   data: AllBusinessOwnerResponseModel | null;
-  handlers: UserBusinessMonitorTableHandlers;
+  handlers: BusinessOwnerTableHandlers;
 }
 
 export const userBusinessOwnerTableColumns = ({

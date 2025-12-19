@@ -67,7 +67,7 @@ const businessOwnerSlice = createSlice({
       state.error = null;
     },
 
-    clearSelectedUser: (state) => {
+    clearSelectedBusinessOwner: (state) => {
       state.selectedUser = null;
     },
 
@@ -248,7 +248,7 @@ export const {
   setSubscriptionStatusFilter,
   setPageNo,
   clearError,
-  clearSelectedUser,
+  clearSelectedBusinessOwner,
   resetFilters,
   resetState,
 } = businessOwnerSlice.actions;
