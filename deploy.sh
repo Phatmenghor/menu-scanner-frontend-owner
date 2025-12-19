@@ -1,98 +1,208 @@
 #!/bin/bash
 
-# Colors for output
+# ========================================================================
+# 🚀 COMPLETE DEPLOY WITH AUTO-SWAP SETUP (Dynamic .env.production + SERVER_IP)
+# ========================================================================
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+BLUE='\033[0;34m'
+NC='\033[0m'
 
-# Function to print colored output
-print_status() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${RED}Run with: sudo bash deploy.sh${NC}"
+    exit 1
+fi
 
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Exit on any error
 set -e
 
-print_status "Starting deployment process for KSIT Mobile on port 8443..."
+clear
+echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║          🚀 AUTO-SWAP + BUILD + DEPLOY 🚀                ║${NC}"
+echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
+echo ""
 
-# Pull latest code from development branch
-print_status "Pulling latest code from development branch..."
-git pull origin development
+# ========================================================================
+# LOAD ENVIRONMENT VARIABLES
+# ========================================================================
+if [ -f ".env.production" ]; then
+    echo -e "${YELLOW}[0/9] Loading environment variables from .env.production...${NC}"
+    export $(grep -v '^#' .env.production | xargs)
+    echo -e "${GREEN}✅ Environment variables loaded${NC}"
+else
+    echo -e "${RED}❌ .env.production not found!${NC}"
+    exit 1
+fi
+echo ""
 
-# Install dependencies with force flag
-print_status "Installing dependencies..."
-npm i next --force
+# Use SERVER_IP from .env.production or auto-detect
+DEPLOY_IP=${SERVER_IP:-$(hostname -I | awk '{print $1}')}
 
-# Build the application
-print_status "Building application..."
-npm run build
+# ========================================================================
+# CHECK AND ADD SWAP
+# ========================================================================
+echo -e "${YELLOW}[1/9] Checking swap...${NC}"
 
-# Create logs directory
-print_status "Creating logs directory..."
+if [ $(free | grep Swap | awk '{print $2}') -eq 0 ]; then
+    echo "❌ No swap found. Adding 3GB swap..."
+    
+    swapoff -a 2>/dev/null || true
+    rm -f /swapfile
+    
+    fallocate -l 3G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    
+    # Make permanent
+    grep -v '/swapfile' /etc/fstab > /etc/fstab.tmp 2>/dev/null || cp /etc/fstab /etc/fstab.tmp
+    mv /etc/fstab.tmp /etc/fstab
+    echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    
+    sysctl vm.swappiness=60
+    grep -q 'vm.swappiness' /etc/sysctl.conf || echo 'vm.swappiness=60' >> /etc/sysctl.conf
+    
+    echo -e "${GREEN}✅ Swap added (3GB)${NC}"
+else
+    echo -e "${GREEN}✅ Swap already exists${NC}"
+fi
+
+echo ""
+free -h
+echo ""
+
+# ========================================================================
+# STOP PM2
+# ========================================================================
+echo -e "${YELLOW}[2/9] Stopping PM2...${NC}"
+pm2 stop $APP_NAME 2>/dev/null || true
+pm2 delete $APP_NAME 2>/dev/null || true
+sleep 3
+echo -e "${GREEN}✅ PM2 stopped${NC}"
+echo ""
+
+# ========================================================================
+# PULL CODE
+# ========================================================================
+echo -e "${YELLOW}[3/9] Pulling latest code from $GIT_BRANCH...${NC}"
+git fetch origin
+git reset --hard origin/$GIT_BRANCH
+echo -e "${GREEN}✅ Code updated${NC}"
+echo ""
+
+# ========================================================================
+# CLEANUP
+# ========================================================================
+echo -e "${YELLOW}[4/9] Cleaning cache...${NC}"
+npm cache clean --force 2>/dev/null || true
+rm -rf .next
+rm -rf node_modules/.cache
+rm -rf /tmp/* 2>/dev/null || true
+sync && echo 3 > /proc/sys/vm/drop_caches
+echo -e "${GREEN}✅ Cache cleaned${NC}"
+echo ""
+free -h
+echo ""
+
+# ========================================================================
+# INSTALL DEPENDENCIES
+# ========================================================================
+echo -e "${YELLOW}[5/9] Installing dependencies...${NC}"
+export NODE_OPTIONS="--max-old-space-size=${NODE_OPTIONS:-1400}"
+npm install --force --legacy-peer-deps
+echo -e "${GREEN}✅ Dependencies installed${NC}"
+echo ""
+
+# ========================================================================
+# BUILD
+# ========================================================================
+echo -e "${YELLOW}[6/9] Building application (5-10 min)...${NC}"
+export NODE_ENV=${NODE_ENV:-production}
+export NODE_OPTIONS="--max-old-space-size=${NODE_OPTIONS:-1400} --max-semi-space-size=32"
+
+if npm run build; then
+    echo -e "${GREEN}✅ Build successful!${NC}"
+else
+    echo -e "${RED}❌ Build failed!${NC}"
+    echo -e "${YELLOW}Try building locally instead:${NC}"
+    echo "  1. On local: npm run build"
+    echo "  2. On local: git add -f .next/BUILD_ID .next/package.json .next/server .next/static .next/types"
+    echo "  3. On local: git push"
+    echo "  4. On server: Use fast deploy script"
+    exit 1
+fi
+
+echo ""
+free -h
+echo ""
+
+# ========================================================================
+# CREATE DIRS
+# ========================================================================
+echo -e "${YELLOW}[7/9] Creating directories...${NC}"
 mkdir -p logs
+echo -e "${GREEN}✅ Directories created${NC}"
+echo ""
 
-# Stop existing PM2 process
-print_status "Stopping existing PM2 process..."
-pm2 stop ksit 2>/dev/null || true
-
-# Delete existing PM2 process
-print_status "Deleting existing PM2 process..."
-pm2 delete ksit 2>/dev/null || true
-
-# Create PM2 configuration file with port 8443
-print_status "Creating PM2 configuration for port 8443..."
-cat > pm2.config.js << 'EOF'
+# ========================================================================
+# PM2 CONFIG
+# ========================================================================
+echo -e "${YELLOW}[8/9] Creating PM2 config...${NC}"
+cat > pm2.config.js << EOF
 module.exports = {
-  apps: [
-    {
-      name: 'ksit',
-      script: 'npm',
-      args: 'start',
-      instances: 1,
-      exec_mode: 'fork',
-      watch: false,
-      env: {
-        NODE_ENV: 'production',
-        PORT: '8443',
-        EXTERNAL_PORT: '8443'
-      },
-      env_file: '.env.production',
-      log_file: './logs/app.log',
-      out_file: './logs/out.log',
-      error_file: './logs/error.log',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      merge_logs: true,
-      restart_delay: 4000,
-      max_restarts: 10,
-      min_uptime: '10s',
-      max_memory_restart: '1G',
-      autorestart: true,
-      kill_timeout: 5000,
-      listen_timeout: 10000
-    }
-  ]
+  apps: [{
+    name: '${APP_NAME}',
+    script: 'npm',
+    args: 'start',
+    instances: 1,
+    exec_mode: 'fork',
+    watch: false,
+    env: {
+      NODE_ENV: '${NODE_ENV}',
+      PORT: '${PORT}'
+    },
+    env_file: ".env.production",
+    log_file: "./logs/app.log",
+    out_file: "./logs/out.log",
+    error_file: "./logs/error.log",
+    log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+    merge_logs: true,
+    restart_delay: 4000,
+    max_restarts: 10,
+    min_uptime: "10s",
+    max_memory_restart: "800M",
+    autorestart: true,
+    kill_timeout: 5000,
+    listen_timeout: 10000
+  }]
 };
 EOF
+echo -e "${GREEN}✅ PM2 config created${NC}"
+echo ""
 
-# Start PM2 process
-print_status "Starting PM2 process on port 8443..."
+# ========================================================================
+# START PM2
+# ========================================================================
+echo -e "${YELLOW}[9/9] Starting application...${NC}"
 pm2 start pm2.config.js
-
-# Save PM2 configuration
-print_status "Saving PM2 configuration..."
+sleep 5
 pm2 save
+pm2 startup systemd -u root --hp /root 2>/dev/null || true
+echo -e "${GREEN}✅ Application started${NC}"
+echo ""
 
-print_status "🎉 Deployment completed! App running on http://152.42.219.13:8443"
+# ========================================================================
+# SUMMARY
+# ========================================================================
+echo ""
+echo -e "${GREEN}╔══════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║                 🎉 DEPLOYMENT SUCCESS! 🎉                ║${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════════════╝${NC}"
+echo ""
 
-# Show PM2 status
-print_status "Current PM2 status:"
-pm2 status
+echo -e "${BLUE}🌐 Frontend:${NC}  http://${DEPLOY_IP}:${EXTERNAL_PORT}"
+echo -e "${BLUE}🔗 API:${NC}       ${NEXT_PUBLIC_API_BASE_URL}/*"
+echo -e "${BLUE}🔗 Backend:${NC}   ${BACKEND_API_URL}"
+echo -e "${BLUE}🩺 Health:${NC}    http://${DEPLOY_IP}:${EXTERNAL_PORT}/health"
+echo
