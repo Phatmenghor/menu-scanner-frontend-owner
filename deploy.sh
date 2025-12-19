@@ -112,7 +112,7 @@ echo -e "${YELLOW}[5/9] Installing dependencies...${NC}"
 
 # Use NODE_OPTIONS from .env.production or fallback
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=1400}"
-npm install --force --legacy-peer-deps
+npm install 
 echo -e "${GREEN}✅ Dependencies installed${NC}"
 echo ""
 
