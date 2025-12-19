@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ========================================================================
-# 🚀 COMPLETE DEPLOY WITH AUTO-SWAP SETUP (Dynamic .env.production + SERVER_IP)
+# 🚀 COMPLETE DEPLOY FOR EMenu Owner Cambodia
 # ========================================================================
 
 RED='\033[0;31m'
@@ -19,7 +19,7 @@ set -e
 
 clear
 echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║          🚀 AUTO-SWAP + BUILD + DEPLOY 🚀                ║${NC}"
+echo -e "${BLUE}║          🚀 EMenu Owner Cambodia 🚀                        ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -109,7 +109,9 @@ echo ""
 # INSTALL DEPENDENCIES
 # ========================================================================
 echo -e "${YELLOW}[5/9] Installing dependencies...${NC}"
-export NODE_OPTIONS="--max-old-space-size=${NODE_OPTIONS:-1400}"
+
+# Use NODE_OPTIONS from .env.production or fallback
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=1400}"
 npm install --force --legacy-peer-deps
 echo -e "${GREEN}✅ Dependencies installed${NC}"
 echo ""
@@ -119,17 +121,13 @@ echo ""
 # ========================================================================
 echo -e "${YELLOW}[6/9] Building application (5-10 min)...${NC}"
 export NODE_ENV=${NODE_ENV:-production}
-export NODE_OPTIONS="--max-old-space-size=${NODE_OPTIONS:-1400} --max-semi-space-size=32"
+# Optional: add extra options for V8
+export NODE_OPTIONS="$NODE_OPTIONS --max-semi-space-size=32"
 
 if npm run build; then
     echo -e "${GREEN}✅ Build successful!${NC}"
 else
     echo -e "${RED}❌ Build failed!${NC}"
-    echo -e "${YELLOW}Try building locally instead:${NC}"
-    echo "  1. On local: npm run build"
-    echo "  2. On local: git add -f .next/BUILD_ID .next/package.json .next/server .next/static .next/types"
-    echo "  3. On local: git push"
-    echo "  4. On server: Use fast deploy script"
     exit 1
 fi
 
@@ -205,4 +203,7 @@ echo -e "${BLUE}🌐 Frontend:${NC}  http://${DEPLOY_IP}:${EXTERNAL_PORT}"
 echo -e "${BLUE}🔗 API:${NC}       ${NEXT_PUBLIC_API_BASE_URL}/*"
 echo -e "${BLUE}🔗 Backend:${NC}   ${BACKEND_API_URL}"
 echo -e "${BLUE}🩺 Health:${NC}    http://${DEPLOY_IP}:${EXTERNAL_PORT}/health"
-echo
+echo ""
+pm2 status
+echo ""
+free -h
