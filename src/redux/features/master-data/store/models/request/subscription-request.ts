@@ -1,6 +1,6 @@
-import { GetAllRequest } from "@/utils/common/get-all-request";
+import { BaseGetAllRequest } from "@/utils/common/get-all-request";
 
-export interface AllSubscriptionRequest extends GetAllRequest {
+export interface AllSubscriptionRequest extends BaseGetAllRequest {
   businessId?: string;
   planId?: string;
   autoRenew?: boolean;

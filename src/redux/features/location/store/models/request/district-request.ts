@@ -1,6 +1,6 @@
-import { GetAllRequest } from "@/utils/common/get-all-request";
+import { BaseGetAllRequest } from "@/utils/common/get-all-request";
 
-export interface AllDistrictRequest extends GetAllRequest {
+export interface AllDistrictRequest extends BaseGetAllRequest {
   provinceCode?: string;
 }
 

@@ -1,4 +1,4 @@
-export interface GetAllRequest {
+export interface BaseGetAllRequest {
   search?: string;
   pageNo?: number;
   pageSize?: number;

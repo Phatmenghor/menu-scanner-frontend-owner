@@ -2,6 +2,8 @@
  * User Request Types
  */
 
+import { BaseGetAllRequest } from "@/utils/common/get-all-request";
+
 /**
  * Create User Request
  */
@@ -42,15 +44,10 @@ export interface UpdateUserRequest {
 /**
  * Fetch All Users Request
  */
-export interface AllUserRequest {
-  search?: string;
+export interface AllUserRequest extends BaseGetAllRequest {
   accountStatus?: string[];
   roles?: string[];
   userTypes?: string[];
-  pageNo?: number;
-  pageSize?: number;
-  sortBy?: string;
-  sortDirection?: string;
 }
 
 /**

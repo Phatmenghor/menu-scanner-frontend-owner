@@ -1,6 +1,6 @@
-import { GetAllRequest } from "@/utils/common/get-all-request";
+import { BaseGetAllRequest } from "@/utils/common/get-all-request";
 
-export interface AllNotificationRequest extends GetAllRequest {
+export interface AllNotificationRequest extends BaseGetAllRequest {
   messageType?: string;
   priority?: string;
   isRead?: boolean;
