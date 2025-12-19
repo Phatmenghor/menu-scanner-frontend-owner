@@ -112,6 +112,10 @@ export const sidebarItems: SidebarItem[] = [
         title: "Users",
         href: ROUTES.DASHBOARD.BUSINESS_USER,
       },
+      {
+        title: "Business Owner",
+        href: ROUTES.DASHBOARD.BUSINESS_OWNER,
+      },
     ],
   },
   {

@@ -88,9 +88,9 @@ export const updateBusinessOwnerRenewService = createApiThunk<
 export const updateBusinessOwnerCancelService = createApiThunk<
   any,
   UpdateBusinessOwnerCancelParams
->("business-owners/change-plan", async ({ ownerId, businessOwnerData }) => {
+>("business-owners/cancel", async ({ ownerId, businessOwnerData }) => {
   const response = await axiosClientWithAuth.put(
-    `/api/v1/business-owners/${ownerId}/change-plan`,
+    `/api/v1/business-owners/${ownerId}/cancel`,
     businessOwnerData
   );
   return response.data.data;

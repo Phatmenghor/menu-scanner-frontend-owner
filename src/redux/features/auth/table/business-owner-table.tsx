@@ -2,14 +2,7 @@
 import { ActionButton } from "@/components/button/action-button";
 import { indexDisplay } from "@/utils/common/common";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
-import {
-  Edit,
-  Eye,
-  Trash,
-  RefreshCw,
-  XCircle,
-  ArrowRightLeft,
-} from "lucide-react";
+import { Eye, Trash, RefreshCw, XCircle, ArrowRightLeft } from "lucide-react";
 import { CustomAvatar } from "@/components/shared/avator/custom-avator";
 import { TableColumn } from "@/components/shared/common/data-table";
 import {
@@ -46,8 +39,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "index",
       label: "#",
-      minWidth: "60px",
-      maxWidth: "80px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (_, index) => (
         <span className="font-medium">
           {indexDisplay(data?.pageNo || 1, data?.pageSize || 10, index + 1)}
@@ -57,8 +50,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "avatar",
       label: "Avatar",
-      minWidth: "80px",
-      maxWidth: "100px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => {
         return (
           <CustomAvatar
@@ -72,8 +65,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "userIdentifier",
       label: "User Identifier",
-      minWidth: "150px",
-      maxWidth: "200px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground">
@@ -84,8 +77,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "ownerFullName",
       label: "Full Name",
-      minWidth: "150px",
-      maxWidth: "200px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground font-medium">
@@ -96,8 +89,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "phoneNumber",
       label: "Phone Number",
-      minWidth: "120px",
-      maxWidth: "150px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground">
@@ -108,8 +101,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "businessName",
       label: "Business Name",
-      minWidth: "150px",
-      maxWidth: "200px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground font-medium">
@@ -120,8 +113,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "businessEmail",
       label: "Business Email",
-      minWidth: "180px",
-      maxWidth: "220px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground">
@@ -132,8 +125,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "currentPlanName",
       label: "Current Plan",
-      minWidth: "120px",
-      maxWidth: "150px",
+      minWidth: "10px",
+      maxWidth: "400px",
       truncate: true,
       render: (user) => (
         <span className="text-xs text-muted-foreground font-medium">
@@ -144,8 +137,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "daysRemaining",
       label: "Days Remaining",
-      minWidth: "120px",
-      maxWidth: "150px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => {
         const daysRemaining = user?.daysRemaining || 0;
         const colorClass =
@@ -163,8 +156,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "daysActive",
       label: "Days Active",
-      minWidth: "100px",
-      maxWidth: "120px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => (
         <span className="text-xs text-muted-foreground">
           {user?.daysActive || 0} days
@@ -174,8 +167,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "subscriptionStatus",
       label: "Status",
-      minWidth: "100px",
-      maxWidth: "120px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => {
         const isActive = user?.subscriptionStatus === "ACTIVE";
         return (
@@ -194,8 +187,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "autoRenew",
       label: "Auto Renew",
-      minWidth: "100px",
-      maxWidth: "120px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => {
         const autoRenew = user?.autoRenew === true;
         return (
@@ -214,8 +207,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "createdAt",
       label: "Created At",
-      minWidth: "150px",
-      maxWidth: "180px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => (
         <span className="text-xs text-muted-foreground">
           {dateTimeFormat(user?.createdAt)}
@@ -225,8 +218,8 @@ export const userBusinessOwnerTableColumns = ({
     {
       key: "actions",
       label: "Actions",
-      minWidth: "200px",
-      maxWidth: "250px",
+      minWidth: "10px",
+      maxWidth: "400px",
       render: (user) => {
         const isActive = user?.subscriptionStatus === "ACTIVE";
 
