@@ -78,6 +78,9 @@ export enum SubscriptionStatus {
   ALL = "ALL",
   SUBSCRIBED = "SUBSCRIBED",
   NONE_SUBSCRIBE = "NONE_SUBSCRIBE",
+  ACTIVE = "ACTIVE",
+  EXPIRED = "EXPIRED",
+  EXPIRING_SOON = "EXPIRING_SOON",
 }
 
 export enum ExchangeRateStatus {

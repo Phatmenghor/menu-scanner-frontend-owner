@@ -2,9 +2,9 @@
 import { z } from "zod";
 
 /**
- * Create users Subscription Schema
+ * Create Subscription Schema
  */
-export const createUsersBusinessSchema = z.object({
+export const createBusinessOwnerSchema = z.object({
   ownerUserIdentifier: z
     .string()
     .min(1, "Owner identifier is required")
@@ -79,7 +79,7 @@ export const changePlanSchema = z.object({
 /**
  * Type definitions
  */
-export type CreateUsersBusinessData = z.infer<typeof createUsersBusinessSchema>;
+export type CreateBusinessOwnerData = z.infer<typeof createBusinessOwnerSchema>;
 export type RenewSubscriptionData = z.infer<typeof renewSubscriptionSchema>;
 export type CancelSubscriptionData = z.infer<typeof cancelSubscriptionSchema>;
 export type ChangePlanData = z.infer<typeof changePlanSchema>;

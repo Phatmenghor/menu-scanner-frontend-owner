@@ -23,13 +23,13 @@ import { ComboboxSelectSubscriptionPlan } from "@/components/shared/combo-box/co
 import {
   selectError,
   selectOperations,
-} from "../store/selectors/users-business-selectors";
+} from "../store/selectors/business-owner-selectors";
+import { clearError } from "../store/slice/business-owner-slice";
 import {
-  CreateUsersBusinessData,
-  createUsersBusinessSchema,
-} from "../store/models/schema/users-business.schema";
-import { clearError } from "../store/slice/users-business-slice";
-import { createUsersBusinessService } from "../store/thunks/users-business-thunks";
+  CreateBusinessOwnerData,
+  createBusinessOwnerSchema,
+} from "../store/models/schema/business-owner.schema";
+import { createBusinessOwnerService } from "../store/thunks/business-owner-thunks";
 
 type Props = {
   isOpen: boolean;
@@ -51,8 +51,8 @@ export default function CreateSubscriptionModal({ isOpen, onClose }: Props) {
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<CreateUsersBusinessData>({
-    resolver: zodResolver(createUsersBusinessSchema),
+  } = useForm<CreateBusinessOwnerData>({
+    resolver: zodResolver(createBusinessOwnerSchema),
     defaultValues: {
       ownerUserIdentifier: "",
       ownerEmail: "",
@@ -83,9 +83,9 @@ export default function CreateSubscriptionModal({ isOpen, onClose }: Props) {
     }
   }, [isOpen, dispatch, reset]);
 
-  const onSubmit = async (data: CreateUsersBusinessData) => {
+  const onSubmit = async (data: CreateBusinessOwnerData) => {
     try {
-      const payload: CreateUsersBusinessData = {
+      const payload: CreateBusinessOwnerData = {
         ownerUserIdentifier: data.ownerUserIdentifier,
         ownerEmail: data.ownerEmail,
         ownerPassword: data.ownerPassword,
@@ -105,7 +105,7 @@ export default function CreateSubscriptionModal({ isOpen, onClose }: Props) {
       };
 
       const result = await dispatch(
-        createUsersBusinessService(payload)
+        createBusinessOwnerService(payload)
       ).unwrap();
       showToast.success(
         `User Business Subscription for "${result.businessName}" created successfully`

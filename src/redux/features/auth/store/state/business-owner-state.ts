@@ -1,22 +1,22 @@
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
+  selectBusinessOwner,
+  selectBusinessOwnerContent,
+  selectBusinessOwnerState,
+  selectError,
   selectFilters,
   selectIsLoading,
   selectOperations,
   selectPagination,
-  selectUsers,
-  selectUsersContent,
-  selectUsersState,
-  selectError,
-} from "../selectors/users-selectors";
+} from "../selectors/business-owner-selectors";
 
-export const useUsersState = () => {
+export const useBusinessOwnerState = () => {
   const dispatch = useAppDispatch();
 
   // Redux selectors
-  const userState = useAppSelector(selectUsersState);
-  const usersData = useAppSelector(selectUsers);
-  const usersContent = useAppSelector(selectUsersContent);
+  const businessOwnerState = useAppSelector(selectBusinessOwnerState);
+  const businessOwnerData = useAppSelector(selectBusinessOwner);
+  const businessOwnerContent = useAppSelector(selectBusinessOwnerContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
@@ -24,9 +24,9 @@ export const useUsersState = () => {
   const error = useAppSelector(selectError);
 
   return {
-    userState,
-    usersData,
-    usersContent,
+    businessOwnerState,
+    businessOwnerData,
+    businessOwnerContent,
     isLoading,
     error,
     filters,

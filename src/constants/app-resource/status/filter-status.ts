@@ -52,6 +52,12 @@ export const SUBSCRIPTION_PLAN_FILTER = [
   { value: SubscriptionPlanStatus.PRIVATE, label: "Private" },
 ];
 
+export const SUBSCRIPTION_FILTER = [
+  { value: SubscriptionStatus.ALL, label: "All" },
+  { value: SubscriptionStatus.ACTIVE, label: "Actibe" },
+  { value: SubscriptionStatus.EXPIRING_SOON, label: "Expiring Soon" },
+];
+
 // Auto renew filter options
 export const AUTO_RENEW_FILTER = [
   { value: Status.ALL, label: "All Status" },

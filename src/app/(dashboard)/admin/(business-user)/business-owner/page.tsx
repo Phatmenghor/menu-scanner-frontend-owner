@@ -39,7 +39,7 @@ import { UserResponseModel } from "@/redux/features/auth/store/models/response/u
 import UserBusinessModal from "@/redux/features/auth/components/user-business-modal";
 import { UserBusinessDetailModal } from "@/redux/features/auth/components/user-business-detail-modal";
 
-export default function BusinessUserMonitorPage() {
+export default function BusinessOwnerPage() {
   const searchParams = useSearchParams();
 
   // Redux state
@@ -80,8 +80,8 @@ export default function BusinessUserMonitorPage() {
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const { updateUrlWithPage, handlePageChange } = usePagination({
-    baseRoute: ROUTES.DASHBOARD.BUSINESS_USER,
-    defaultPageSize: 10,
+    baseRoute: ROUTES.DASHBOARD.BUSINESS_OWNER,
+    defaultPageSize: 15,
   });
 
   // Initialize URL and Redux state on mount

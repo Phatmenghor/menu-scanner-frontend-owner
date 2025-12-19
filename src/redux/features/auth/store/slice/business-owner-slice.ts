@@ -1,52 +1,47 @@
 /**
- * User Management - Redux Slice
- * Manages user state: data, loading, errors, filters, operations
+ * Businses Owner Management - Redux Slice
+ * Manages Businses Owner state: data, loading, errors, filters, operations
  */
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { SubscriptionStatus } from "@/constants/app-resource/status/status";
+import { BusinessOwnerManagementState } from "../models/type/business-owner-types";
 import {
-  AccountStatus,
-  UserRole,
-} from "@/constants/app-resource/status/status";
-import {
-  createUserService,
-  deleteUserService,
-  fetchUserByIdService,
-  fetchAllUsersService,
-  toggleUserStatusService,
-  updateUserService,
-  adminChangePasswordService,
-} from "../thunks/users-thunks";
-import { UserManagementState } from "../models/type/users-types";
+  createBusinessOwnerService,
+  deleteBusinessOwnerService,
+  fetchAllBusinessOwnerService,
+  fetchBusinessOwnerByIdService,
+  updateBusinessOwnerCancelService,
+  updateBusinessOwnerChangePlanService,
+  updateBusinessOwnerRenewService,
+} from "../thunks/business-owner-thunks";
 
 /**
  * Initial state
  */
-const initialState: UserManagementState = {
+const initialState: BusinessOwnerManagementState = {
   data: null,
   selectedUser: null,
   isLoading: true,
   error: null,
   filters: {
     search: "",
-    accountStatus: AccountStatus.ALL,
-    role: UserRole.ALL,
+    accountSubscription: SubscriptionStatus.ALL,
     pageNo: 1,
   },
   operations: {
     isCreating: false,
     isUpdating: false,
     isDeleting: false,
-    isResettingPassword: false,
     isFetchingDetail: false,
   },
 };
 
 /**
- * Users slice
+ * Businses Owner slice
  */
-const usersSlice = createSlice({
-  name: "users",
+const businessOwnerSlice = createSlice({
+  name: "business-owners",
   initialState,
   reducers: {
     // Filter actions
@@ -55,13 +50,11 @@ const usersSlice = createSlice({
       state.filters.pageNo = 1;
     },
 
-    setAccountStatusFilter: (state, action: PayloadAction<AccountStatus>) => {
-      state.filters.accountStatus = action.payload;
-      state.filters.pageNo = 1;
-    },
-
-    setRoleFilter: (state, action: PayloadAction<UserRole>) => {
-      state.filters.role = action.payload;
+    setAccountSubscriptionFilter: (
+      state,
+      action: PayloadAction<AccountStatus>
+    ) => {
+      state.filters.accountSubscription = action.payload;
       state.filters.pageNo = 1;
     },
 
@@ -90,27 +83,27 @@ const usersSlice = createSlice({
   extraReducers: (builder) => {
     // Fetch users handlers - ONLY affects list loading
     builder
-      .addCase(fetchAllUsersService.pending, (state) => {
+      .addCase(fetchAllBusinessOwnerService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAllUsersService.fulfilled, (state, action) => {
+      .addCase(fetchAllBusinessOwnerService.fulfilled, (state, action) => {
         state.isLoading = false;
         state.data = action.payload;
       })
-      .addCase(fetchAllUsersService.rejected, (state, action) => {
+      .addCase(fetchAllBusinessOwnerService.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
 
     // Fetch user by ID handlers - USE SEPARATE LOADING STATE
     builder
-      .addCase(fetchUserByIdService.pending, (state) => {
+      .addCase(fetchBusinessOwnerByIdService.pending, (state) => {
         state.operations.isFetchingDetail = true;
         state.error = null;
         state.selectedUser = null;
       })
-      .addCase(fetchUserByIdService.fulfilled, (state, action) => {
+      .addCase(fetchBusinessOwnerByIdService.fulfilled, (state, action) => {
         state.operations.isFetchingDetail = false;
         state.selectedUser = action.payload;
 
@@ -124,18 +117,18 @@ const usersSlice = createSlice({
           }
         }
       })
-      .addCase(fetchUserByIdService.rejected, (state, action) => {
+      .addCase(fetchBusinessOwnerByIdService.rejected, (state, action) => {
         state.operations.isFetchingDetail = false;
         state.error = action.payload as string;
       });
 
     // Create user handlers
     builder
-      .addCase(createUserService.pending, (state) => {
+      .addCase(createBusinessOwnerService.pending, (state) => {
         state.operations.isCreating = true;
         state.error = null;
       })
-      .addCase(createUserService.fulfilled, (state, action) => {
+      .addCase(createBusinessOwnerService.fulfilled, (state, action) => {
         state.operations.isCreating = false;
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
@@ -145,18 +138,46 @@ const usersSlice = createSlice({
           );
         }
       })
-      .addCase(createUserService.rejected, (state, action) => {
+      .addCase(createBusinessOwnerService.rejected, (state, action) => {
         state.operations.isCreating = false;
         state.error = action.payload as string;
       });
 
     // Update user handlers
     builder
-      .addCase(updateUserService.pending, (state) => {
+      .addCase(updateBusinessOwnerChangePlanService.pending, (state) => {
         state.operations.isUpdating = true;
         state.error = null;
       })
-      .addCase(updateUserService.fulfilled, (state, action) => {
+      .addCase(
+        updateBusinessOwnerChangePlanService.fulfilled,
+        (state, action) => {
+          state.operations.isUpdating = false;
+          state.selectedUser = action.payload;
+
+          // Update in list
+          if (state.data) {
+            state.data.content = state.data.content.map((user) =>
+              user.id === action.payload.id ? action.payload : user
+            );
+          }
+        }
+      )
+      .addCase(
+        updateBusinessOwnerChangePlanService.rejected,
+        (state, action) => {
+          state.operations.isUpdating = false;
+          state.error = action.payload as string;
+        }
+      );
+
+    // Update user handlers
+    builder
+      .addCase(updateBusinessOwnerRenewService.pending, (state) => {
+        state.operations.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(updateBusinessOwnerRenewService.fulfilled, (state, action) => {
         state.operations.isUpdating = false;
         state.selectedUser = action.payload;
 
@@ -167,18 +188,40 @@ const usersSlice = createSlice({
           );
         }
       })
-      .addCase(updateUserService.rejected, (state, action) => {
+      .addCase(updateBusinessOwnerRenewService.rejected, (state, action) => {
+        state.operations.isUpdating = false;
+        state.error = action.payload as string;
+      });
+
+    // Update user handlers
+    builder
+      .addCase(updateBusinessOwnerCancelService.pending, (state) => {
+        state.operations.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(updateBusinessOwnerCancelService.fulfilled, (state, action) => {
+        state.operations.isUpdating = false;
+        state.selectedUser = action.payload;
+
+        // Update in list
+        if (state.data) {
+          state.data.content = state.data.content.map((user) =>
+            user.id === action.payload.id ? action.payload : user
+          );
+        }
+      })
+      .addCase(updateBusinessOwnerCancelService.rejected, (state, action) => {
         state.operations.isUpdating = false;
         state.error = action.payload as string;
       });
 
     // Delete user handlers
     builder
-      .addCase(deleteUserService.pending, (state) => {
+      .addCase(deleteBusinessOwnerService.pending, (state) => {
         state.operations.isDeleting = true;
         state.error = null;
       })
-      .addCase(deleteUserService.fulfilled, (state, action) => {
+      .addCase(deleteBusinessOwnerService.fulfilled, (state, action) => {
         state.operations.isDeleting = false;
         if (state.data) {
           state.data.content = state.data.content.filter(
@@ -193,38 +236,8 @@ const usersSlice = createSlice({
           state.data.hasPrevious = state.data.pageNo > 1;
         }
       })
-      .addCase(deleteUserService.rejected, (state, action) => {
+      .addCase(deleteBusinessOwnerService.rejected, (state, action) => {
         state.operations.isDeleting = false;
-        state.error = action.payload as string;
-      });
-
-    // Toggle user status handlers
-    builder
-      .addCase(toggleUserStatusService.pending, (state) => {
-        state.error = null;
-      })
-      .addCase(toggleUserStatusService.fulfilled, (state, action) => {
-        if (state.data) {
-          state.data.content = state.data.content.map((user) =>
-            user.id === action.payload.id ? action.payload : user
-          );
-        }
-      })
-      .addCase(toggleUserStatusService.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
-
-    // Admin change password handlers
-    builder
-      .addCase(adminChangePasswordService.pending, (state) => {
-        state.operations.isResettingPassword = true;
-        state.error = null;
-      })
-      .addCase(adminChangePasswordService.fulfilled, (state) => {
-        state.operations.isResettingPassword = false;
-      })
-      .addCase(adminChangePasswordService.rejected, (state, action) => {
-        state.operations.isResettingPassword = false;
         state.error = action.payload as string;
       });
   },
@@ -232,13 +245,12 @@ const usersSlice = createSlice({
 
 export const {
   setSearchFilter,
-  setAccountStatusFilter,
-  setRoleFilter,
+  setAccountSubscriptionFilter,
   setPageNo,
   clearError,
   clearSelectedUser,
   resetFilters,
   resetState,
-} = usersSlice.actions;
+} = businessOwnerSlice.actions;
 
-export default usersSlice.reducer;
+export default businessOwnerSlice.reducer;

@@ -20,14 +20,14 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   selectError,
   selectOperations,
-} from "../store/selectors/users-business-selectors";
+} from "../store/selectors/business-owner-selectors";
 import {
   ChangePlanData,
   changePlanSchema,
-} from "../store/models/schema/users-business.schema";
-import { clearError } from "../store/slice/users-business-slice";
-import { updateUsersBusinessChangePlanService } from "../store/thunks/users-business-thunks";
+} from "../store/models/schema/business-owner.schema";
+import { clearError } from "../store/slice/business-owner-slice";
 import { showToast } from "@/components/shared/common/show-toast";
+import { updateBusinessOwnerChangePlanService } from "../store/thunks/business-owner-thunks";
 
 type Props = {
   isOpen: boolean;
@@ -88,9 +88,9 @@ export default function ChangePlanModal({
       };
 
       await dispatch(
-        updateUsersBusinessChangePlanService({
-          userId: ownerId,
-          userData: payload,
+        updateBusinessOwnerChangePlanService({
+          ownerId,
+          businessOwnerData: payload,
         })
       ).unwrap();
 

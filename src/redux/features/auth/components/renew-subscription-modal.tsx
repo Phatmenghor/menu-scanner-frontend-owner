@@ -20,13 +20,14 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   selectError,
   selectOperations,
-} from "../store/selectors/users-business-selectors";
+} from "../store/selectors/business-owner-selectors";
 import {
   RenewSubscriptionData,
   renewSubscriptionSchema,
-} from "../store/models/schema/users-business.schema";
-import { clearError } from "../store/slice/users-business-slice";
+} from "../store/models/schema/business-owner.schema";
+import { clearError } from "../store/slice/business-owner-slice";
 import { showToast } from "@/components/shared/common/show-toast";
+import { updateBusinessOwnerRenewService } from "../store/thunks/business-owner-thunks";
 
 type Props = {
   isOpen: boolean;
@@ -87,9 +88,9 @@ export default function RenewSubscriptionModal({
       };
 
       await dispatch(
-        updateUsersBusinessRenewService({
-          userId: ownerId,
-          userData: payload,
+        updateBusinessOwnerRenewService({
+          ownerId,
+          businessOwnerData: payload,
         })
       ).unwrap();
 

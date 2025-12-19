@@ -19,14 +19,14 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   selectError,
   selectOperations,
-} from "../store/selectors/users-business-selectors";
+} from "../store/selectors/business-owner-selectors";
 import {
   CancelSubscriptionData,
   cancelSubscriptionSchema,
-} from "../store/models/schema/users-business.schema";
-import { clearError } from "../store/slice/users-business-slice";
-import { updateUsersBusinessCancelService } from "../store/thunks/users-business-thunks";
+} from "../store/models/schema/business-owner.schema";
+import { clearError } from "../store/slice/business-owner-slice";
 import { showToast } from "@/components/shared/common/show-toast";
+import { updateBusinessOwnerCancelService } from "../store/thunks/business-owner-thunks";
 
 type Props = {
   isOpen: boolean;
@@ -82,9 +82,9 @@ export default function CancelSubscriptionModal({
       };
 
       await dispatch(
-        updateUsersBusinessCancelService({
-          userId: ownerId,
-          userData: payload,
+        updateBusinessOwnerCancelService({
+          ownerId,
+          businessOwnerData: payload,
         })
       ).unwrap();
 
