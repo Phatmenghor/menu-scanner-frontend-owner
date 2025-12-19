@@ -54,7 +54,7 @@ export const SUBSCRIPTION_PLAN_FILTER = [
 
 export const SUBSCRIPTION_FILTER = [
   { value: SubscriptionStatus.ALL, label: "All" },
-  { value: SubscriptionStatus.ACTIVE, label: "Actibe" },
+  { value: SubscriptionStatus.ACTIVE, label: "Active" },
   { value: SubscriptionStatus.EXPIRING_SOON, label: "Expiring Soon" },
 ];
 
