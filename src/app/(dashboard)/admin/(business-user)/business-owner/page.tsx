@@ -294,9 +294,9 @@ export default function BusinessUserMonitorPage() {
           title="Business Owner"
           searchValue={filters.search}
           searchPlaceholder="Search business owners..."
-          buttonTooltip="Create a new subscription"
+          buttonTooltip="Create a new busines owner"
           buttonIcon={<Plus className="w-3 h-3" />}
-          buttonText="New Subscription"
+          buttonText="New"
           onSearchChange={handleSearchChange}
           openModal={handleCreateSubscription}
         >
