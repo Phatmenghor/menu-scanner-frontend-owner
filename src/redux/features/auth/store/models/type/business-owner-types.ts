@@ -5,7 +5,7 @@ import {
 
 export interface BusinessOwnerFilters {
   search: string;
-  accountSubscription: string;
+  subscriptionStatus: string;
   pageNo: number;
 }
 

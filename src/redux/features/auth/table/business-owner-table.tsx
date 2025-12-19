@@ -18,7 +18,6 @@ import {
 } from "../store/models/response/business-owner-response";
 
 interface UserBusinessMonitorTableHandlers {
-  handleEditUser: (user: BusinessOwnerResponseModel) => void;
   handleViewUserDetail: (user: BusinessOwnerResponseModel) => void;
   handleDeleteUser: (user: BusinessOwnerResponseModel) => void;
   handleRenewSubscription: (user: BusinessOwnerResponseModel) => void;
@@ -26,17 +25,16 @@ interface UserBusinessMonitorTableHandlers {
   handleChangePlan: (user: BusinessOwnerResponseModel) => void;
 }
 
-interface UserBusinessMonitorTableOptions {
+interface BusinessOwnerTableOptions {
   data: AllBusinessOwnerResponseModel | null;
   handlers: UserBusinessMonitorTableHandlers;
 }
 
-export const userBusinessMonitorTableColumns = ({
+export const userBusinessOwnerTableColumns = ({
   data,
   handlers,
-}: UserBusinessMonitorTableOptions): TableColumn<BusinessOwnerResponseModel>[] => {
+}: BusinessOwnerTableOptions): TableColumn<BusinessOwnerResponseModel>[] => {
   const {
-    handleEditUser,
     handleViewUserDetail,
     handleDeleteUser,
     handleRenewSubscription,
@@ -242,47 +240,36 @@ export const userBusinessMonitorTableColumns = ({
               size="sm"
             />
 
-            {/* Edit User */}
             <ActionButton
-              icon={<Edit className="w-4 h-4" />}
-              tooltip="Edit User"
-              onClick={() => handleEditUser(user)}
+              icon={<RefreshCw className="w-4 h-4" />}
+              tooltip="Renew Subscription"
+              onClick={() => handleRenewSubscription(user)}
               size="sm"
+              variant="outline"
+              className="text-blue-600 hover:text-blue-700"
             />
 
-            <>
-              {/* Renew Subscription */}
+            {/* Change Plan */}
+            <ActionButton
+              icon={<ArrowRightLeft className="w-4 h-4" />}
+              tooltip="Change Plan"
+              onClick={() => handleChangePlan(user)}
+              size="sm"
+              variant="outline"
+              className="text-purple-600 hover:text-purple-700"
+            />
+
+            {/* Cancel Subscription - Only show if active */}
+            {isActive && (
               <ActionButton
-                icon={<RefreshCw className="w-4 h-4" />}
-                tooltip="Renew Subscription"
-                onClick={() => handleRenewSubscription(user)}
+                icon={<XCircle className="w-4 h-4" />}
+                tooltip="Cancel Subscription"
+                onClick={() => handleCancelSubscription(user)}
                 size="sm"
                 variant="outline"
-                className="text-blue-600 hover:text-blue-700"
+                className="text-orange-600 hover:text-orange-700"
               />
-
-              {/* Change Plan */}
-              <ActionButton
-                icon={<ArrowRightLeft className="w-4 h-4" />}
-                tooltip="Change Plan"
-                onClick={() => handleChangePlan(user)}
-                size="sm"
-                variant="outline"
-                className="text-purple-600 hover:text-purple-700"
-              />
-
-              {/* Cancel Subscription - Only show if active */}
-              {isActive && (
-                <ActionButton
-                  icon={<XCircle className="w-4 h-4" />}
-                  tooltip="Cancel Subscription"
-                  onClick={() => handleCancelSubscription(user)}
-                  size="sm"
-                  variant="outline"
-                  className="text-orange-600 hover:text-orange-700"
-                />
-              )}
-            </>
+            )}
 
             {/* Delete User */}
             <ActionButton

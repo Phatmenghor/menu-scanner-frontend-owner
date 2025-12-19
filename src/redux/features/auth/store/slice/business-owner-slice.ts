@@ -26,7 +26,7 @@ const initialState: BusinessOwnerManagementState = {
   error: null,
   filters: {
     search: "",
-    accountSubscription: SubscriptionStatus.ALL,
+    subscriptionStatus: SubscriptionStatus.ALL,
     pageNo: 1,
   },
   operations: {
@@ -50,11 +50,11 @@ const businessOwnerSlice = createSlice({
       state.filters.pageNo = 1;
     },
 
-    setAccountSubscriptionFilter: (
+    setSubscriptionStatusFilter: (
       state,
-      action: PayloadAction<AccountStatus>
+      action: PayloadAction<SubscriptionStatus>
     ) => {
-      state.filters.accountSubscription = action.payload;
+      state.filters.subscriptionStatus = action.payload;
       state.filters.pageNo = 1;
     },
 
@@ -245,7 +245,7 @@ const businessOwnerSlice = createSlice({
 
 export const {
   setSearchFilter,
-  setAccountSubscriptionFilter,
+  setSubscriptionStatusFilter,
   setPageNo,
   clearError,
   clearSelectedUser,
