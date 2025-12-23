@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Include Khmer font from Google Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap");
 
 @layer utilities {
@@ -11,7 +10,6 @@
   }
 }
 
-/* Grid utilities for better layout */
 .grid-header {
   display: grid;
   gap: 1rem;
@@ -28,8 +26,12 @@
 }
 
 @layer base {
+  /* 25% smaller = 75% of original size */
+  html {
+    font-size: 75%;
+  }
+
   :root {
-    /* Enhanced color system with better UX contrast */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -37,21 +39,20 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Enhanced brand colors for better visual hierarchy */
-    --primary: 334 51% 39%; /* Brand main #A23469 */
+    --primary: 334 51% 39%;
     --primary-foreground: 0 0% 98%;
-    --primary-hover: 334 51% 34%; /* Darker for hover */
-    --primary-active: 334 51% 29%; /* Even darker for active */
+    --primary-hover: 334 51% 34%;
+    --primary-active: 334 51% 29%;
 
-    --secondary: 220 13% 95%; /* Lighter variant */
+    --secondary: 220 13% 95%;
     --secondary-foreground: 240 5.9% 10%;
     --secondary-hover: 220 13% 91%;
 
-    --muted: 220 13% 95%; /* Better neutral muted */
+    --muted: 220 13% 95%;
     --muted-foreground: 220 8.5% 46%;
     --muted-hover: 220 13% 91%;
 
-    --accent: 334 51% 95%; /* Subtle brand accent */
+    --accent: 334 51% 95%;
     --accent-foreground: 334 51% 29%;
     --accent-hover: 334 51% 91%;
 
@@ -59,15 +60,13 @@
     --destructive-foreground: 0 0% 98%;
     --destructive-hover: 0 84% 55%;
 
-    /* Enhanced border system for better visual separation */
-    --border: 220 13% 91%; /* Softer default border */
-    --border-strong: 220 13% 75%; /* For emphasis */
-    --border-subtle: 220 13% 96%; /* For gentle separation */
+    --border: 220 13% 91%;
+    --border-strong: 220 13% 75%;
+    --border-subtle: 220 13% 96%;
     --input: 220 13% 91%;
-    --input-focus: 334 51% 39%; /* Brand color for focus */
+    --input-focus: 334 51% 39%;
     --ring: 334 51% 39%;
 
-    /* Enhanced status colors with full scale */
     --success: 146 79% 41%;
     --success-foreground: 0 0% 98%;
     --success-50: 146 79% 96%;
@@ -92,19 +91,16 @@
     --info-100: 215 79% 91%;
     --info-hover: 215 79% 50%;
 
-    /* Chart colors */
     --chart-1: 334 51% 39%;
     --chart-2: 39 85% 55%;
     --chart-3: 215 79% 55%;
     --chart-4: 146 79% 41%;
     --chart-5: 2 85% 55%;
 
-    /* Enhanced spacing and sizing */
     --radius: 0.5rem;
     --card-radius: 0.75rem;
     --button-radius: 0.5rem;
 
-    /* Sidebar colors */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 334 51% 39%;
@@ -114,17 +110,14 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 334 51% 39%;
 
-    /* Enhanced surface colors for layering */
     --surface-1: 0 0% 100%;
     --surface-2: 220 13% 98%;
     --surface-3: 220 13% 95%;
 
-    /* Animation durations for consistent UX */
     --transition-fast: 150ms;
     --transition-normal: 250ms;
     --transition-slow: 350ms;
 
-    /* NProgress theme colors */
     --nprogress-color: var(--primary);
     --nprogress-height: 2px;
     --nprogress-active-height: 2px;
@@ -133,7 +126,6 @@
     --nprogress-active-shadow: 0 0 8px hsl(var(--primary) / 0.4),
       0 0 12px hsl(var(--primary) / 0.2);
 
-    /* Enhanced shadows for depth */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1),
@@ -158,7 +150,6 @@
     line-height: 1.5;
   }
 
-  /* Enhanced scrollbar styling */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -177,7 +168,6 @@
     background: hsl(var(--primary));
   }
 
-  /* Enhanced dialog styling */
   dialog {
     @apply bg-card text-card-foreground shadow-xl p-0;
     border: 1px solid hsl(var(--border));
@@ -191,7 +181,6 @@
   }
 }
 
-/* NProgress Bar Styling - Minimal & Original Size */
 #nprogress {
   pointer-events: none;
 }
@@ -203,19 +192,17 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 2px; /* Reduced from 3px to original size */
+  height: 2px;
   border-radius: 0;
-  /* Reduced shadow intensity for subtler look */
   box-shadow: 0 0 5px rgba(162, 52, 105, 0.3), 0 0 8px rgba(162, 52, 105, 0.15);
   transition: all 0.2s ease-in-out;
 }
 
-/* Simplified peg (the moving glow effect at the end) */
 #nprogress .peg {
   display: block;
   position: absolute;
   right: 0px;
-  width: 80px; /* Reduced from 100px */
+  width: 80px;
   height: 100%;
   background: linear-gradient(
     to right,
@@ -223,17 +210,14 @@
     rgba(162, 52, 105, 0.6),
     #a23469
   ) !important;
-  /* Reduced shadow for subtler effect */
   box-shadow: 0 0 8px rgba(162, 52, 105, 0.8), 0 0 4px #a23469;
-  transform: rotate(2deg) translate(0px, -2px); /* Reduced rotation and translation */
+  transform: rotate(2deg) translate(0px, -2px);
   border-radius: 0;
 }
 
-/* Active route enhancement - keep it minimal */
 body.route-changing #nprogress .bar {
   background: #a23469 !important;
-  height: 2px; /* Keep same height, don't increase */
-  /* Slightly more shadow when active but still subtle */
+  height: 2px;
   box-shadow: 0 0 8px rgba(162, 52, 105, 0.4), 0 0 12px rgba(162, 52, 105, 0.2);
 }
 
@@ -244,45 +228,28 @@ body.route-changing #nprogress .peg {
     rgba(162, 52, 105, 0.8),
     #a23469
   ) !important;
-  /* Subtle enhancement for active state */
   box-shadow: 0 0 10px rgba(162, 52, 105, 0.9), 0 0 5px #a23469;
 }
 
-/* Remove animations for cleaner look */
 #nprogress .peg {
-  animation: none; /* Remove the pulse animation */
+  animation: none;
 }
 
-/* Hide spinner completely for minimal approach */
 #nprogress .spinner {
   display: none !important;
 }
 
-/* Optional: Even more minimal version (uncomment if you want super thin) */
-/*
-#nprogress .bar {
-  height: 1px !important;
-}
-
-body.route-changing #nprogress .bar {
-  height: 1px !important;
-}
-*/
-
 @layer components {
-  /* Modern table styling with shadcn approach */
   table {
     @apply w-full text-sm;
     border-collapse: separate;
     border-spacing: 0;
   }
 
-  /* Modern table container */
   .table-container {
     @apply w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm;
   }
 
-  /* Table header with clean modern styling */
   thead {
     @apply bg-muted/50;
   }
@@ -295,7 +262,6 @@ body.route-changing #nprogress .bar {
     background: hsl(var(--muted) / 0.5);
   }
 
-  /* Clean table cells */
   td {
     @apply px-4 py-3 text-sm;
     @apply border-b border-border/50;
@@ -303,7 +269,6 @@ body.route-changing #nprogress .bar {
     transition: background-color var(--transition-fast) ease-in-out;
   }
 
-  /* Modern row styling */
   tbody tr {
     @apply transition-all duration-200 ease-in-out;
   }
@@ -316,12 +281,10 @@ body.route-changing #nprogress .bar {
     background-color: transparent;
   }
 
-  /* Remove bottom border from last row */
   tbody tr:last-child td {
     @apply border-b-0;
   }
 
-  /* Round bottom corners for last row */
   tbody tr:last-child td:first-child {
     @apply rounded-bl-lg;
   }
@@ -330,13 +293,11 @@ body.route-changing #nprogress .bar {
     @apply rounded-br-lg;
   }
 
-  /* Enhanced pagination */
   .pagination {
     @apply flex items-center justify-between mt-6 px-4 py-3 bg-card rounded-lg;
     @apply border border-border shadow-sm;
   }
 
-  /* Enhanced utility classes for status colors */
   .bg-success {
     background-color: hsl(var(--success));
   }
@@ -385,7 +346,6 @@ body.route-changing #nprogress .bar {
     color: hsl(var(--error));
   }
 
-  /* Enhanced primary variants */
   .bg-primary\/5 {
     background-color: hsl(var(--primary) / 0.05);
   }
@@ -410,7 +370,6 @@ body.route-changing #nprogress .bar {
     background-color: hsl(var(--muted-hover));
   }
 
-  /* Enhanced border utilities */
   .border-strong {
     border-color: hsl(var(--border-strong));
   }
@@ -420,7 +379,6 @@ body.route-changing #nprogress .bar {
   }
 }
 
-/* Cell truncation with responsive max-widths */
 .cell-truncate {
   white-space: nowrap;
   overflow: hidden;
