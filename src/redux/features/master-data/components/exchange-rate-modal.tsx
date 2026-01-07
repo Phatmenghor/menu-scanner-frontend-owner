@@ -37,7 +37,6 @@ import {
   selectError,
   selectIsFetchingDetail,
   selectOperations,
-  selectSelectedExchangeRate,
 } from "../store/selectors/exchange-rate-selector";
 import { getFieldError } from "@/utils/common/get-field-error";
 
